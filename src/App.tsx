@@ -199,7 +199,7 @@ export default function App() {
                       { name: 'Surface Gray', hex: '#14080C', border: 'border-space-grey-border' },
                       { name: 'Text Primary', hex: '#F5F0F2', border: 'border-transparent' },
                     ].map((color, idx) => (
-                      <div key={idx} className="flex flex-col gap-3">
+                      <div key={`${color.name}-${idx}`} className="flex flex-col gap-3">
                         <div 
                           className={`w-full aspect-square rounded-xl border ${color.border} shadow-inner bg-bg-surface`}
                           style={{ backgroundColor: color.hex }}
@@ -405,7 +405,7 @@ export default function App() {
               className="flex flex-wrap gap-4"
             >
               {['Frontend Engineering', 'Backend Systems', 'Database Design', 'UI/UX'].map((skill, idx) => (
-                <div key={idx} className="px-5 py-2.5 rounded-full border border-space-grey-border bg-bg-surface text-text-primary text-sm font-medium hover:border-[#E94560] transition-colors duration-300">
+                <div key={`${skill}-${idx}`} className="px-5 py-2.5 rounded-full border border-space-grey-border bg-bg-surface text-text-primary text-sm font-medium hover:border-[#E94560] transition-colors duration-300">
                   {skill}
                 </div>
               ))}
@@ -519,8 +519,8 @@ export default function App() {
                 features={['Shop & Sale Pages', 'Order Management', 'Admin Panel', 'Product Database', 'Dynamic Hero Banners']}
                 stack={['React', 'TypeScript', 'Tailwind', 'Node.js', 'PostgreSQL']}
                 align="left"
-                previewUrl="https://blancographics.xyz"
-                onPreview={() => setPreviewUrl("https://blancographics.xyz")}
+                previewUrl="https://dresscode-rho.vercel.app/"
+                onPreview={() => setPreviewUrl("https://dresscode-rho.vercel.app/")}
               />
             </div>
           </Section>
@@ -656,7 +656,7 @@ function ProjectCard({ num, title, tagline, description, features, stack, classN
       {images && images.length > 0 && (
         <div className={`grid gap-4 mb-8 ${images.length === 1 ? 'grid-cols-1' : images.length === 2 ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-3'}`}>
           {images.map((img, idx) => (
-            <div key={idx} className="relative aspect-video rounded-lg overflow-hidden border border-space-grey-border bg-space-grey group/img">
+            <div key={`${title}-img-${idx}`} className="relative aspect-video rounded-lg overflow-hidden border border-space-grey-border bg-space-grey group/img">
               <div className="absolute inset-0 bg-[#E94560]/20 opacity-0 group-hover/img:opacity-100 transition-opacity duration-300 z-10 pointer-events-none" />
               <img 
                 src={img} 
@@ -675,7 +675,7 @@ function ProjectCard({ num, title, tagline, description, features, stack, classN
       
       <div className="flex flex-wrap gap-2 mb-10">
         {features.map((feature, idx) => (
-          <span key={idx} className="px-3 py-1 bg-space-grey rounded-full text-xs font-medium text-text-secondary border border-space-grey-border">
+          <span key={`${title}-feat-${feature}-${idx}`} className="px-3 py-1 bg-space-grey rounded-full text-xs font-medium text-text-secondary border border-space-grey-border">
             {feature}
           </span>
         ))}
@@ -684,7 +684,7 @@ function ProjectCard({ num, title, tagline, description, features, stack, classN
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pt-8 border-t border-space-grey-border">
         <div className="flex flex-wrap gap-3">
           {stack.map((tech, idx) => (
-            <span key={idx} className="font-mono text-xs uppercase tracking-[0.1em] text-text-tertiary">
+            <span key={`${title}-stack-${tech}-${idx}`} className="font-mono text-xs uppercase tracking-[0.1em] text-text-tertiary">
               {tech}
             </span>
           ))}

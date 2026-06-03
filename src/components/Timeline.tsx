@@ -13,7 +13,7 @@ export default function Timeline({ lang }: TimelineProps) {
     <div className="relative border-l border-space-grey-border ml-4 md:ml-6 pl-8 md:pl-12 py-4 space-y-16">
       {t.jobs.map((job, idx) => (
         <motion.div 
-          key={idx}
+          key={`${job.company}-${job.role}-${idx}`}
           initial={{ opacity: 0, x: -20 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true, margin: "-100px" }}

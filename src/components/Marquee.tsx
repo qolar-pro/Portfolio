@@ -25,7 +25,7 @@ export default function Marquee({ lang }: MarqueeProps) {
         transition={{ ease: "linear", duration: 50, repeat: Infinity }}
       >
         {doubledWords.map((word, index) => (
-          <div key={index} className="flex items-center">
+          <div key={`${word}-${index}`} className="flex items-center">
             <span className="font-mono text-lg md:text-2xl font-black uppercase tracking-[0.15em] text-text-primary/70 mx-6 md:mx-12">
               {word}
             </span>
