@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, useScroll, useTransform, AnimatePresence } from 'motion/react';
 import { ArrowRight, Github, Linkedin, Twitter, Instagram, Mail, X, ExternalLink, Globe, LayoutDashboard, Database, ShoppingCart, ShieldCheck, Palette, Type, Droplets, ArrowUp } from 'lucide-react';
+import { Analytics } from '@vercel/analytics/react';
 import { LanguageCode, languageNames, translations } from './i18n';
 import Hero3D from './components/Hero3D';
 import TechCoverFlow from './components/TechCoverFlow';
@@ -56,6 +57,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-bg-base text-text-primary selection:bg-[#E94560] selection:text-white">
+      <Analytics />
       <CustomCursor />
       <AnimatePresence>
         {previewUrl && (
@@ -755,4 +757,3 @@ function SocialLink({ href, icon, label }: { href: string; icon: React.ReactNode
     </a>
   );
 }
-
