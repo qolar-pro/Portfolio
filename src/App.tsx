@@ -5,6 +5,7 @@ import { LanguageCode, languageNames, translations } from './i18n';
 import Hero3D from './components/Hero3D';
 import TechCoverFlow from './components/TechCoverFlow';
 import CustomCursor from './components/CustomCursor';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 
 import Marquee from './components/Marquee';
 import Timeline from './components/Timeline';
@@ -593,6 +594,7 @@ export default function App() {
 
         </main>
       </div>
+      <SpeedInsights />
     </div>
   );
 }
@@ -755,4 +757,3 @@ function SocialLink({ href, icon, label }: { href: string; icon: React.ReactNode
     </a>
   );
 }
-
