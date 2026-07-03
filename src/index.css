@@ -1,0 +1,88 @@
+@import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700;800;900&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Manrope", sans-serif;
+  --font-display: "Unbounded", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  --color-bg-base: #060215;
+  --color-bg-surface: #0C0722;
+  --color-space-grey: #140E30;
+  --color-space-grey-border: #2A2152;
+
+  --color-text-primary: #F2F0FF;
+  --color-text-secondary: #A9A3CC;
+  --color-text-tertiary: #6B6490;
+
+  --color-aura-violet: #8B5CF6;
+  --color-aura-cyan: #22D3EE;
+  --color-aura-fuchsia: #E879F9;
+}
+
+html {
+  background-color: var(--color-bg-base);
+  color: var(--color-text-primary);
+  scroll-behavior: smooth;
+}
+
+/* ---------- Aura design system ---------- */
+
+/* Frosted glass panel */
+.glass {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.02) 100%);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-strong {
+  background: linear-gradient(160deg, rgba(20, 14, 48, 0.85) 0%, rgba(12, 7, 34, 0.9) 100%);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Gradient aura text (as @utility so it works with variants like group-hover:) */
+@utility aura-text {
+  background-image: linear-gradient(100deg, #22D3EE 0%, #8B5CF6 45%, #E879F9 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Outlined ghost text (marquee, watermarks) */
+.text-outline {
+  -webkit-text-stroke: 1px rgba(242, 240, 255, 0.25);
+  color: transparent;
+}
+
+/* Faint blueprint grid overlay */
+.bg-grid {
+  background-image:
+    linear-gradient(rgba(139, 92, 246, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(139, 92, 246, 0.05) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, black 30%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, black 30%, transparent 75%);
+}
+
+/* Ambient aura orbs — soft glowing gradients drifting behind the content */
+.aura-orb {
+  position: fixed;
+  border-radius: 9999px;
+  filter: blur(90px);
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+/* Gradient border card (via padding-box / border-box trick) */
+.aura-border {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--color-bg-surface), var(--color-bg-surface)) padding-box,
+    linear-gradient(135deg, rgba(34, 211, 238, 0.5), rgba(139, 92, 246, 0.5), rgba(232, 121, 249, 0.5)) border-box;
+}
+
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.hide-scrollbar { scrollbar-width: none; }
