@@ -32,9 +32,9 @@ export const translations = {
     experience: {
       title: "EXPERIENCE", heading: "My professional journey.",
       jobs: [
-        { role: "Founder & Lead Engineer", company: "APEX Solutions", period: "2021 — Present", desc: "Directing technical strategy, architecting full-stack systems, and delivering production-ready applications for diverse businesses." },
-        { role: "Senior Full-Stack Developer", company: "Freelance", period: "2018 — 2021", desc: "Designed and implemented robust e-commerce platforms, payment gateways, and custom administrative dashboards." },
-        { role: "Frontend Engineer", company: "Digital Agency", period: "2015 — 2018", desc: "Built highly interactive, accessible, and responsive user interfaces using modern JavaScript frameworks." }
+        { role: "Founder & Lead Engineer", company: "APEX Solutions", period: "2024 — Present", desc: "Directing technical strategy, architecting full-stack systems, and delivering production-ready applications for diverse businesses." },
+        { role: "Senior Full-Stack Developer", company: "Freelance", period: "2021 — 2024", desc: "Designed and implemented robust e-commerce platforms, payment gateways, and custom administrative dashboards." },
+        { role: "Frontend Engineer", company: "Digital Agency", period: "2018 — 2021", desc: "Built highly interactive, accessible, and responsive user interfaces using modern JavaScript frameworks." }
       ]
     },
     work: {
@@ -42,7 +42,8 @@ export const translations = {
       projects: [
         { title: "APEX SHIFT", tagline: "An intelligent scheduling and shift management platform.", desc: "A comprehensive shift tracking application built for individuals and teams to manage working hours, calculate earnings, and orchestrate complex schedules. Designed for deep personalization — every field, rule, and view can be tailored to the user." },
         { title: "SURVIVING OF SOULS - SOS", tagline: "A 2D top-down survival and expedition game.", desc: "A pixel-driven top-down survival game where players manage resources, embark on procedurally generated expeditions, and navigate hostile environments through crafting, scavenging, and shelter systems." },
-        { title: "DRESSCODE E-COMMERCE STORE", tagline: "A complete fashion e-commerce platform for dresses.", desc: "A full-stack e-commerce solution built end-to-end — from a polished storefront and dynamic hero banners to a complete order pipeline, admin tooling, and a custom database layer powering it all." }
+        { title: "DRESSCODE E-COMMERCE STORE", tagline: "A complete fashion e-commerce platform for dresses.", desc: "A full-stack e-commerce solution built end-to-end — from a polished storefront and dynamic hero banners to a complete order pipeline, admin tooling, and a custom database layer powering it all." },
+        { title: "A25 — THE AGENCY", tagline: "A production website for a licensed workforce recruitment agency.", desc: "The live multilingual site of A25 (a25.mk), a licensed recruitment agency connecting North Macedonian businesses with verified workforce from Asia. Built with employer and candidate application flows, a custom live-chat widget with Telegram-powered replies, and automated email notifications." }
       ]
     },
     stack: { title: "STACK", heading: "My technical ecosystem." },
@@ -70,9 +71,9 @@ export const translations = {
     experience: {
       title: "ΕΜΠΕΙΡΙΑ", heading: "Η επαγγελματική μου πορεία.",
       jobs: [
-        { role: "Founder & Lead Engineer", company: "APEX Solutions", period: "2021 — Σήμερα", desc: "Διεύθυνση τεχνικής στρατηγικής και αρχιτεκτονικής συστημάτων full-stack." },
-        { role: "Senior Full-Stack Developer", company: "Ελεύθερος Επαγγελματίας", period: "2018 — 2021", desc: "Σχεδιασμός και υλοποίηση πλατφορμών ηλεκτρονικού εμπορίου και διαχειριστικών συστημάτων." },
-        { role: "Frontend Engineer", company: "Digital Agency", period: "2015 — 2018", desc: "Ανάπτυξη διαδραστικών διεπαφών χρήστη με σύγχρονα framework." }
+        { role: "Founder & Lead Engineer", company: "APEX Solutions", period: "2024 — Σήμερα", desc: "Διεύθυνση τεχνικής στρατηγικής και αρχιτεκτονικής συστημάτων full-stack." },
+        { role: "Senior Full-Stack Developer", company: "Ελεύθερος Επαγγελματίας", period: "2021 — 2024", desc: "Σχεδιασμός και υλοποίηση πλατφορμών ηλεκτρονικού εμπορίου και διαχειριστικών συστημάτων." },
+        { role: "Frontend Engineer", company: "Digital Agency", period: "2018 — 2021", desc: "Ανάπτυξη διαδραστικών διεπαφών χρήστη με σύγχρονα framework." }
       ]
     },
     work: {
@@ -80,7 +81,8 @@ export const translations = {
       projects: [
         { title: "APEX SHIFT", tagline: "Μια έξυπνη πλατφόρμα διαχείρισης βαρδιών.", desc: "Μια ολοκληρωμένη εφαρμογή για άτομα και ομάδες, για διαχείριση ωρών εργασίας, υπολογισμό εσόδων και οργάνωση χρονοδιαγραμμάτων. Πλήρως προσαρμόσιμη." },
         { title: "SURVIVING OF SOULS - SOS", tagline: "Ένα 2D παιχνίδι επιβίωσης και εξερεύνησης.", desc: "Ένα top-down παιχνίδι επιβίωσης όπου διαχειρίζεστε πόρους, εξερευνάτε διαδικαστικά δημιουργημένους κόσμους και επιβιώνετε." },
-        { title: "DRESSCODE E-COMMERCE STORE", tagline: "Μια ολοκληρωμένη πλατφόρμα e-commerce.", desc: "Μια full-stack λύση e-commerce — από τη βιτρίνα καταστήματος έως τον πίνακα διαχείρισης και τη βάση δεδομένων." }
+        { title: "DRESSCODE E-COMMERCE STORE", tagline: "Μια ολοκληρωμένη πλατφόρμα e-commerce.", desc: "Μια full-stack λύση e-commerce — από τη βιτρίνα καταστήματος έως τον πίνακα διαχείρισης και τη βάση δεδομένων." },
+        { title: "A25 — THE AGENCY", tagline: "Επαγγελματική ιστοσελίδα για αδειοδοτημένο γραφείο στρατολόγησης προσωπικού.", desc: "Το πολύγλωσσο live site της A25 (a25.mk), ενός αδειοδοτημένου γραφείου που συνδέει μακεδονικές επιχειρήσεις με επαληθευμένο εργατικό δυναμικό από την Ασία. Περιλαμβάνει φόρμες αιτήσεων για εργοδότες και υποψηφίους, custom live chat με απαντήσεις μέσω Telegram και αυτόματες ειδοποιήσεις email." }
       ]
     },
     stack: { title: "ΤΕΧΝΟΛΟΓΙΕΣ", heading: "Το τεχνικό μου οικοσύστημα." },
@@ -104,12 +106,12 @@ export const translations = {
     experience: {
       title: "ERFAHRUNG", heading: "Meine berufliche Reise.",
       jobs: [
-        { role: "Founder & Lead Engineer", company: "APEX Solutions", period: "2021 — Heute", desc: "Leitung der technischen Strategie und Architektur von Full-Stack-Systemen." },
-        { role: "Senior Full-Stack Developer", company: "Freelance", period: "2018 — 2021", desc: "Entwurf und Implementierung robuster E-Commerce-Plattformen." },
-        { role: "Frontend Engineer", company: "Digital Agency", period: "2015 — 2018", desc: "Entwicklung interaktiver Benutzeroberflächen." }
+        { role: "Founder & Lead Engineer", company: "APEX Solutions", period: "2024 — Heute", desc: "Leitung der technischen Strategie und Architektur von Full-Stack-Systemen." },
+        { role: "Senior Full-Stack Developer", company: "Freelance", period: "2021 — 2024", desc: "Entwurf und Implementierung robuster E-Commerce-Plattformen." },
+        { role: "Frontend Engineer", company: "Digital Agency", period: "2018 — 2021", desc: "Entwicklung interaktiver Benutzeroberflächen." }
       ]
     },
-    work: { title: "ARBEITEN", heading: "Veröffentlichte Projekte.", projects: [ { title: "APEX SHIFT", tagline: "Intelligente Planung.", desc: "Umfassende Zeiterfassung." }, { title: "SURVIVING OF SOULS", tagline: "2D-Survival-Spiel.", desc: "Ressourcen-Management." }, { title: "DRESSCODE", tagline: "E-Commerce Lösung.", desc: "Full-Stack Shop." } ] },
+    work: { title: "ARBEITEN", heading: "Veröffentlichte Projekte.", projects: [ { title: "APEX SHIFT", tagline: "Intelligente Planung.", desc: "Umfassende Zeiterfassung." }, { title: "SURVIVING OF SOULS", tagline: "2D-Survival-Spiel.", desc: "Ressourcen-Management." }, { title: "DRESSCODE", tagline: "E-Commerce Lösung.", desc: "Full-Stack Shop." }, { title: "A25 — THE AGENCY", tagline: "Website einer Personalagentur.", desc: "Mehrsprachige Live-Website mit Bewerbungsformularen, Live-Chat und Telegram-Integration." } ] },
     stack: { title: "STACK", heading: "Mein technisches Ökosystem." },
     contact: { title: "KONTAKT", heading: "Lass uns etwas bauen.", desc: "Bereit für Ihre Ideen?", resume: "Lebenslauf ansehen", email: "E-Mail senden" }
   },
@@ -127,12 +129,12 @@ export const translations = {
     experience: {
       title: "EXPÉRIENCE", heading: "Mon parcours professionnel.",
       jobs: [
-        { role: "Fondateur & Lead Engineer", company: "APEX Solutions", period: "2021 — Présent", desc: "Direction de la stratégie technique globale." },
-        { role: "Développeur Full-Stack", company: "Freelance", period: "2018 — 2021", desc: "Conception de plateformes e-commerce." },
-        { role: "Développeur Frontend", company: "Digital Agency", period: "2015 — 2018", desc: "Développement d'interfaces utilisateur interactives." }
+        { role: "Fondateur & Lead Engineer", company: "APEX Solutions", period: "2024 — Présent", desc: "Direction de la stratégie technique globale." },
+        { role: "Développeur Full-Stack", company: "Freelance", period: "2021 — 2024", desc: "Conception de plateformes e-commerce." },
+        { role: "Développeur Frontend", company: "Digital Agency", period: "2018 — 2021", desc: "Développement d'interfaces utilisateur interactives." }
       ]
     },
-    work: { title: "TRAVAUX", heading: "Mes réalisations.", projects: [ { title: "APEX SHIFT", tagline: "Planification.", desc: "Application de suivi des quarts." }, { title: "SURVIVING OF SOULS", tagline: "Jeu de survie 2D.", desc: "Jeu de survie avec gestion des ressources." }, { title: "DRESSCODE", tagline: "Boutique en ligne.", desc: "Solution e-commerce full-stack." } ] },
+    work: { title: "TRAVAUX", heading: "Mes réalisations.", projects: [ { title: "APEX SHIFT", tagline: "Planification.", desc: "Application de suivi des quarts." }, { title: "SURVIVING OF SOULS", tagline: "Jeu de survie 2D.", desc: "Jeu de survie avec gestion des ressources." }, { title: "DRESSCODE", tagline: "Boutique en ligne.", desc: "Solution e-commerce full-stack." }, { title: "A25 — THE AGENCY", tagline: "Site d'une agence de recrutement.", desc: "Site multilingue en production avec formulaires de candidature, chat en direct et intégration Telegram." } ] },
     stack: { title: "TECHNOLOGIES", heading: "Mon écosystème technique." },
     contact: { title: "CONTACT", heading: "Construisons ensemble.", desc: "Prêt à transformer vos idées ?", resume: "Voir le CV", email: "Envoyer un e-mail" }
   },
@@ -150,12 +152,12 @@ export const translations = {
     experience: {
       title: "ИСКУСТВО", heading: "Моето професионално патување.",
       jobs: [
-        { role: "Основач и Главен Инженер", company: "APEX Solutions", period: "2021 — Денес", desc: "Насочување на техничката стратегија." },
-        { role: "Full-Stack Програмер", company: "Freelance", period: "2018 — 2021", desc: "Дизајн и имплементација на е-трговија платформи." },
-        { role: "Frontend Програмер", company: "Digital Agency", period: "2015 — 2018", desc: "Изградба на интерактивни кориснички интерфејси." }
+        { role: "Основач и Главен Инженер", company: "APEX Solutions", period: "2024 — Денес", desc: "Насочување на техничката стратегија." },
+        { role: "Full-Stack Програмер", company: "Freelance", period: "2021 — 2024", desc: "Дизајн и имплементација на е-трговија платформи." },
+        { role: "Frontend Програмер", company: "Digital Agency", period: "2018 — 2021", desc: "Изградба на интерактивни кориснички интерфејси." }
       ]
     },
-    work: { title: "РАБОТА", heading: "Мои проекти.", projects: [ { title: "APEX SHIFT", tagline: "Платформа за смени.", desc: "Апликација за следење смени." }, { title: "SURVIVING OF SOULS", tagline: "2D игра.", desc: "Игра со преживување." }, { title: "DRESSCODE", tagline: "Е-трговија.", desc: "Full-stack решение." } ] },
+    work: { title: "РАБОТА", heading: "Мои проекти.", projects: [ { title: "APEX SHIFT", tagline: "Платформа за смени.", desc: "Апликација за следење смени." }, { title: "SURVIVING OF SOULS", tagline: "2D игра.", desc: "Игра со преживување." }, { title: "DRESSCODE", tagline: "Е-трговија.", desc: "Full-stack решение." }, { title: "A25 — THE AGENCY", tagline: "Веб-страница за агенција за вработување.", desc: "Повеќејазична продукциска страница со формулари за апликации, чет во живо и Telegram интеграција." } ] },
     stack: { title: "ТЕХНОЛОГИИ", heading: "Мојот технички екосистем." },
     contact: { title: "КОНТАКТ", heading: "Ајде да градиме.", desc: "Подготвени сте?", resume: "Биографија", email: "Испрати Емаил" }
   },
@@ -173,12 +175,12 @@ export const translations = {
     experience: {
       title: "ESPERIENZA", heading: "Il mio percorso professionale.",
       jobs: [
-        { role: "Fondatore e Lead Engineer", company: "APEX Solutions", period: "2021 — Presente", desc: "Direzione della strategia tecnica." },
-        { role: "Sviluppatore Full-Stack", company: "Freelance", period: "2018 — 2021", desc: "Progettazione di piattaforme e-commerce." },
-        { role: "Sviluppatore Frontend", company: "Digital Agency", period: "2015 — 2018", desc: "Sviluppo di interfacce utente interattive." }
+        { role: "Fondatore e Lead Engineer", company: "APEX Solutions", period: "2024 — Presente", desc: "Direzione della strategia tecnica." },
+        { role: "Sviluppatore Full-Stack", company: "Freelance", period: "2021 — 2024", desc: "Progettazione di piattaforme e-commerce." },
+        { role: "Sviluppatore Frontend", company: "Digital Agency", period: "2018 — 2021", desc: "Sviluppo di interfacce utente interattive." }
       ]
     },
-    work: { title: "PROGETTI", heading: "Cose che ho completato.", projects: [ { title: "APEX SHIFT", tagline: "Piattaforma turni.", desc: "App per il monitoraggio dei turni." }, { title: "SURVIVING OF SOULS", tagline: "Gioco 2D.", desc: "Sopravvivenza in un mondo pixelato." }, { title: "DRESSCODE", tagline: "E-commerce completa.", desc: "Soluzione e-commerce full-stack." } ] },
+    work: { title: "PROGETTI", heading: "Cose che ho completato.", projects: [ { title: "APEX SHIFT", tagline: "Piattaforma turni.", desc: "App per il monitoraggio dei turni." }, { title: "SURVIVING OF SOULS", tagline: "Gioco 2D.", desc: "Sopravvivenza in un mondo pixelato." }, { title: "DRESSCODE", tagline: "E-commerce completa.", desc: "Soluzione e-commerce full-stack." }, { title: "A25 — THE AGENCY", tagline: "Sito di un'agenzia di reclutamento.", desc: "Sito multilingue in produzione con moduli di candidatura, chat dal vivo e integrazione Telegram." } ] },
     stack: { title: "TECNOLOGIE", heading: "Ecosistema tecnico." },
     contact: { title: "CONTATTO", heading: "Costruiamo qualcosa.", desc: "Pronto a trasformare le tue idee?", resume: "Visualizza CV", email: "Invia Email" }
   }

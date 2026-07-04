@@ -490,43 +490,38 @@ export default function App() {
             </div>
           </Section>
 
-          {/* Experience Section */}
-          <Section num="03" title={t.experience.title} heading={t.experience.heading} id="experience">
-            <Timeline lang={lang} />
-          </Section>
-
           {/* Selected Work Section */}
-          <Section num="04" title={t.work.title} heading={t.work.heading} id="work">
+          <Section num="03" title={t.work.title} heading={t.work.heading} id="work">
             <div className="space-y-10 md:space-y-16 text-text-secondary">
               <ProjectCard
                 num="01"
-                title={t.work.projects[0].title}
-                tagline={t.work.projects[0].tagline}
-                images={['https://placehold.co/800x450/15122A/7C74B8?text=Apex+Shift+Dashboard', 'https://placehold.co/800x450/15122A/7C74B8?text=Schedule+Editor']}
-                description={t.work.projects[0].desc}
-                features={['Full Customization', 'Earnings Calculator', 'Schedule Management', 'Multi-Format Export']}
-                stack={['React', 'TypeScript', 'Tailwind', 'Node.js']}
+                title={t.work.projects[3].title}
+                tagline={t.work.projects[3].tagline}
+                images={['/images/a25-1.jpg', '/images/a25-2.jpg', '/images/a25-3.jpg']}
+                description={t.work.projects[3].desc}
+                features={['5 Languages', 'Live Chat + Telegram', 'Application Forms', 'Email Notifications', 'Live in Production']}
+                stack={['React', 'TypeScript', 'Tailwind', 'Express', 'Redis']}
                 align="left"
-                previewUrl="https://animated-valkyrie-8d4b67.netlify.app/"
-                onPreview={() => setPreviewUrl("https://animated-valkyrie-8d4b67.netlify.app/")}
+                previewUrl="https://a25.mk"
+                onPreview={() => setPreviewUrl("https://a25.mk")}
               />
               <ProjectCard
                 num="02"
-                title={t.work.projects[1].title}
-                tagline={t.work.projects[1].tagline}
-                images={['https://placehold.co/800x450/15122A/7C74B8?text=SoS+Gameplay', 'https://placehold.co/800x450/15122A/7C74B8?text=Inventory+System', 'https://placehold.co/800x450/15122A/7C74B8?text=World+Map']}
-                description={t.work.projects[1].desc}
-                features={['Survival Mechanics', 'Expedition System', 'Procedural Worlds', 'Resource Management']}
-                stack={['TypeScript', 'Canvas', 'Game Loop', 'Pathfinding']}
+                title={t.work.projects[0].title}
+                tagline={t.work.projects[0].tagline}
+                images={['/images/apex-1.jpg', '/images/apex-2.jpg', '/images/apex-3.jpg']}
+                description={t.work.projects[0].desc}
+                features={['Full Customization', 'Earnings Calculator', 'Schedule Management', 'Multi-Format Export']}
+                stack={['React', 'TypeScript', 'Tailwind', 'Node.js']}
                 align="right"
-                previewUrl="https://celadon-crostata-316852.netlify.app/"
-                onPreview={() => setPreviewUrl("https://celadon-crostata-316852.netlify.app/")}
+                previewUrl="https://animated-valkyrie-8d4b67.netlify.app/"
+                onPreview={() => setPreviewUrl("https://animated-valkyrie-8d4b67.netlify.app/")}
               />
               <ProjectCard
                 num="03"
                 title={t.work.projects[2].title}
                 tagline={t.work.projects[2].tagline}
-                images={['https://placehold.co/800x450/15122A/7C74B8?text=DressCode+Storefront', 'https://placehold.co/800x450/15122A/7C74B8?text=Product+Details']}
+                images={['/images/dresscode-1.jpg', '/images/dresscode-2.jpg', '/images/dresscode-3.jpg']}
                 description={t.work.projects[2].desc}
                 features={['Shop & Sale Pages', 'Order Management', 'Admin Panel', 'Product Database', 'Dynamic Hero Banners']}
                 stack={['React', 'TypeScript', 'Tailwind', 'Node.js', 'PostgreSQL']}
@@ -534,7 +529,24 @@ export default function App() {
                 previewUrl="https://dresscode-rho.vercel.app/"
                 onPreview={() => setPreviewUrl("https://dresscode-rho.vercel.app/")}
               />
+              <ProjectCard
+                num="04"
+                title={t.work.projects[1].title}
+                tagline={t.work.projects[1].tagline}
+                images={['/images/sos-1.jpg']}
+                description={t.work.projects[1].desc}
+                features={['Survival Mechanics', 'Expedition System', 'Procedural Worlds', 'Resource Management']}
+                stack={['TypeScript', 'Canvas', 'Game Loop', 'Pathfinding']}
+                align="right"
+                previewUrl="https://celadon-crostata-316852.netlify.app/"
+                onPreview={() => setPreviewUrl("https://celadon-crostata-316852.netlify.app/")}
+              />
             </div>
+          </Section>
+
+          {/* Experience Section */}
+          <Section num="04" title={t.experience.title} heading={t.experience.heading} id="experience">
+            <Timeline lang={lang} />
           </Section>
 
           {/* Stack Section */}
