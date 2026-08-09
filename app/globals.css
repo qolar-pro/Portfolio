@@ -1,215 +1,104 @@
 @import 'tailwindcss';
 
-@theme {
-  /* ---- Surfaces ---- */
-  --color-void: #030309;
-  --color-carbon: #0b0b14;
-  --color-steel: #14141f;
-
-  /* ---- Type ---- */
-  --color-fog: #f2f2f7;
-  --color-mist: #9a9aaf;
-  --color-ghost: #5a5a70;
-
-  /* ---- Neon accents ---- */
-  --color-volt: #4d7cff;
-  --color-plasma: #8a5cff;
-  --color-flare: #ff4fd8;
-
-  --font-display: var(--font-clash), sans-serif;
-  --font-sans: var(--font-general), sans-serif;
-  --font-mono: var(--font-jbmono), monospace;
-
-  --ease-cine: cubic-bezier(0.16, 1, 0.3, 1);
-}
+/*
+ * PHASE 0 BASELINE ONLY.
+ *
+ * Phase 1 owns the real design system — measured contrast, the type scale,
+ * the measure cap and the motion budget (SPEC §3, PHASE_1_design_system.md).
+ * What is here is the minimum needed to render legible stubs, plus the two
+ * structural commitments Phase 1 will build on:
+ *
+ *   1. Font families bind through role variables, never directly. SPEC §11
+ *      leaves the typeface choice open, so swapping it must stay a one-file
+ *      change.
+ *   2. Every colour is declared at :root first, then redefined per theme.
+ *      A colour whose only definition sits inside a media query never applies
+ *      in the un-stamped system-default state.
+ */
 
 :root {
-  color-scheme: dark;
+  /* Type roles — families are placeholders pending the SPEC §11 ruling. */
+  --font-display: ui-sans-serif, system-ui, sans-serif;
+  --font-body: ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+
+  /* Light palette. Phase 1 replaces these with measured values. */
+  --ground: #ffffff;
+  --surface: #f4f4f5;
+  --ink: #18181b;
+  --ink-soft: #3f3f46;
+  --muted: #71717a;
+  --rule: #d4d4d8;
+  --accent: #b83e14;
+
+  /* SPEC §3.2 — running text is capped at 65-75 characters. */
+  --measure: 68ch;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --ground: #0c0d0f;
+    --surface: #17181b;
+    --ink: #e7e7ea;
+    --ink-soft: #c1c1c7;
+    --muted: #8b8b93;
+    --rule: #2c2d31;
+    --accent: #e9743f;
+  }
+}
+
+:root[data-theme='dark'] {
+  --ground: #0c0d0f;
+  --surface: #17181b;
+  --ink: #e7e7ea;
+  --ink-soft: #c1c1c7;
+  --muted: #8b8b93;
+  --rule: #2c2d31;
+  --accent: #e9743f;
+}
+
+@theme inline {
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --font-mono: var(--font-mono);
+
+  --color-ground: var(--ground);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-muted: var(--muted);
+  --color-rule: var(--rule);
+  --color-accent: var(--accent);
 }
 
 html {
-  background: var(--color-void);
-}
-
-/* Lenis owns scrolling */
-html.lenis,
-html.lenis body {
-  height: auto;
-}
-.lenis.lenis-smooth {
-  scroll-behavior: auto !important;
-}
-.lenis.lenis-stopped {
-  overflow: hidden;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: var(--color-void);
-  color: var(--color-fog);
-  font-family: var(--font-sans);
-  overflow-x: clip;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--font-body);
+  /* SPEC §3.3 — body copy is >=16px at near-normal tracking. The old site
+     styled body-adjacent text as a label (11px, 0.35em); that is the failure
+     mode this baseline exists to prevent from creeping back. */
+  font-size: 1.0625rem;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
 }
 
-::selection {
-  background: var(--color-plasma);
-  color: white;
-}
-
-/* Native cursor hidden only where the custom cursor exists */
-@media (pointer: fine) {
-  body[data-custom-cursor='true'],
-  body[data-custom-cursor='true'] a,
-  body[data-custom-cursor='true'] button {
-    cursor: none;
-  }
-}
-
-/* Minimal scrollbar, tuned to the void */
-::-webkit-scrollbar {
-  width: 10px;
-}
-::-webkit-scrollbar-track {
-  background: var(--color-void);
-}
-::-webkit-scrollbar-thumb {
-  background: #1c1c2b;
-  border-radius: 8px;
-  border: 2px solid var(--color-void);
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #2a2a40;
-}
-
-/* ---------------------------------------------------------------- */
-/* Materials                                                         */
-/* ---------------------------------------------------------------- */
-
-/* Smoked glass panel — hairline edge, faint inner light */
-.panel-glass {
-  background: linear-gradient(155deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.012) 55%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-}
-
-/* Brushed metal — vertical grain sheen for headers / rails */
-.panel-metal {
-  background:
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.022) 0 1px, transparent 1px 3px),
-    linear-gradient(180deg, #16161f, #0c0c13);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-}
-
-/* Hollow display type */
-.text-hollow {
-  -webkit-text-stroke: 1.5px rgba(242, 242, 247, 0.55);
-  color: transparent;
-}
-.text-hollow-accent {
-  -webkit-text-stroke: 1.5px rgba(138, 92, 255, 0.85);
-  color: transparent;
-}
-
-/* Neon gradient text */
-.text-neon {
-  background: linear-gradient(100deg, var(--color-volt), var(--color-plasma) 50%, var(--color-flare));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-/* Masked-line reveal primitives (driven by GSAP) */
-.line-mask {
-  display: block;
-  overflow: hidden;
-}
-.line-mask > * {
-  display: block;
-  transform: translateY(115%);
-  will-change: transform;
-}
-
-/* Film grain for the static (no-WebGL) tier — canvas tiers get real grain in post */
-.grain-overlay {
-  position: fixed;
-  inset: -100%;
-  z-index: 5;
-  pointer-events: none;
-  opacity: 0.05;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  animation: grain-shift 0.9s steps(4) infinite;
-}
-@keyframes grain-shift {
-  0% { transform: translate(0, 0); }
-  25% { transform: translate(-2%, 1%); }
-  50% { transform: translate(1%, -2%); }
-  75% { transform: translate(-1%, 2%); }
-  100% { transform: translate(2%, -1%); }
-}
-
-/* ---------------------------------------------------------------- */
-/* Character-roll hover (see components/TextRoll.tsx)                 */
-/* ---------------------------------------------------------------- */
-
-.textroll {
-  display: inline-flex;
-  overflow: hidden;
-  vertical-align: bottom;
-}
-.textroll-char {
-  position: relative;
-  display: inline-block;
-  transition: transform 0.5s var(--ease-cine);
-}
-.textroll-glyph {
-  display: inline-block;
-  white-space: pre;
-}
-.textroll-twin {
-  position: absolute;
-  left: 0;
-  top: 100%;
-}
-.roll-trigger:hover .textroll-char {
-  transform: translateY(-100%);
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .textroll-char {
-    transition: none;
-  }
-  .roll-trigger:hover .textroll-char {
-    transform: none;
-  }
-}
-
-/* hero scroll-cue pulse (global so Tailwind's arbitrary animation can reference it) */
-@keyframes cue-drop {
-  0% { transform: translateY(-100%); }
-  100% { transform: translateY(400%); }
-}
-
-/* floating detail shots on the work stages */
-@keyframes thumb-bob-kf {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-9px); }
-}
-.thumb-bob {
-  animation: thumb-bob-kf 4.6s ease-in-out infinite;
-}
-@media (prefers-reduced-motion: reduce) {
-  .thumb-bob {
-    animation: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .grain-overlay {
-    animation: none;
-  }
-  .line-mask > * {
-    transform: none;
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
