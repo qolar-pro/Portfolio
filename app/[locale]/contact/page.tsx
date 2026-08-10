@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import PageStub from '@/components/PageStub';
+import ContactPage from '@/components/ContactPage';
 import { isLocale } from '@/lib/locales';
-import { contentFor, pageMetadata } from '@/lib/content';
+import { pageMetadata } from '@/lib/content';
 
-const PATH = "contact";
-const KEY = "contact";
+const PATH = 'contact';
+const KEY = 'contact';
 
 export async function generateMetadata({
   params,
@@ -17,9 +17,15 @@ export async function generateMetadata({
   return pageMetadata(KEY, PATH, locale);
 }
 
-export default async function Page({ params }: { params: Promise<{ locale: string }> }) {
+export default async function Page({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
-  const meta = contentFor(locale).meta[KEY];
-  return <PageStub title={meta.title} note={meta.description} />;
+  const sp = await searchParams;
+  return <ContactPage locale={locale} searchParams={sp} />;
 }

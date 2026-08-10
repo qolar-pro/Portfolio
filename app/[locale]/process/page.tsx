@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import PageStub from '@/components/PageStub';
+import ProcessPage from '@/components/ProcessPage';
 import { isLocale } from '@/lib/locales';
-import { contentFor, pageMetadata } from '@/lib/content';
+import { pageMetadata } from '@/lib/content';
 
-const PATH = "process";
-const KEY = "process";
+const PATH = 'process';
+const KEY = 'process';
 
 export async function generateMetadata({
   params,
@@ -20,6 +20,5 @@ export async function generateMetadata({
 export default async function Page({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
-  const meta = contentFor(locale).meta[KEY];
-  return <PageStub title={meta.title} note={meta.description} />;
+  return <ProcessPage locale={locale} />;
 }

@@ -22,7 +22,7 @@
 | 3 — Core pages | DONE | — | Homepage (7 blocks) + 4 service pages, composed from content. See DD-17. |
 | 4 — Pricing + configurator | DONE | — | `/pricing` explains how, never how much. Configurator returns a range. Base rates need owner sign-off (DD-23). |
 | 5 — Case studies | DONE | — | `/work`, 3 case studies, `/lab`. Images renamed + `next/image`. See DD-24. |
-| 6 — Process / Studio / Contact | NOT STARTED | — | — |
+| 6 — Process / Studio / Contact | DONE | — | Configurator brief round-trips through the URL, server-rendered. Booking tool still unchosen — OQ-7. |
 | 7 — WebGL concentration | NOT STARTED | — | Forge hero + perf budget enforcement. |
 | 8 — Localization | NOT STARTED | — | EL, MK. |
 | 9 — SEO / schema / migration | NOT STARTED | — | — |
@@ -908,3 +908,85 @@ reader learns how the studio thinks rather than what it achieved.
 
 **Binding:** do not add a metric to any case study until the client supplies
 it in writing. If one arrives, cite the client as its source.
+
+---
+
+### Phase 6 — Process, Studio, Contact (Director, direct)
+
+**What was built**
+
+- `/process` — four steps, all nine covered stages verified present in the
+  built HTML, plus a "what I need from you" block
+- `/studio` — founder-forward, degrades honestly without a photo
+- `/contact` — reads the configurator brief from the URL, server-side
+
+**Verified end to end**
+
+```
+GET /en/contact?type=store&scale=medium&catalogue=c1000&locales=l2&cms=yes&design=scratch&motion=considered
+  → renders: An online store · 100 to 1,000 products · Two languages ·
+    Self-editable content · Design it from scratch · Considered movement
+    Indicative range €12,400 – €18,600
+
+GET /en/contact?type=EVIL&...
+  → brief not rendered (0 occurrences). Invalid values are rejected rather
+    than reaching estimate() and producing an authoritative-looking figure.
+```
+
+Both with JavaScript disabled — the brief is read from the URL on the server.
+That matters more than it sounds: the most common thing a visitor does with a
+configured quote is send the link to whoever actually decides.
+
+**Cost of that choice, recorded:** using `searchParams` makes `/contact`
+dynamically rendered rather than static, in all three locales. Accepted —
+contact is low-traffic and the parameter round-trip is the feature.
+
+**On the missing founder photo:** `/studio` renders without substituting an
+avatar, monogram or stock portrait. A placeholder face on an "about the
+founder" page reads as an agency performing intimacy, which forfeits exactly
+the trust DD-4 exists to buy. An absent photo reads as a page still being
+finished; a fake one reads as dishonest.
+
+**Definition of Done**
+
+- [x] `/process` renders four steps and all nine covered stages
+- [x] `/studio` renders and degrades honestly without a photo
+- [x] `/contact` reads configurator params and displays the brief
+- [x] Brief display works with JavaScript disabled
+- [x] Invalid params rejected
+- [x] No price figures outside the configurator round-trip
+- [x] `npm run build` and `npm run lint` pass
+- [ ] **Booking calendar — not built.** See OQ-7.
+
+---
+
+## Open Questions (live)
+
+### OQ-7 — Booking tool and transactional email · *blocks launch*
+
+SPEC §4 specifies `/contact` as "a booking calendar, not a mailto." That needs
+two things the studio has not chosen: a scheduling tool (Cal.com, Calendly) and
+a transactional email service (Resend, Postmark) for a real form.
+
+`/contact` currently composes the brief into a `mailto:`, marked `INTERIM` in
+`components/ContactPage.tsx`. Shipping that silently would have quietly done
+the thing the spec rules out, so it is flagged rather than absorbed.
+
+**Needed from the owner:** which scheduling tool, and whether a form that
+posts server-side is wanted over a mail client handoff.
+
+### OQ-8 — The configurator has no market modifier · *affects credibility*
+
+The same configuration returns one figure regardless of where the client is.
+A store at 100–1,000 products currently quotes **€12,400–18,600** — a
+defensible Athens or London number, and far outside the Macedonian market,
+where local studios list stores at €500–2,500.
+
+DD-2 makes Greece, North Macedonia and English-speaking markets all
+first-class. A single price scale cannot serve three markets whose local rates
+differ by roughly 3×, and quoting a Skopje client an Athens figure loses them
+before they reply.
+
+**Needed from the owner:** whether to add a market selector, and what the
+Macedonian multiplier should be. This compounds with DD-23 — the base rates are
+themselves unapproved.
