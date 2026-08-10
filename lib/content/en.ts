@@ -28,7 +28,10 @@ export const en: LocaleContent = {
       lab: 'Lab',
       contact: 'Contact',
     },
-    footerNote: 'Designed and built in-house, in Greece and North Macedonia.',
+    // Made in Greece. NovaFaber serves North Macedonia (A25 is a Macedonian
+    // client) but is not based there — see DD-19. Serving a market and being
+    // established in it are different claims, and only one of them is true.
+    footerNote: 'Designed and built in-house, in Greece.',
     ctaBook: 'Book a call',
     ctaQuote: 'Get a quote',
   },
@@ -263,13 +266,13 @@ export const en: LocaleContent = {
       flagship: false,
     },
     {
-      id: 'shift',
-      name: 'Shift',
+      id: 'nova-shift',
+      name: 'Nova Shift',
       tagline: 'Scheduling and earnings for people who bill by the hour.',
       summary:
         'A scheduling platform where hours, rates and rotations are orchestrated in one place — and where every field, rule and view bends to the individual using it.',
       body: [
-        'Shift is a scheduling and earnings tool for individuals and teams who bill by the hour. Hours, rates and complex rotations live in one place, and the calculations that usually sit in a personal spreadsheet happen automatically.',
+        'Nova Shift is a scheduling and earnings tool for individuals and teams who bill by the hour. Hours, rates and complex rotations live in one place, and the calculations that usually sit in a personal spreadsheet happen automatically.',
         'The unusual part is how far the customisation goes. Rather than assuming one way of working, every field, rule and view can be reshaped by the person using it — because a nurse on rotating shifts, a contractor on day rates, and a team lead approving both need genuinely different tools.',
       ],
       facts: [

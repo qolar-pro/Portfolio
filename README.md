@@ -1,7 +1,8 @@
 # NovaFaber — novafaber.com
 
-Website design and build studio. Greece, North Macedonia, and English-speaking
-markets.
+Website design and build studio, based in Greece. Serves Greek, North
+Macedonian and English-speaking markets (DD-19 — serving a market and being
+established in it are different claims).
 
 This repository previously held **Apex Solutions / blancographics.xyz**, a
 single-page cinematic portfolio. That site is not deleted — it remains in this

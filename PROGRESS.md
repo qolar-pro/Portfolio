@@ -20,7 +20,7 @@
 | 2A — Content model (EN structure) | DONE | — | Entity model + EN copy. Route metadata now sourced from content. See DD-15, DD-16. |
 | 2B — Content voice rewrite (EN) | DONE | — | Merged into 2A — the model and the copy were too coupled to write separately. |
 | 3 — Core pages | DONE | — | Homepage (7 blocks) + 4 service pages, composed from content. See DD-17. |
-| 4 — Pricing + configurator | BLOCKED | — | Gated on **OQ-1** (pricing model). |
+| 4 — Pricing + configurator | READY | — | Unblocked — DD-1 settled pricing as quote-based. `/pricing` explains *how*, never *how much*. |
 | 5 — Case studies | NOT STARTED | — | A25 (flagship), Dresscode. |
 | 6 — Process / Studio / Contact | NOT STARTED | — | — |
 | 7 — WebGL concentration | NOT STARTED | — | Forge hero + perf budget enforcement. |
@@ -710,3 +710,58 @@ not an option at any point (DD-5).
 
 **Binding:** do not add skeleton cards or sample quotes to "show the layout".
 The layout can be judged when there is something real in it.
+
+---
+
+*DD-19 … DD-20 resolve the Phase 2 copy review.*
+
+### DD-19 — NovaFaber is based in Greece. It serves North Macedonia.
+
+**Owner ruling:** "gr/en ok, mk not — but we were made in Greece."
+
+**Context:** the footer read "Designed and built in-house, in Greece and North
+Macedonia." I inferred a Macedonian presence from A25 being a Macedonian
+client. That inference was wrong, and it appeared on every page of the site.
+
+**Ruling:** the footer says Greece. The markets served remain Greek, Macedonian
+and English (DD-2 unchanged) — the homepage subhead still names all three,
+because *serving* a market and being *established* in it are different claims
+and only one of them is true here.
+
+**Binding:** never state or imply a Macedonian office, entity, or address.
+Language coverage and client location do not establish presence. This is a
+factual claim about the business, not positioning — if it needs to change, it
+changes because the business changed.
+
+### DD-20 — The `notFor` statements stay
+
+**Owner ruling:** delegated — "you decide what's best."
+
+**Ruling:** keep them, on all four service pages, with real weight on the page
+rather than tucked into fine print.
+
+**Reasoning:** the site currently has zero published testimonials (DD-5), no
+client logos, and no case-study metrics. Every conventional trust signal is
+unavailable. Naming who a service is *wrong* for is the one credibility device
+that costs nothing but honesty and cannot be faked by a competitor — a template
+shop cannot tell you to go to a template shop.
+
+It also does commercial work: each statement disqualifies a category of
+enquiry that would have wasted a call.
+
+**The cost, stated plainly:** this turns away real work. "If you need a single
+page online this week and cost is the deciding factor, a template shop will
+serve you better" will lose enquiries that might have converted. That trade is
+the decision, and it is worth revisiting once testimonials exist and the trust
+they buy is available from a cheaper source.
+
+### DD-21 — "Apex Shift" becomes "Nova Shift"
+
+**Owner ruling:** rename to Nova Shift.
+
+Ties the product to the studio brand rather than leaving it orphaned. Entity id
+is `nova-shift`, which is also its future URL at `/work/nova-shift`.
+
+**Binding:** no remaining copy or asset reference may say "Apex". Image files
+still carry `apex-*.jpg` filenames; Phase 5 renames them when it optimises the
+case-study imagery.
