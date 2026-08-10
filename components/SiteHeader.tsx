@@ -1,62 +1,146 @@
+'use client';
+
 import Link from 'next/link';
-import { ROUTES, href } from '@/lib/routes';
-import { LOCALES, localeShortNames, type Locale } from '@/lib/locales';
-import { SITE_NAME } from '@/lib/site';
-import { contentFor } from '@/lib/content';
+import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import Logomark from '@/components/Logomark';
+import LocaleMenu from '@/components/LocaleMenu';
+import type { Locale } from '@/lib/locales';
+
+export interface NavItem {
+  href: string;
+  label: string;
+  key: string;
+}
 
 /**
- * A persistent, always-visible header.
+ * The header.
  *
- * DD-7: the old site's only wayfinding was an overlay "Index" that scrolled
- * within one page. Primary destinations are readable at rest here — no
- * hover-to-reveal, no overlay to open first.
+ * Forge tone throughout, in both themes — it sits above a forge hero and is
+ * part of the chrome, which DD-26 keeps out of the theme's reach.
  *
- * Phase 1 owns the visual treatment and the motion budget. Phase 2 replaces
- * placeholder labels with real per-locale copy.
+ * Hides on scroll-down and returns on scroll-up. That is the one motion the
+ * budget allows chrome (DD-14) and it earns its place by giving back vertical
+ * space on a phone rather than by being interesting.
  */
-export default function SiteHeader({ locale }: { locale: Locale }) {
-  const primary = ROUTES.filter((r) => r.inNav);
-  // Labels come from content, so a locale can name a destination the way its
-  // own market does rather than translating an English label (DD-2).
-  const labels = contentFor(locale).chrome.navLabels;
+export default function SiteHeader({
+  locale,
+  items,
+  ctaLabel,
+  ctaHref,
+}: {
+  locale: Locale;
+  items: NavItem[];
+  ctaLabel: string;
+  ctaHref: string;
+}) {
+  const [hidden, setHidden] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const pathname = usePathname();
+
+  useEffect(() => setMenuOpen(false), [pathname]);
+
+  useEffect(() => {
+    let last = window.scrollY;
+    const onScroll = () => {
+      const y = window.scrollY;
+      setScrolled(y > 8);
+      // Never hide while the mobile sheet is open, and never near the top.
+      if (!menuOpen) setHidden(y > last && y > 140);
+      last = y;
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [menuOpen]);
 
   return (
-    <header className="border-b border-rule">
-      <div className="mx-auto flex max-w-[1200px] flex-wrap items-center gap-x-6 gap-y-3 px-5 py-4">
-        <Link href={href(locale, '')} className="font-display text-lg font-semibold tracking-tight">
-          {SITE_NAME}
+    <header
+      className={`forge sticky top-0 z-50 transition-transform duration-300 ${
+        hidden ? '-translate-y-full' : 'translate-y-0'
+      } ${scrolled ? 'border-b border-forge-rule' : ''}`}
+    >
+      <div className="mx-auto flex w-full max-w-[1120px] items-center gap-6 px-5 py-3.5">
+        <Link
+          href={`/${locale}`}
+          className="group flex items-center gap-2.5 text-forge-ink transition-colors hover:text-heat-ember"
+        >
+          <Logomark size={26} />
+          <span className="font-display text-xl leading-none font-semibold tracking-wide">
+            NOVA<span className="text-heat-ember">FABER</span>
+          </span>
         </Link>
 
-        <nav aria-label="Primary" className="flex flex-wrap items-center gap-x-5 gap-y-2">
-          {primary.map((route) => (
-            <Link
-              key={route.path}
-              href={href(locale, route.path)}
-              className="text-sm text-ink-soft hover:text-ink"
-            >
-              {labels[route.key] ?? route.placeholderLabel}
-            </Link>
-          ))}
+        <nav aria-label="Primary" className="ms-auto hidden items-center gap-6 lg:flex">
+          {items.map((item) => {
+            const active = pathname === item.href || pathname.startsWith(item.href + '/');
+            return (
+              <Link
+                key={item.key}
+                href={item.href}
+                aria-current={active ? 'page' : undefined}
+                className={`text-sm transition-colors ${
+                  active ? 'text-heat-ember' : 'text-forge-ink-soft hover:text-forge-ink'
+                }`}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
         </nav>
 
-        <div className="ms-auto flex items-center gap-2" aria-label="Language">
-          {LOCALES.map((l) => (
-            <Link
-              key={l}
-              href={href(l, '')}
-              hrefLang={l}
-              aria-current={l === locale ? 'true' : undefined}
-              className={
-                l === locale
-                  ? 'font-mono text-xs text-ink'
-                  : 'font-mono text-xs text-muted hover:text-ink'
-              }
-            >
-              {localeShortNames[l]}
-            </Link>
-          ))}
+        <div className="ms-auto flex items-center gap-3 lg:ms-0">
+          <LocaleMenu locale={locale} />
+
+          <Link
+            href={ctaHref}
+            className="hidden bg-heat-ember px-4 py-2 font-display text-base tracking-wide text-forge-void transition-colors hover:bg-heat-bright sm:inline-flex"
+          >
+            {ctaLabel}
+          </Link>
+
+          <button
+            type="button"
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-expanded={menuOpen}
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            className="flex h-9 w-9 items-center justify-center border border-forge-rule text-forge-ink transition-colors hover:border-heat-ember hover:text-heat-ember lg:hidden"
+          >
+            <svg width="16" height="12" viewBox="0 0 16 12" fill="none" aria-hidden>
+              {menuOpen ? (
+                <path d="M2 2l12 8M14 2L2 10" stroke="currentColor" strokeWidth="1.5" />
+              ) : (
+                <path d="M0 1h16M0 6h16M0 11h16" stroke="currentColor" strokeWidth="1.5" />
+              )}
+            </svg>
+          </button>
         </div>
       </div>
+
+      {menuOpen ? (
+        <div className="border-t border-forge-rule lg:hidden">
+          <nav aria-label="Primary mobile" className="mx-auto max-w-[1120px] px-5 py-4">
+            <ul className="flex flex-col">
+              {items.map((item) => (
+                <li key={item.key}>
+                  <Link
+                    href={item.href}
+                    className="block border-b border-forge-rule py-3 text-forge-ink-soft transition-colors hover:text-heat-ember"
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <Link
+              href={ctaHref}
+              className="mt-5 inline-flex w-full items-center justify-center bg-heat-ember px-5 py-3 font-display text-lg tracking-wide text-forge-void"
+            >
+              {ctaLabel}
+            </Link>
+          </nav>
+        </div>
+      ) : null}
     </header>
   );
 }

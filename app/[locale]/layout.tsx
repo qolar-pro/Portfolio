@@ -5,6 +5,8 @@ import SiteHeader from '@/components/SiteHeader';
 import SiteFooter from '@/components/SiteFooter';
 import Reveal from '@/components/Reveal';
 import { LOCALES, isLocale } from '@/lib/locales';
+import { ROUTES, href } from '@/lib/routes';
+import { contentFor } from '@/lib/content';
 import { SITE_NAME, SITE_URL } from '@/lib/site';
 import '../globals.css';
 
@@ -92,7 +94,16 @@ export default async function LocaleLayout({
         >
           Skip to content
         </a>
-        <SiteHeader locale={locale} />
+        <SiteHeader
+          locale={locale}
+          items={ROUTES.filter((r) => r.inNav).map((r) => ({
+            key: r.key,
+            href: href(locale, r.path),
+            label: contentFor(locale).chrome.navLabels[r.key] ?? r.placeholderLabel,
+          }))}
+          ctaLabel={contentFor(locale).chrome.ctaBook}
+          ctaHref={href(locale, 'contact')}
+        />
         <main id="main" className="flex-1">
           {children}
         </main>

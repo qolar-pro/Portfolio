@@ -56,6 +56,37 @@ export default function Home({ locale }: { locale: Locale }) {
             </Link>
           ))}
         </div>
+
+        {/* Split CTA by audience. WP Buffs forks "business owners" vs
+            "agencies" before the first scroll; the equivalent fork here is
+            whether a site already exists, because the two arrive with
+            completely different questions. */}
+        <div className="mt-10 grid gap-px bg-rule sm:grid-cols-2">
+          <Link
+            href={href(locale, 'services/websites')}
+            className="group flex items-center justify-between gap-4 bg-ground p-6 transition-colors hover:bg-surface"
+          >
+            <span>
+              <span className="block font-display text-xl group-hover:text-ember">
+                I need a website
+              </span>
+              <span className="mt-1 block text-sm text-muted">Starting from nothing</span>
+            </span>
+            <span aria-hidden className="text-ember">→</span>
+          </Link>
+          <Link
+            href={href(locale, 'services/redesign')}
+            className="group flex items-center justify-between gap-4 bg-ground p-6 transition-colors hover:bg-surface"
+          >
+            <span>
+              <span className="block font-display text-xl group-hover:text-ember">
+                Mine needs fixing
+              </span>
+              <span className="mt-1 block text-sm text-muted">Slow, dated, or you cannot edit it</span>
+            </span>
+            <span aria-hidden className="text-ember">→</span>
+          </Link>
+        </div>
       </Band>
 
       {/* 3 — Flagship case study. Forge tone: the second dark beat, and the
@@ -136,18 +167,53 @@ export default function Home({ locale }: { locale: Locale }) {
         </Band>
       ) : null}
 
-      {/* 6 — Capabilities */}
+      {/* 6 — Risk reversal, with capabilities folded in as a strip.
+             Every teardown in the research put a guarantee or a
+             pay-after-approval promise early, before the visitor had decided.
+             The handover promise is the strongest one this studio has and it
+             was previously only in the footer.
+
+             This replaces a standalone capabilities section rather than adding
+             to it: the density budget is seven (SPEC §3.3), and a tech-stack
+             list is the weakest section commercially — clients do not buy
+             Redis. */}
       <Band tone="surface">
-        <SectionHeading eyebrow="Under the hood" reveal>What it is made of.</SectionHeading>
+        <SectionHeading eyebrow="What you are not risking" reveal>
+          You will own all of it.
+        </SectionHeading>
         <div className="mt-10 grid gap-px bg-rule md:grid-cols-3">
-          {c.capabilities.map((cap) => (
-            <div key={cap.title} className="flex flex-col gap-3 bg-ground p-6">
-              <h3 className="text-xl">{cap.title}</h3>
-              <p className="text-sm text-ink-soft">{cap.outcome}</p>
-              <p className="mt-2 font-mono text-2xs tracking-[0.06em] text-muted">
-                {cap.tools.join(' · ')}
-              </p>
+          {[
+            [
+              'The scope comes first',
+              'A written scope before any number is agreed. Yours to keep, and to take to another studio if you want to.',
+            ],
+            [
+              'You pay as it appears',
+              'Payment staged against the four steps, so you are never far ahead of work you can actually see.',
+            ],
+            [
+              'Domain, hosting, code, logins',
+              'All in your name at handover. If you never speak to me again, the site keeps working and you can still change it.',
+            ],
+          ].map(([title, body], i) => (
+            <div
+              key={title}
+              data-reveal
+              data-reveal-delay={String(i * 90)}
+              className="flex flex-col gap-3 bg-ground p-7"
+            >
+              <h3 className="text-xl">{title}</h3>
+              <p className="text-ink-soft">{body}</p>
             </div>
+          ))}
+        </div>
+
+        <div className="mt-10 flex flex-wrap items-baseline gap-x-8 gap-y-3 border-t border-rule pt-8">
+          <Eyebrow>Built with</Eyebrow>
+          {c.capabilities.map((cap) => (
+            <p key={cap.title} className="font-mono text-2xs tracking-[0.06em] text-muted">
+              {cap.tools.join(' · ')}
+            </p>
           ))}
         </div>
       </Band>

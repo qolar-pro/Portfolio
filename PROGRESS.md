@@ -25,6 +25,7 @@
 | 6 — Process / Studio / Contact | DONE | — | Configurator brief round-trips through the URL, server-rendered. Booking tool still unchosen — OQ-7. |
 | 7 — Forge hero & perf budget | DONE | — | Procedural shader hero, zero mesh files. WebGL containment guard added + mutation-tested. See DD-25. |
 | 7B — Forge visual identity | DONE | — | Dark spectacle surfaces, heat range, grain, scroll reveals. See DD-26. |
+| 7C — Full revamp | DONE | — | Chrome, component system, all 15 templates on the forge identity. See DD-27. |
 | 8 — Localization | NOT STARTED | — | EL, MK. |
 | 9 — SEO / schema / migration | NOT STARTED | — | — |
 | 10 — Sweeps (find-only) | NOT STARTED | — | Legibility, perf, a11y. Findings gate launch. |
@@ -1170,3 +1171,87 @@ is no body copy; prose lives on light.
   pairings specifically so this cannot regress silently.
 - Alternating forge against light is the homepage's structural rhythm. It is
   what makes seven sections read as distinct without seven bespoke layouts.
+
+---
+
+### Phase 7C — Full site revamp (Director, direct)
+
+**Brief:** *"complete revamp but in our style and theme… visuals layouts design
+palettes uis panels cards texts monograms footers headers navbar language menu
+book a meeting — everything."* Plus: keep the strengths from the UK/US/GR/MK
+agency research that the studio can actually support.
+
+**Chrome — new**
+
+- `Logomark.tsx` — an anvil whose negative space reads as an N, with the spark
+  where the hammer lands. The shape is the trade, which is the same argument
+  the brand makes. Single path, inherits `currentColor`, legible at 20px.
+- `SiteHeader` — forge tone, sticky, hides on scroll-down and returns on
+  scroll-up (the one motion DD-14 allows chrome, and it earns it by giving
+  back phone screen space). Active-route state, full mobile sheet.
+- `LocaleMenu` — switches to **the same page** in the target locale rather
+  than dumping the visitor on the homepage, which is the single most common
+  multilingual failure. Full names in the menu ("Македонски" tells a Macedonian
+  speaker this site is for them; "MK" does not).
+- `SiteFooter` — grouped by what a visitor is trying to do (buy, verify,
+  contact) rather than by the shape of the route tree. Closes on the ownership
+  promise.
+
+**Component system** — `PageHeader`, `Panel`, `Card`, `Tag`, `MarkedList`,
+`GridRule`, plus `tone` props throughout. Every inner page now opens on a forge
+`PageHeader`, which is what stops fifteen pages drifting apart.
+
+**Research patterns adopted** (from the GR/MK/UK/US teardowns):
+
+| Pattern | Status |
+|---|---|
+| Instant quote calculator | shipped (configurator) |
+| Four-step process block | shipped |
+| Bento grid, unequal weight | shipped |
+| Volume metrics above the fold | shipped |
+| **Risk reversal early** | **now on the homepage and `/pricing`** — was footer-only |
+| **Split CTA by audience** | **new** — "I need a website" / "Mine needs fixing" |
+| **Live preview of client work** | **new** — `LivePreview`, opt-in load |
+| Named testimonials | blocked on owner content (DD-5) |
+| Client logos under hero | blocked — none supplied |
+
+`LivePreview` is opt-in rather than auto-loading because many sites refuse to
+be framed and there is no way to detect that from the parent — the load event
+fires either way. A click-to-load with a permanent "Open ↗" escape hatch beats
+a silent blank rectangle, which is what the old site's version could produce.
+
+**Density budget held at seven.** The risk-reversal section replaced the
+standalone capabilities block rather than adding to it — a tech-stack list is
+the weakest section commercially (the site's own copy says clients do not buy
+Redis), so the stack survives as a single strip inside the new section.
+
+**Verified**
+
+```
+forge surfaces per page ....... 4–5 on all 15 templates
+logomark / locale menu / footer promise ... present sitewide
+contrast ...................... 37 pairings, 0 failing
+WebGL containment ............. home only, 14 reading routes clean
+build + typecheck ............. pass
+```
+
+---
+
+### DD-27 — Every inner page opens on a forge `PageHeader`
+
+**Context:** Phase 3–6 gave each page its own `<Band>` opener. They drifted
+immediately — different eyebrow treatments, different heading sizes, some with
+a lede and some without. The owner's read was that the site had "no personality,
+just a base", and inconsistency was a large part of why.
+
+**Ruling:** one `PageHeader` component, forge tone, used by every route except
+the homepage (which has the hero instead).
+
+**Reasoning:** the forge/daylight split (DD-26) only reads as intentional if it
+happens in the same place every time. A visitor who lands on `/pricing` from
+search and then clicks to `/work` should feel the same rhythm — dark opener,
+light body — rather than two pages that happen to share a palette.
+
+**Binding:** do not write a bespoke opener for a new page. If `PageHeader` will
+not carry a case, extend it — a second opener component is how this drifts
+again.

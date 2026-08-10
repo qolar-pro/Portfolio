@@ -1,63 +1,92 @@
 import type { Locale } from '@/lib/locales';
 import { href } from '@/lib/routes';
 import { contentFor, type Service } from '@/lib/content';
-import { Band, Button, Eyebrow } from '@/components/ui';
-import { ReadingSurface } from '@/components/Surface';
+import { Band, Button, Eyebrow, GridRule, MarkedList, PageHeader, Tag } from '@/components/ui';
 
 /**
  * One template, four services (DD-16).
  *
- * The `notFor` block is not a design flourish. Naming who a service is wrong
- * for is the cheapest trust signal available to a studio with no published
- * testimonials yet (DD-5), and it filters enquiries that waste both sides'
- * time. It is given real weight on the page for that reason.
+ * Structure: forge opener → what you get → who it is wrong for → the other
+ * three services → close. The `notFor` block gets a forge band of its own
+ * rather than a footnote, because naming who a service is wrong for is the
+ * cheapest trust signal available while there are no published testimonials
+ * (DD-5), and burying it would waste it.
  */
 export default function ServicePage({ locale, id }: { locale: Locale; id: Service['id'] }) {
   const c = contentFor(locale);
   const service = c.services.find((s) => s.id === id);
   if (!service) return null;
+  const others = c.services.filter((s) => s.id !== id);
 
   return (
     <>
-      <Band className="border-b border-rule">
-        <div className="flex flex-col gap-6">
-          <Eyebrow>Services</Eyebrow>
-          <h1 className="max-w-[18ch] text-4xl md:text-5xl">{service.name}</h1>
-          <p className="max-w-[var(--measure)] text-lg text-ink-soft">{service.summary}</p>
-        </div>
-      </Band>
-
-      <ReadingSurface>
-        <p className="text-lg">{service.lede}</p>
-
-        <h2 className="mt-12 text-2xl">What you get</h2>
-        <ul className="mt-5 flex flex-col gap-3">
-          {service.includes.map((item) => (
-            <li key={item} className="flex gap-3">
-              <span aria-hidden className="mt-[0.55em] h-px w-4 shrink-0 bg-ember" />
-              <span>{item}</span>
-            </li>
-          ))}
-        </ul>
-      </ReadingSurface>
-
-      <Band tone="surface" className="border-y border-rule">
-        <div className="mx-auto flex max-w-[var(--measure)] flex-col gap-3">
-          <Eyebrow>When not to hire me</Eyebrow>
-          <p className="text-lg text-ink">{service.notFor}</p>
-        </div>
-      </Band>
+      <PageHeader
+        eyebrow="Services"
+        title={service.name}
+        lede={service.summary}
+        meta={
+          <>
+            <Tag tone="forge">Greek · Macedonian · English</Tag>
+            <Tag tone="forge">Fixed scope before a quote</Tag>
+            <Tag tone="forge">Full handover</Tag>
+          </>
+        }
+      />
 
       <Band>
-        <div className="mx-auto flex max-w-[var(--measure)] flex-col gap-5">
-          <h2 className="text-3xl">Sound like your project?</h2>
-          <p className="text-ink-soft">
+        <div className="grid gap-12 md:grid-cols-[1fr_1fr] md:gap-16">
+          <div data-reveal>
+            <Eyebrow>The problem</Eyebrow>
+            <p className="mt-5 text-lg">{service.lede}</p>
+          </div>
+          <div data-reveal data-reveal-delay="100">
+            <Eyebrow>What you get</Eyebrow>
+            <div className="mt-5">
+              <MarkedList items={service.includes} />
+            </div>
+          </div>
+        </div>
+      </Band>
+
+      <Band tone="forge">
+        <div data-reveal className="mx-auto max-w-[var(--measure)]">
+          <Eyebrow tone="forge">When not to hire me</Eyebrow>
+          <p className="mt-5 text-2xl text-forge-ink">{service.notFor}</p>
+          <p className="mt-6 text-sm text-forge-muted">
+            Saying this costs enquiries. It is here because a studio that tells you when to go
+            elsewhere is worth more than one that says yes to everything.
+          </p>
+        </div>
+      </Band>
+
+      <Band tone="surface">
+        <Eyebrow>Other services</Eyebrow>
+        <GridRule cols="md:grid-cols-3" className="mt-8">
+          {others.map((s) => (
+            <a
+              key={s.id}
+              href={href(locale, `services/${s.id}`)}
+              className="group flex flex-col gap-2 bg-ground p-6 transition-colors hover:bg-surface"
+            >
+              <h2 className="text-xl group-hover:text-ember">{s.name}</h2>
+              <p className="text-sm text-ink-soft">{s.summary}</p>
+            </a>
+          ))}
+        </GridRule>
+      </Band>
+
+      <Band tone="forge" glow>
+        <div data-reveal className="mx-auto flex max-w-[var(--measure)] flex-col gap-5">
+          <h2 className="text-3xl text-forge-ink md:text-4xl">Sound like your project?</h2>
+          <p className="text-forge-ink-soft">
             Send the details and you get a scoped quote back. Pricing depends on what the build
             actually needs — see how that is worked out.
           </p>
-          <div className="flex flex-wrap gap-3">
-            <Button href={href(locale, 'contact')}>{c.chrome.ctaQuote}</Button>
-            <Button href={href(locale, 'pricing')} variant="secondary">
+          <div className="mt-2 flex flex-wrap gap-3">
+            <Button href={href(locale, 'contact')} tone="forge">
+              {c.chrome.ctaQuote}
+            </Button>
+            <Button href={href(locale, 'pricing')} tone="forge" variant="secondary">
               How pricing works
             </Button>
           </div>

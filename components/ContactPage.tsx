@@ -1,7 +1,7 @@
 import type { Locale } from '@/lib/locales';
 import { contentFor } from '@/lib/content';
-import { CONTACT_EMAIL } from '@/lib/site';
-import { Band, Eyebrow } from '@/components/ui';
+import { CONTACT_EMAIL, FOUNDER_NAME } from '@/lib/site';
+import { Band, Eyebrow, GridRule, PageHeader, Panel, Tag } from '@/components/ui';
 import {
   CATALOGUE,
   CMS,
@@ -19,16 +19,16 @@ import {
  * `/contact` — the other end of the configurator.
  *
  * The brief arrives in the URL and is read on the server, so it renders with
- * JavaScript disabled and survives being forwarded, bookmarked or pasted into
- * an email. That matters more than it sounds: the most common thing a visitor
- * does with a configured quote is send the link to whoever actually decides.
+ * JavaScript disabled and survives being forwarded, bookmarked or pasted. That
+ * matters more than it sounds: the most common thing a visitor does with a
+ * configured quote is send the link to whoever actually decides.
  *
  * ── INTERIM ──────────────────────────────────────────────────────────────
- * SPEC §4 specifies a booking calendar here, not a mailto. That needs a
- * scheduling tool and a transactional email service, and neither has been
- * chosen. Rather than quietly ship the thing the spec rules out, the
- * composed-message path below is marked as interim and the tool choice is
- * logged as an Open Question. Replace this block, not the page.
+ * SPEC §4 specifies a booking calendar. That needs a scheduling tool and a
+ * transactional email service, neither chosen (OQ-7). The page is built as a
+ * booking flow — what the call is, how long, what happens after — with the
+ * message-compose path standing in for the embed. Drop the calendar into the
+ * panel marked below; nothing else needs to change.
  * ─────────────────────────────────────────────────────────────────────────
  */
 
@@ -43,10 +43,8 @@ const VALID: Record<keyof Config, readonly string[]> = {
 };
 
 /**
- * Builds a Config from URL params, or returns null if nothing usable is there.
- *
- * Every field is validated against its allowed values rather than trusted —
- * these arrive from a URL a stranger can edit, and an unvalidated value would
+ * Every field is validated against its allowed values rather than trusted.
+ * These arrive from a URL a stranger can edit, and an unvalidated value would
  * reach `estimate()` and produce a nonsense figure that looks authoritative.
  */
 function parseConfig(sp: Record<string, string | string[] | undefined>): Config | null {
@@ -75,8 +73,8 @@ export default function ContactPage({
   const mailBody = result
     ? `My project:\n\n${result.summary.map((s) => `- ${s}`).join('\n')}\n\nIndicative range shown: ${formatEur(
         result.low,
-      )} - ${formatEur(result.high)}\n\nAbout the business:\n\n`
-    : 'About the project:\n\n';
+      )} - ${formatEur(result.high)}\n\nAbout the business:\n\n\nWhat I already have (text, photos, logo):\n\n\nAny date I am working towards:\n\n`
+    : `About the project:\n\n\nWhat my business does:\n\n\nWhat I already have (text, photos, logo):\n\n\nAny date I am working towards:\n\n`;
 
   const mailto = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(
     config ? `Project enquiry — ${(config.type as ProjectType) ?? 'website'}` : 'Project enquiry',
@@ -84,26 +82,28 @@ export default function ContactPage({
 
   return (
     <>
-      <Band className="border-b border-rule">
-        <div className="flex flex-col gap-6">
-          <Eyebrow>Contact</Eyebrow>
-          <h1 className="max-w-[18ch] text-4xl md:text-5xl">
-            {config ? 'Here is what you described.' : 'Tell me what you need building.'}
-          </h1>
-          <p className="max-w-[var(--measure)] text-lg text-ink-soft">
-            {config
-              ? 'Send this over and I will come back with a scoped quote. If anything is wrong, change it before you send — the detail is what makes the quote accurate.'
-              : 'The more specific you are, the more useful my reply is. If you would rather answer questions than write a brief, use the configurator first.'}
-          </p>
-        </div>
-      </Band>
+      <PageHeader
+        eyebrow="Contact"
+        title={config ? 'Here is what you described.' : 'Book a meeting.'}
+        lede={
+          config
+            ? 'Send this over and you get a scoped quote back. If anything is wrong, change it before you send — the detail is what makes the quote accurate.'
+            : 'A first call costs nothing, runs about thirty minutes, and ends with a written scope you can take anywhere.'
+        }
+        meta={
+          <>
+            <Tag tone="forge">Replies within one working day</Tag>
+            <Tag tone="forge">Greek · Macedonian · English</Tag>
+          </>
+        }
+      />
 
       {result ? (
-        <Band tone="surface" className="border-b border-rule">
-          <div className="grid gap-8 md:grid-cols-[1fr_18rem] md:items-start">
-            <div>
+        <Band tone="surface">
+          <div className="grid gap-10 md:grid-cols-[1fr_20rem] md:items-start">
+            <div data-reveal>
               <Eyebrow>Your brief</Eyebrow>
-              <ul className="mt-5 flex flex-col gap-2">
+              <ul className="mt-5 flex flex-col gap-2.5">
                 {result.summary.map((s) => (
                   <li key={s} className="flex gap-3">
                     <span aria-hidden className="mt-[0.55em] h-px w-4 shrink-0 bg-ember" />
@@ -112,7 +112,7 @@ export default function ContactPage({
                 ))}
               </ul>
             </div>
-            <div className="flex flex-col gap-3 border border-rule-strong bg-ground p-5">
+            <Panel className="flex flex-col gap-3">
               <p className="font-mono text-2xs tracking-[0.12em] text-muted uppercase">
                 Indicative range
               </p>
@@ -125,43 +125,90 @@ export default function ContactPage({
               <p className="font-mono text-2xs tracking-[0.08em] text-muted uppercase">
                 Roughly {result.weeksLow}–{result.weeksHigh} weeks
               </p>
-            </div>
+            </Panel>
           </div>
         </Band>
       ) : null}
 
       <Band>
-        <div className="mx-auto flex max-w-[var(--measure)] flex-col gap-6">
-          <h2 className="text-2xl">What to include</h2>
-          <ul className="flex flex-col gap-2.5">
-            {[
-              'What your business does, in a sentence',
-              'What is wrong with the current site, if there is one',
-              'Whether you have text and photographs ready, or need them written',
-              'Any date you are working towards, and why',
-            ].map((item) => (
-              <li key={item} className="flex gap-3">
-                <span aria-hidden className="mt-[0.55em] h-px w-4 shrink-0 bg-ember" />
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
+        <div className="grid gap-12 md:grid-cols-[1fr_1fr] md:gap-16">
+          <div data-reveal>
+            <Eyebrow>What the call is</Eyebrow>
+            <h2 className="mt-4 text-3xl">Thirty minutes, no pitch</h2>
+            <ol className="mt-6 flex flex-col gap-5">
+              {[
+                ['You describe the business', 'What it does, who buys from it, what the site has to achieve.'],
+                ['I ask the awkward questions', 'Budget range, deadline, who approves, what content exists.'],
+                ['You get a written scope', 'Pages, features, timeline. Yours to keep, and to take elsewhere.'],
+              ].map(([title, body], i) => (
+                <li key={title} className="flex gap-4">
+                  <span className="mt-1 font-mono text-2xs text-ember tabular-nums">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <div>
+                    <h3 className="text-xl">{title}</h3>
+                    <p className="mt-1 text-ink-soft">{body}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
 
-          <a
-            href={mailto}
-            className="mt-2 inline-flex w-fit items-center justify-center bg-ember px-6 py-3 font-display text-lg tracking-wide text-surface transition-colors hover:bg-ink"
-          >
-            {config ? 'Send this brief' : c.chrome.ctaQuote}
-          </a>
+          {/* ── Calendar embed goes here when OQ-7 is decided ── */}
+          <div data-reveal data-reveal-delay="120" className="flex flex-col gap-6">
+            <Panel className="flex flex-col gap-5">
+              <Eyebrow>Start here</Eyebrow>
+              <p className="text-ink-soft">
+                Send the details and I will reply with times. Include whatever you have — a rough
+                idea is enough to start from.
+              </p>
+              <a
+                href={mailto}
+                className="inline-flex w-fit items-center justify-center bg-ember px-6 py-3 font-display text-lg tracking-wide text-surface transition-colors hover:bg-ink"
+              >
+                {config ? 'Send this brief' : c.chrome.ctaBook}
+              </a>
+              <p className="text-sm text-muted">
+                Or write directly to{' '}
+                <a
+                  href={`mailto:${CONTACT_EMAIL}`}
+                  className="text-ember underline underline-offset-4"
+                >
+                  {CONTACT_EMAIL}
+                </a>
+                .
+              </p>
+            </Panel>
 
-          <p className="text-sm text-muted">
-            Or write to{' '}
-            <a href={`mailto:${CONTACT_EMAIL}`} className="text-ember underline underline-offset-4">
-              {CONTACT_EMAIL}
-            </a>
-            . Replies within one working day.
-          </p>
+            <Panel>
+              <Eyebrow>Who you will be talking to</Eyebrow>
+              <p className="mt-4 text-ink-soft">
+                {FOUNDER_NAME}. Not a salesperson, not an account manager — the person who would
+                design and build it.
+              </p>
+            </Panel>
+          </div>
         </div>
+      </Band>
+
+      <Band tone="forge">
+        <Eyebrow tone="forge">Before you write</Eyebrow>
+        <h2 className="mt-4 max-w-[20ch] text-3xl text-forge-ink md:text-4xl">
+          The four things that make a reply useful
+        </h2>
+        <GridRule cols="md:grid-cols-2 lg:grid-cols-4" tone="forge" className="mt-10">
+          {[
+            ['What your business does', 'One sentence is plenty.'],
+            ['What is wrong now', 'If there is an existing site, what fails about it.'],
+            ['What you already have', 'Text, photographs, logo — or none of it.'],
+            ['Any date you are working to', 'And why, if there is a reason.'],
+          ].map(([t, b]) => (
+            <div key={t} className="flex flex-col gap-2 bg-forge-carbon p-6">
+              <h3 className="text-lg text-forge-ink">{t}</h3>
+              <p className="text-sm text-forge-muted">{b}</p>
+            </div>
+          ))}
+        </GridRule>
       </Band>
     </>
   );

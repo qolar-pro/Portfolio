@@ -53,7 +53,7 @@ function Field<T extends string>({
 }) {
   return (
     <fieldset className="flex flex-col gap-3 border-0 p-0">
-      <legend className="font-mono text-2xs tracking-[0.12em] text-muted uppercase">
+      <legend className="font-mono text-2xs tracking-[0.12em] text-forge-muted uppercase">
         {legend}
       </legend>
       <div className="flex flex-wrap gap-2">
@@ -62,8 +62,8 @@ function Field<T extends string>({
             key={o.value}
             className={`cursor-pointer border px-4 py-2 text-sm transition-colors ${
               value === o.value
-                ? 'border-ember bg-ember text-surface'
-                : 'border-rule-strong text-ink-soft hover:border-ink hover:text-ink'
+                ? 'border-heat-ember bg-heat-ember text-forge-void'
+                : 'border-forge-rule text-forge-ink-soft hover:border-heat-ember hover:text-heat-ember'
             }`}
           >
             <input
@@ -94,15 +94,15 @@ export default function Configurator({ locale }: { locale: Locale }) {
     <div className="grid gap-10 lg:grid-cols-[1fr_22rem]">
       <form className="flex flex-col gap-8" onSubmit={(e) => e.preventDefault()}>
         <fieldset className="flex flex-col gap-3 border-0 p-0">
-          <legend className="font-mono text-2xs tracking-[0.12em] text-muted uppercase">
+          <legend className="font-mono text-2xs tracking-[0.12em] text-forge-muted uppercase">
             What are you building?
           </legend>
-          <div className="grid gap-px bg-rule sm:grid-cols-2">
+          <div className="grid gap-px bg-forge-rule sm:grid-cols-2">
             {TYPES.map((t) => (
               <label
                 key={t.value}
                 className={`cursor-pointer p-4 transition-colors ${
-                  config.type === t.value ? 'bg-ember text-surface' : 'bg-ground hover:bg-surface'
+                  config.type === t.value ? 'bg-heat-ember text-forge-void' : 'bg-forge-carbon hover:bg-forge-steel'
                 }`}
               >
                 <input
@@ -116,7 +116,7 @@ export default function Configurator({ locale }: { locale: Locale }) {
                 <span className="block font-display text-xl">{t.label}</span>
                 <span
                   className={`mt-1 block text-sm ${
-                    config.type === t.value ? 'text-surface/85' : 'text-muted'
+                    config.type === t.value ? 'text-forge-void/80' : 'text-forge-muted'
                   }`}
                 >
                   {t.hint}
@@ -174,35 +174,35 @@ export default function Configurator({ locale }: { locale: Locale }) {
         />
       </form>
 
-      <aside className="flex h-fit flex-col gap-5 border border-rule-strong bg-surface p-6 lg:sticky lg:top-8">
-        <p className="font-mono text-2xs tracking-[0.12em] text-muted uppercase">
+      <aside className="flex h-fit flex-col gap-5 border border-forge-rule bg-forge-carbon p-6 lg:sticky lg:top-8">
+        <p className="font-mono text-2xs tracking-[0.12em] text-forge-muted uppercase">
           Indicative range
         </p>
 
         <p
-          className="font-display text-4xl leading-none text-ink tabular-nums"
+          className="font-display text-4xl leading-none text-forge-ink tabular-nums"
           aria-live="polite"
         >
           {formatEur(result.low)} – {formatEur(result.high)}
         </p>
 
         {/* The qualifier sits with the number, not below the fold. */}
-        <p className="text-sm text-ink-soft">
+        <p className="text-sm text-forge-ink-soft">
           This is a range, not a quote. The final figure comes after we have talked about what
           you actually need — it may land outside this entirely.
         </p>
 
-        <p className="font-mono text-2xs tracking-[0.08em] text-muted uppercase">
+        <p className="font-mono text-2xs tracking-[0.08em] text-forge-muted uppercase">
           Roughly {result.weeksLow}–{result.weeksHigh} weeks
         </p>
 
-        <div className="border-t border-rule pt-4">
-          <p className="font-mono text-2xs tracking-[0.12em] text-muted uppercase">
+        <div className="border-t border-forge-rule pt-4">
+          <p className="font-mono text-2xs tracking-[0.12em] text-forge-muted uppercase">
             What you described
           </p>
           <ul className="mt-3 flex flex-col gap-1.5">
             {result.summary.map((s) => (
-              <li key={s} className="text-sm text-ink-soft">
+              <li key={s} className="text-sm text-forge-ink-soft">
                 {s}
               </li>
             ))}
@@ -211,7 +211,7 @@ export default function Configurator({ locale }: { locale: Locale }) {
 
         <Link
           href={`${href(locale, 'contact')}?${toQuery(config)}`}
-          className="inline-flex items-center justify-center bg-ember px-6 py-3 font-display text-lg tracking-wide text-surface transition-colors hover:bg-ink"
+          className="inline-flex items-center justify-center bg-heat-ember px-6 py-3 font-display text-lg tracking-wide text-forge-void transition-colors hover:bg-heat-bright"
         >
           Send this as a brief
         </Link>
