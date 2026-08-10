@@ -60,6 +60,18 @@ if (/photo:\s*null/.test(EN)) {
   console.log('  Founder photo not supplied (DD-4 requires one).');
 }
 
+// The base rates are the studio's actual prices — a business fact, not a
+// design decision. They were derived from the SPEC §7 market anchors, and
+// derived is not confirmed. Surfaced on every run so it cannot go quiet.
+const PRICING = readFileSync(new URL('../lib/pricing.ts', import.meta.url), 'utf8');
+if (!/OWNER APPROVED/.test(PRICING)) {
+  const rates = [...PRICING.matchAll(/^\s{2}(website|store|redesign|custom):\s*(\d+),/gm)]
+    .map((m) => `${m[1]} €${m[2]}`)
+    .join(' · ');
+  console.log(`\n  Base rates awaiting owner approval (DD-23): ${rates}`);
+  console.log('  Add the marker "OWNER APPROVED" to lib/pricing.ts once confirmed.');
+}
+
 // A price figure in content would breach DD-1.
 const priceLeak = EN.match(/[€$]\s?\d/g);
 if (priceLeak) {

@@ -20,7 +20,7 @@
 | 2A — Content model (EN structure) | DONE | — | Entity model + EN copy. Route metadata now sourced from content. See DD-15, DD-16. |
 | 2B — Content voice rewrite (EN) | DONE | — | Merged into 2A — the model and the copy were too coupled to write separately. |
 | 3 — Core pages | DONE | — | Homepage (7 blocks) + 4 service pages, composed from content. See DD-17. |
-| 4 — Pricing + configurator | READY | — | Unblocked — DD-1 settled pricing as quote-based. `/pricing` explains *how*, never *how much*. |
+| 4 — Pricing + configurator | DONE | — | `/pricing` explains how, never how much. Configurator returns a range. Base rates need owner sign-off (DD-23). |
 | 5 — Case studies | NOT STARTED | — | A25 (flagship), Dresscode. |
 | 6 — Process / Studio / Contact | NOT STARTED | — | — |
 | 7 — WebGL concentration | NOT STARTED | — | Forge hero + perf budget enforcement. |
@@ -765,3 +765,85 @@ is `nova-shift`, which is also its future URL at `/work/nova-shift`.
 **Binding:** no remaining copy or asset reference may say "Apex". Image files
 still carry `apex-*.jpg` filenames; Phase 5 renames them when it optimises the
 case-study imagery.
+
+---
+
+### Phase 4 — Pricing & configurator (Director, direct)
+
+**What was built**
+
+- `lib/pricing.ts` — every coefficient in one module, each commented with the
+  local-market anchor it was derived against
+- `components/Configurator.tsx` — client component, live range, keyboard
+  operable (radio groups in labelled fieldsets)
+- `components/PricingPage.tsx` — cost drivers, what is included as standard,
+  what is billed separately, and why there is no price list
+
+**Definition of Done**
+
+- [x] No static price list or tier grid on any route
+- [x] Range always accompanied by the "not a quote" qualifier, adjacent in the
+      DOM — verified present in the prerendered HTML
+- [x] Every coefficient in one module, tunable in one place
+- [x] Selections carry into `/contact` as query params
+- [x] Radio groups in labelled fieldsets; keyboard operable
+- [x] `npm run build` and `npm run lint` pass
+- [ ] **Base rates not owner-approved** — DD-23, surfaced on every lint
+
+**How to verify**
+
+```bash
+npm run build
+grep -oE "€[0-9,]+" .next/server/app/en/pricing.html | sort -u   # €1,400 €2,200
+grep -c "This is a range, not a quote" .next/server/app/en/pricing.html  # 1
+npm run check:content   # prints the base rates awaiting approval
+```
+
+---
+
+### DD-22 — The configurator's default is the cheapest configuration
+
+**Context:** the configurator is a client component, so its default state
+server-renders. Whatever that default is becomes the figure an unconfigured
+visitor sees and a crawler indexes.
+
+The first default was mid-range — website, 6–15 pages, self-editable,
+designed from scratch, considered motion — which put **€4,200–6,300** into the
+static HTML.
+
+**Ruling:** default to the cheapest valid configuration. The page now renders
+**€1,400–2,200**.
+
+**Reasoning:** a mid-range anchor shows €4,200–6,300 to someone whose actual
+project is €1,440–2,160, and loses that enquiry before they touch a control.
+It also misrepresents the studio as more expensive than it is. Building up
+from a floor is how a configurator is supposed to behave anyway — every choice
+adds something the visitor asked for.
+
+**On DD-1:** a single configured range with its qualifier adjacent is not the
+"fixed price or package tier grid" DD-1 forbids. It cannot be scanned or
+compared without describing a project first, which is the qualification the
+tool exists to perform. Recorded because it sits close to the line.
+
+**Binding:** do not "improve" the default to a more representative
+configuration. The number that renders unconfigured is an anchor, and anchors
+belong at the entry point.
+
+### DD-23 — Base rates are derived, not confirmed
+
+**Context:** `BASE_RATES` in `lib/pricing.ts` — website €1,800, store €4,000,
+redesign €1,500, custom €6,000 — are the studio's **actual prices**. Everything
+else in that file is arithmetic.
+
+They were derived from the SPEC §7 market anchors and the positioning ruling
+(2–3× the local template market, well under UK agency rates), and each carries
+the comparison it was derived against. Worked example: a small store configures
+to roughly €7,800–11,600 against a local €1,500–3,500, which sits in the band.
+
+**But derived is not confirmed.** This is a business fact, and the phase file
+says plainly that agents never invent those.
+
+**Binding:** `scripts/check-content-coverage.mjs` prints the rates on every
+`npm run lint` until the marker `OWNER APPROVED` appears in `lib/pricing.ts`.
+Do not add that marker on the owner's behalf. Launch is blocked on it in the
+same way it is blocked on the missing testimonials.
