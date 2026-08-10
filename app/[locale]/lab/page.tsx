@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import PageStub from '@/components/PageStub';
+import WorkIndex from '@/components/WorkIndex';
 import { isLocale } from '@/lib/locales';
-import { contentFor, pageMetadata } from '@/lib/content';
+import { pageMetadata } from '@/lib/content';
 
 const PATH = "lab";
 const KEY = "lab";
@@ -20,6 +20,12 @@ export async function generateMetadata({
 export default async function Page({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
-  const meta = contentFor(locale).meta[KEY];
-  return <PageStub title={meta.title} note={meta.description} />;
+  return (
+    <WorkIndex
+      locale={locale}
+      surface="lab"
+      title={"Where the techniques come from."}
+      lede={"Nobody commissions a game engine. This is here because it is the clearest evidence of what \"built from scratch\" actually means — pathfinding, collision, world generation and a render loop, all authored rather than imported."}
+    />
+  );
 }

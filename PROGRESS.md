@@ -21,7 +21,7 @@
 | 2B — Content voice rewrite (EN) | DONE | — | Merged into 2A — the model and the copy were too coupled to write separately. |
 | 3 — Core pages | DONE | — | Homepage (7 blocks) + 4 service pages, composed from content. See DD-17. |
 | 4 — Pricing + configurator | DONE | — | `/pricing` explains how, never how much. Configurator returns a range. Base rates need owner sign-off (DD-23). |
-| 5 — Case studies | NOT STARTED | — | A25 (flagship), Dresscode. |
+| 5 — Case studies | DONE | — | `/work`, 3 case studies, `/lab`. Images renamed + `next/image`. See DD-24. |
 | 6 — Process / Studio / Contact | NOT STARTED | — | — |
 | 7 — WebGL concentration | NOT STARTED | — | Forge hero + perf budget enforcement. |
 | 8 — Localization | NOT STARTED | — | EL, MK. |
@@ -847,3 +847,64 @@ says plainly that agents never invent those.
 `npm run lint` until the marker `OWNER APPROVED` appears in `lib/pricing.ts`.
 Do not add that marker on the owner's behalf. Launch is blocked on it in the
 same way it is blocked on the missing testimonials.
+
+---
+
+### Phase 5 — Case studies & Lab (Director, direct)
+
+**What was built**
+
+- `components/CaseStudyPage.tsx`, `components/WorkIndex.tsx`
+- `/work` + `/work/a25`, `/work/dresscode`, `/work/nova-shift`
+- `/lab` + `/lab/surviving-of-souls`
+- `apex-*.jpg` → `nova-shift-*.jpg` (DD-21), content references updated
+- All imagery through `next/image` with `fill` inside fixed-aspect containers,
+  so no image can cause layout shift regardless of its source dimensions
+
+**A bug the DoD check caught.** `/work` was rendering "Surviving of Souls"
+despite the surface filter being correct. The leak was `SiteFooter`, which
+listed *every* route in `ROUTES` — including individual case studies and lab
+entries — on every page. Two problems in one: a cluttered 15-link footer, and
+a lab entry appearing on the sales path, which is precisely what DD-4 exists
+to prevent. Footer now lists top-level destinations only; children are reached
+from their index. Verified: `/work` 0 occurrences, `/lab` 1, footer 10 links.
+
+**Definition of Done**
+
+- [x] `/work` lists client work, excludes lab entries
+- [x] Each case study renders from the `CaseStudy` entity
+- [x] `/lab` renders Surviving of Souls
+- [x] Images through `next/image`
+- [x] No invented metric anywhere
+- [x] `npm run build` and `npm run lint` pass
+- [~] **"Zero occurrences of apex"** — two remain and both are deliberate:
+      `LEGACY_NAME` in `lib/site.ts`, which SPEC §7 requires for the JSON-LD
+      `alternateName`, and the README's account of what this repository used to
+      hold. No user-facing copy or asset filename contains it. The DoD line was
+      written too broadly; the intent was copy and filenames.
+
+---
+
+### DD-24 — Case studies carry no metrics, and the pages are built around that
+
+**Context:** every teardown in the research found the same pattern — case
+studies that lead with outcome numbers ("$300K in sponsorship revenue",
+"+28% demo requests") convert, and generic ones do not.
+
+NovaFaber has none. Not "not gathered yet": there is no analytics access to
+A25 or Dresscode, and A25 was delivered unpaid, so there is no engagement to
+request it under.
+
+**Ruling:** case studies are built on **what was made and why**, in prose.
+No outcome figures, no traffic claims, no invented percentages.
+
+**Reasoning:** an invented metric is the single cheapest way to destroy the
+credibility of every other claim on the site, and this site's entire
+positioning rests on claims a visitor cannot independently verify. The
+downside is real — this is a weaker form of proof, and the writing has to work
+harder to compensate. The A25 page therefore leads with the *problem* (two
+audiences sharing no language) and shows the build following from it, so the
+reader learns how the studio thinks rather than what it achieved.
+
+**Binding:** do not add a metric to any case study until the client supplies
+it in writing. If one arrives, cite the client as its source.

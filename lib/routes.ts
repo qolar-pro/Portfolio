@@ -37,6 +37,8 @@ export const ROUTES: RouteDef[] = [
   { path: 'work', key: 'work', placeholderLabel: 'Work', inNav: true },
   { path: 'work/a25', key: 'work.a25', placeholderLabel: 'A25 — The Agency', group: 'work', inNav: false },
   { path: 'work/dresscode', key: 'work.dresscode', placeholderLabel: 'Dresscode', group: 'work', inNav: false },
+  { path: 'work/nova-shift', key: 'work.nova-shift', placeholderLabel: 'Nova Shift', group: 'work', inNav: false },
+  { path: 'lab/surviving-of-souls', key: 'lab.surviving-of-souls', placeholderLabel: 'Surviving of Souls', inNav: false },
 
   { path: 'process', key: 'process', placeholderLabel: 'Process', inNav: true },
   { path: 'studio', key: 'studio', placeholderLabel: 'Studio', inNav: true },

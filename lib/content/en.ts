@@ -95,6 +95,16 @@ export const en: LocaleContent = {
       description:
         'A fashion commerce platform built end to end: storefront, order pipeline, admin tooling and a custom database layer.',
     },
+    'work.nova-shift': {
+      title: 'Nova Shift',
+      description:
+        'A scheduling and earnings platform where every field, rule and view can be reshaped by the person using it.',
+    },
+    'lab.surviving-of-souls': {
+      title: 'Surviving of Souls',
+      description:
+        'A top-down survival game running on a canvas engine written from scratch — no game framework, no physics library.',
+    },
     process: {
       title: 'Process',
       description:
@@ -282,7 +292,7 @@ export const en: LocaleContent = {
         'Multi-format export',
       ],
       stack: ['React', 'TypeScript', 'Tailwind', 'Node.js'],
-      images: ['/images/apex-1.jpg', '/images/apex-2.jpg', '/images/apex-3.jpg'],
+      images: ['/images/nova-shift-1.jpg', '/images/nova-shift-2.jpg', '/images/nova-shift-3.jpg'],
       url: 'https://animated-valkyrie-8d4b67.netlify.app/',
       surface: 'work',
       flagship: false,

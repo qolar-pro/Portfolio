@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import PageStub from '@/components/PageStub';
+import WorkIndex from '@/components/WorkIndex';
 import { isLocale } from '@/lib/locales';
-import { contentFor, pageMetadata } from '@/lib/content';
+import { pageMetadata } from '@/lib/content';
 
 const PATH = "work";
 const KEY = "work";
@@ -20,6 +20,12 @@ export async function generateMetadata({
 export default async function Page({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
-  const meta = contentFor(locale).meta[KEY];
-  return <PageStub title={meta.title} note={meta.description} />;
+  return (
+    <WorkIndex
+      locale={locale}
+      surface="work"
+      title={"Built, shipped, running."}
+      lede={"Three projects. One in production for a client, two built to find out how far a thing could be pushed. No invented metrics — what follows is what was made and why."}
+    />
+  );
 }

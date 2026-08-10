@@ -4,8 +4,8 @@ import CaseStudyPage from '@/components/CaseStudyPage';
 import { isLocale } from '@/lib/locales';
 import { pageMetadata } from '@/lib/content';
 
-const PATH = "work/a25";
-const KEY = "work.a25";
+const PATH = "lab/surviving-of-souls";
+const KEY = "lab.surviving-of-souls";
 
 export async function generateMetadata({
   params,
@@ -20,5 +20,5 @@ export async function generateMetadata({
 export default async function Page({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
-  return <CaseStudyPage locale={locale} id="a25" />;
+  return <CaseStudyPage locale={locale} id="surviving-of-souls" />;
 }

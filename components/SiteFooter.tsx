@@ -17,7 +17,11 @@ export default function SiteFooter({ locale }: { locale: Locale }) {
     <footer className="mt-24 border-t border-rule">
       <div className="mx-auto max-w-[1200px] px-5 py-10">
         <nav aria-label="Footer" className="flex flex-wrap gap-x-5 gap-y-2">
-          {ROUTES.filter((r) => r.path !== '').map((route) => (
+          {/* Top-level destinations only. Listing every route put individual
+              case studies and lab entries in the footer of every page — which
+              both cluttered it and leaked a lab entry onto /work (DD-4 keeps
+              those apart). Children are reached from their index page. */}
+          {ROUTES.filter((r) => r.inNav).map((route) => (
             <Link
               key={route.path}
               href={href(locale, route.path)}
