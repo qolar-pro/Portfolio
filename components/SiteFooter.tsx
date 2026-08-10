@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { ROUTES, href } from '@/lib/routes';
 import { SITE_NAME } from '@/lib/site';
 import type { Locale } from '@/lib/locales';
+import { contentFor } from '@/lib/content';
 
 /**
  * Phase 0 footer: the full route list, so every page is reachable from every
@@ -11,6 +12,7 @@ import type { Locale } from '@/lib/locales';
  * and personal Instagram/TikTok are deliberately not carried over (SPEC §7).
  */
 export default function SiteFooter({ locale }: { locale: Locale }) {
+  const chrome = contentFor(locale).chrome;
   return (
     <footer className="mt-24 border-t border-rule">
       <div className="mx-auto max-w-[1200px] px-5 py-10">
@@ -21,12 +23,12 @@ export default function SiteFooter({ locale }: { locale: Locale }) {
               href={href(locale, route.path)}
               className="text-sm text-muted hover:text-ink"
             >
-              {route.placeholderLabel}
+              {chrome.navLabels[route.key] ?? route.placeholderLabel}
             </Link>
           ))}
         </nav>
-        <p className="mt-8 font-mono text-xs text-muted">
-          {SITE_NAME} — designed and built in-house.
+        <p className="mt-8 font-mono text-2xs tracking-[0.06em] text-muted">
+          {SITE_NAME} — {chrome.footerNote}
         </p>
       </div>
     </footer>

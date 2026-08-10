@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { ROUTES, href } from '@/lib/routes';
 import { LOCALES, localeShortNames, type Locale } from '@/lib/locales';
 import { SITE_NAME } from '@/lib/site';
+import { contentFor } from '@/lib/content';
 
 /**
  * A persistent, always-visible header.
@@ -15,6 +16,9 @@ import { SITE_NAME } from '@/lib/site';
  */
 export default function SiteHeader({ locale }: { locale: Locale }) {
   const primary = ROUTES.filter((r) => r.inNav);
+  // Labels come from content, so a locale can name a destination the way its
+  // own market does rather than translating an English label (DD-2).
+  const labels = contentFor(locale).chrome.navLabels;
 
   return (
     <header className="border-b border-rule">
@@ -30,7 +34,7 @@ export default function SiteHeader({ locale }: { locale: Locale }) {
               href={href(locale, route.path)}
               className="text-sm text-ink-soft hover:text-ink"
             >
-              {route.placeholderLabel}
+              {labels[route.key] ?? route.placeholderLabel}
             </Link>
           ))}
         </nav>

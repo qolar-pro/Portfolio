@@ -19,7 +19,7 @@
 | 1 — Design system | DONE | `e6936dc` | Type pairing (DD-13), measured palette, motion budget (DD-14), grade profiles. Contrast guard gates `npm run lint`. |
 | 2A — Content model (EN structure) | DONE | — | Entity model + EN copy. Route metadata now sourced from content. See DD-15, DD-16. |
 | 2B — Content voice rewrite (EN) | DONE | — | Merged into 2A — the model and the copy were too coupled to write separately. |
-| 3 — Core pages | NOT STARTED | — | Home shell + 4 service pages. |
+| 3 — Core pages | DONE | — | Homepage (7 blocks) + 4 service pages, composed from content. See DD-17. |
 | 4 — Pricing + configurator | BLOCKED | — | Gated on **OQ-1** (pricing model). |
 | 5 — Case studies | NOT STARTED | — | A25 (flagship), Dresscode. |
 | 6 — Process / Studio / Contact | NOT STARTED | — | — |
@@ -630,3 +630,83 @@ Each service carries a `notFor` field, and it is not decorative. Naming who the
 service is wrong for is the cheapest trust signal available to a studio with no
 testimonials yet (DD-5), and it filters enquiries that would waste both sides'
 time.
+
+---
+
+### Phase 3 — Core pages (Director, direct)
+
+**What was built**
+
+- `components/Home.tsx` — homepage in **7 blocks**
+- `components/ServicePage.tsx` — one template, four services (DD-16)
+- `components/ui.tsx` — `Eyebrow`, `SectionHeading`, `Button`, `Stat`, `Band`
+- Header and footer labels now read from `chrome.navLabels` (DD-2)
+
+**Definition of Done**
+
+- [x] Homepage renders from content, no hardcoded copy
+- [x] Four service pages render from the `Service` entity
+- [x] Density budget respected — 7 blocks, counted
+- [x] Prose surfaces use `ReadingSurface`
+- [x] No price figures rendered
+- [x] Testimonial empty state honest — section omitted entirely
+- [x] Nav and footer labels from content
+- [x] One `<h1>` per page, verified in build output
+- [x] `npm run build` passes
+- [x] `npm run lint` passes
+
+**A verification mistake worth recording.** The DoD check for leaked prices was
+run as a grep for `[€$][0-9]` over the *rendered HTML*, and it hit — three
+matches on `/en/services/websites`. They were React Server Components flight
+data (`\"$\",\"$1\",\"c\"`), not prices. That check would false-positive on
+every Next.js page ever built. The real guard scans `lib/content/en.ts` at
+source, which is where a price would actually be authored, and it passes. The
+code was fine; the verification was wrong.
+
+**How to verify**
+
+```bash
+npm run lint            # tsc, 26 contrast pairings, content coverage
+npm run build
+grep -c "<Band" components/Home.tsx                    # 7 — the density budget
+grep -o "<h1" .next/server/app/en/index.html | wc -l   # 1
+node scripts/check-content-coverage.mjs                # price guard, at source
+```
+
+---
+
+### DD-17 — SPEC §5 lists ten homepage sections; the density budget allows seven
+
+**Context:** SPEC §5 specifies a homepage order of ten sections. SPEC §3.3 caps
+a page at roughly seven blocks. Both were written during research, and they
+contradict each other.
+
+**Ruling:** the budget wins, and the sections compose rather than being cut.
+
+- Proof strip folds into the hero band — it is credibility *for* the hero, not
+  a separate argument.
+- The closing CTA carries the contact section.
+- Client logos are dropped for now: the owner has not supplied any, and an
+  empty "trusted by" strip is worse than none.
+
+Final: hero+proof, services, flagship, process, testimonials, capabilities,
+closing CTA. Seven.
+
+**Binding:** adding a homepage section means merging or removing another.
+Resolving this at build time is the entire reason the budget exists — shipping
+ten sections and calling the result dense is the failure being prevented.
+
+### DD-18 — The testimonial section renders nothing, not an empty state
+
+**Context:** DD-5 says design the block for three substantial testimonials. The
+quotes have not been supplied.
+
+**Ruling:** when `testimonials` contains no entries, the section does not
+render at all — no heading, no placeholder cards, no "coming soon".
+
+A styled empty state announces that testimonials were expected and are absent,
+which is a worse signal than never raising the subject. Placeholder quotes are
+not an option at any point (DD-5).
+
+**Binding:** do not add skeleton cards or sample quotes to "show the layout".
+The layout can be judged when there is something real in it.
