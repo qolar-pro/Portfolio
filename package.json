@@ -6,20 +6,24 @@
     "dev": "next dev --port 3000",
     "build": "next build",
     "start": "next start",
-    "lint": "tsc --noEmit && node scripts/check-contrast.mjs && node scripts/check-content-coverage.mjs",
+    "lint": "tsc --noEmit && node scripts/check-contrast.mjs && node scripts/check-no-webgl.mjs && node scripts/check-content-coverage.mjs",
     "check:contrast": "node scripts/check-contrast.mjs",
-    "check:content": "node scripts/check-content-coverage.mjs"
+    "check:content": "node scripts/check-content-coverage.mjs",
+    "check:webgl": "node scripts/check-no-webgl.mjs"
   },
   "dependencies": {
+    "@react-three/fiber": "^9.7.0",
     "next": "^15.5.0",
     "react": "^19.0.1",
-    "react-dom": "^19.0.1"
+    "react-dom": "^19.0.1",
+    "three": "^0.185.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.14",
     "@types/node": "^22.14.0",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
+    "@types/three": "^0.185.4",
     "tailwindcss": "^4.1.14",
     "typescript": "~5.8.2"
   }

@@ -2,7 +2,8 @@ import Link from 'next/link';
 import type { Locale } from '@/lib/locales';
 import { href } from '@/lib/routes';
 import { contentFor } from '@/lib/content';
-import { Band, Button, Eyebrow, SectionHeading, Stat } from '@/components/ui';
+import Hero from '@/components/Hero';
+import { Band, Button, Eyebrow, SectionHeading } from '@/components/ui';
 
 /**
  * The homepage.
@@ -13,9 +14,9 @@ import { Band, Button, Eyebrow, SectionHeading, Stat } from '@/components/ui';
  * lands at seven. Resolving this at build time rather than shipping ten and
  * calling it dense is the entire point of having the budget.
  *
- * No WebGL here. Phase 7 owns the forge hero; until then the hero carries the
- * page on type, which is a useful test — if it cannot, decoration was never
- * the thing making it work.
+ * The hero is the site's only spectacle surface (DD-14). Everything below it
+ * is a reading surface — no canvas, no camera choreography, no grade. That
+ * separation is enforced by scripts/check-no-webgl.mjs rather than trusted.
  */
 export default function Home({ locale }: { locale: Locale }) {
   const c = contentFor(locale);
@@ -24,26 +25,16 @@ export default function Home({ locale }: { locale: Locale }) {
 
   return (
     <>
-      {/* 1 — Hero + proof */}
-      <Band className="border-b border-rule">
-        <div className="flex flex-col gap-8">
-          <div className="flex max-w-[20ch] flex-col gap-6">
-            <h1 className="text-5xl md:text-6xl">{c.home.headline}</h1>
-          </div>
-          <p className="max-w-[var(--measure)] text-lg text-ink-soft">{c.home.subhead}</p>
-          <div className="flex flex-wrap gap-3">
-            <Button href={href(locale, 'contact')}>{c.home.ctaPrimary}</Button>
-            <Button href={href(locale, 'work')} variant="secondary">
-              {c.home.ctaSecondary}
-            </Button>
-          </div>
-          <div className="mt-4 grid gap-px bg-rule sm:grid-cols-3">
-            {c.home.proof.map((p) => (
-              <Stat key={p.label} value={p.value} label={p.label} />
-            ))}
-          </div>
-        </div>
-      </Band>
+      {/* 1 — Hero + proof. The only spectacle surface on the site (DD-14). */}
+      <Hero
+        headline={c.home.headline}
+        subhead={c.home.subhead}
+        ctaPrimary={c.home.ctaPrimary}
+        ctaSecondary={c.home.ctaSecondary}
+        hrefPrimary={href(locale, 'contact')}
+        hrefSecondary={href(locale, 'work')}
+        proof={c.home.proof}
+      />
 
       {/* 2 — Services, bento with unequal weight */}
       <Band tone="surface">

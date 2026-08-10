@@ -23,7 +23,7 @@
 | 4 — Pricing + configurator | DONE | — | `/pricing` explains how, never how much. Configurator returns a range. Base rates need owner sign-off (DD-23). |
 | 5 — Case studies | DONE | — | `/work`, 3 case studies, `/lab`. Images renamed + `next/image`. See DD-24. |
 | 6 — Process / Studio / Contact | DONE | — | Configurator brief round-trips through the URL, server-rendered. Booking tool still unchosen — OQ-7. |
-| 7 — WebGL concentration | NOT STARTED | — | Forge hero + perf budget enforcement. |
+| 7 — Forge hero & perf budget | DONE | — | Procedural shader hero, zero mesh files. WebGL containment guard added + mutation-tested. See DD-25. |
 | 8 — Localization | NOT STARTED | — | EL, MK. |
 | 9 — SEO / schema / migration | NOT STARTED | — | — |
 | 10 — Sweeps (find-only) | NOT STARTED | — | Legibility, perf, a11y. Findings gate launch. |
@@ -990,3 +990,99 @@ before they reply.
 **Needed from the owner:** whether to add a market selector, and what the
 Macedonian multiplier should be. This compounds with DD-23 — the base rates are
 themselves unapproved.
+
+---
+
+### Phase 7 — Forge hero & performance budget (Director, direct)
+
+**What was built**
+
+- `components/canvas/ForgeObject.tsx` — icosahedron generated at runtime,
+  surfaced by a custom GLSL shader. Vertex displacement by simplex noise with
+  amplitude driven by heat; fresnel rim and an ember-to-iron gradient in the
+  fragment shader. **No mesh file of any kind.**
+- `lib/quality.ts` — `high` / `low` / `static` tiers. Starts at `static` on
+  every render including the server, and only upgrades after mount, so the
+  canvas cannot delay LCP or cause a hydration mismatch.
+- `components/Hero.tsx` — type renders server-side and is the LCP element;
+  canvas is dynamically imported and never requested on the `static` tier.
+- `scripts/check-no-webgl.mjs` — the guard deferred from Phase 1.
+
+**Verified**
+
+```
+Homepage First Load JS ....... 108 kB
+Reading pages ................ 106 kB
+  → the WebGL hero costs 2 kB at first load.
+
+three.js chunks .............. separate, loaded after mount
+shared bundle ................ contains no three.js
+SSR homepage HTML ............ headline present, <canvas> count 0
+```
+
+**Guard mutation-tested — both directions**
+
+```
+MUTATION 1  direct import on /pricing
+            FAIL /pricing
+            reaches WebGL via: pricing/page.tsx -> @/components/canvas/ForgeCanvas
+
+MUTATION 2  indirect, via shared components/ui.tsx
+            14 reading routes caught
+            reaches WebGL via: contact/page.tsx -> ContactPage.tsx -> ui.tsx -> ForgeCanvas
+
+RESTORED    exit 0
+```
+
+Mutation 2 is the one that mattered. A grep of the page file would have passed
+it, and an indirect pull through a shared component is the realistic way this
+constraint actually breaks.
+
+**Scope decision:** `@react-three/postprocessing` was not added. The grade
+values in `lib/grade.ts` are applied inside the fragment shader (grain,
+emissive falloff standing in for bloom) and in CSS (vignette). Chromatic
+aberration is not implemented at all, which costs nothing — DD-8 sets it to
+zero on every surface carrying text, and the hero is the only surface that
+could have used it.
+
+**Definition of Done**
+
+- [x] Zero mesh files; geometry generated at runtime
+- [x] Grade values read from `lib/grade.ts`
+- [x] `static` tier renders a complete hero with no WebGL
+- [x] `prefers-reduced-motion` forces the static tier
+- [x] Canvas dynamically imported; text is the LCP element
+- [x] No-WebGL guard exists **and is mutation-tested**
+- [x] `npm run build` and `npm run lint` pass
+
+---
+
+### DD-25 — Correcting the payload arithmetic in DD-3
+
+DD-3 justified scrapping the GLBs partly on this claim:
+
+> "Procedural geometry ships as code — low single-digit KB, shared with the
+> bundle. Against a 546,960-byte eager baseline that is a >99% reduction."
+
+**That was misleading and should be corrected.** The geometry and shader are
+indeed a few KB. But they require three.js, which lands in code-split chunks
+totalling roughly **700 KB**. Describing the hero as a >99% reduction ignored
+the runtime the technique depends on.
+
+**The honest comparison**, since the old build also shipped three.js:
+
+| | Old build | Now |
+|---|---|---|
+| Mesh files | 1,872,788 B, 546,960 eager | **0** |
+| three.js | shipped | shipped, code-split, after mount |
+| Eager 3D payload | 546,960 B | **0 B** |
+| Homepage First Load JS | — | 108 kB (2 kB over a reading page) |
+
+So the decision still holds, and comfortably — 1.87 MB of models is gone and
+nothing 3D is eager. But the win is "no models and nothing blocking", not
+"the hero is free."
+
+**Binding:** three.js is now the largest single dependency in the project. If
+a future phase adds `drei`, `postprocessing`, or a physics library, the cost
+goes in the phase report with a measured number. Do not let this grow quietly
+on a site whose pitch is speed.
