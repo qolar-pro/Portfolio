@@ -15,8 +15,8 @@
 | Phase | Status | Commit | Notes |
 |-------|--------|--------|-------|
 | — Research & audit | DONE | — | Source audit of `_current/`, GR/MK/UK/US market research, positioning, page map, feature ranking. Written up in `SPEC.md`. |
-| 0 — Foundation | DONE | — | 13 routes × 3 locales prerendered. Fonts deferred to Phase 1 — see report + DD-12. |
-| 1 — Design system | NOT STARTED | — | The S2 legibility fix. Everything visual depends on it. |
+| 0 — Foundation | DONE | `0469e77` | 13 routes × 3 locales prerendered. Pushed to `qolar-pro/Portfolio` main. Fonts deferred to Phase 1 — see report + DD-12. |
+| 1 — Design system | DONE | — | Type pairing (DD-13), measured palette, motion budget (DD-14), grade profiles. Contrast guard gates `npm run lint`. |
 | 2A — Content model (EN structure) | NOT STARTED | — | — |
 | 2B — Content voice rewrite (EN) | NOT STARTED | — | Portfolio voice → builder voice. |
 | 3 — Core pages | NOT STARTED | — | Home shell + 4 service pages. |
@@ -112,6 +112,100 @@ grep -o '<html lang="[^"]*"'          .next/server/app/mk/pricing.html
 Observed: four alternates (`en`, `el`, `mk`, `x-default`) on the EN page;
 `https://novafaber.com/el/pricing` canonical on the EL page; `lang="mk"` on the
 MK page.
+
+---
+
+### Phase 1 — Design System (Director, direct)
+
+**What was built**
+
+- **Type pairing** (DD-13): Sofia Sans Condensed / Source Serif 4 / JetBrains
+  Mono, all carrying Latin, Greek and Cyrillic. Bound only through
+  `--font-display` / `--font-body` / `--font-mono`.
+- **Type scale**, 17px base, with `--text-2xs` explicitly reserved for mono
+  labels and never prose — the old site's 11px/0.35em body-adjacent text is
+  the failure mode it is shaped against.
+- **Measured palette**, forge-derived: cold iron grounds, `--ember` accent,
+  `--steel` secondary. Split `--rule` (decorative) from `--rule-strong`
+  (component boundaries) — see the guard note below.
+- **`scripts/check-contrast.mjs`** — parses the shipped stylesheet, computes
+  WCAG ratios for 26 pairings across both themes. Wired into `npm run lint`.
+- **`lib/motion-budget.ts`** (DD-14) — per-surface effect allowances with the
+  reasoning kept in code, plus a `RETIRED` record so cuts read as decisions.
+- **`lib/grade.ts`** — `FULL` and `CALM` post-processing profiles as data for
+  Phase 7 to consume. `CALM` sets chromatic aberration to **zero**, not
+  reduced.
+- **`components/Surface.tsx`** — `ReadingSurface` (opaque, measure-capped) and
+  `SpectacleSurface` (full-bleed, canvas-ready).
+
+**Measured contrast — all 26 pairings pass**
+
+| Pairing | Light | Dark |
+|---|---|---|
+| ink on ground | 16.20:1 | 15.63:1 |
+| ink-soft on ground | 9.33:1 | 10.95:1 |
+| muted on ground | 5.50:1 | 6.28:1 |
+| ember on ground | 6.00:1 | 7.28:1 |
+| steel on ground | 7.72:1 | 7.91:1 |
+| rule-strong on ground | 3.91:1 | 3.62:1 |
+
+**The guard caught a real defect on first run.** `--rule` measured 1.34:1 —
+technically compliant, since WCAG 1.4.11 exempts decorative separators, and
+genuinely invisible. Rather than lower the threshold, the token was split: a
+decorative `--rule` held to a non-WCAG *design* floor of 1.5:1, and a
+`--rule-strong` for component boundaries held to the real 3:1. Faint hairlines
+were part of why the old site read as undifferentiated.
+
+**Mutation test (ORCHESTRATION.md requires this)**
+
+Two deliberate breaks, guard failed loudly on both, restored clean:
+
+```
+MUTATION 1  --muted #5b636b -> #b9bec4
+            FAIL muted on ground   1.68:1 (min 4.5)
+            FAIL muted on surface  1.87:1 (min 4.5)
+MUTATION 2  --rule-strong #6b727a -> #24282d (dark)
+            FAIL rule-strong on ground   1.29:1 (min 3)
+            FAIL rule-strong on surface  1.19:1 (min 3)
+RESTORED    26 pairings checked, 0 failing
+```
+
+**Definition of Done**
+
+- [x] Colour tokens defined; computed ratios recorded; all clear their floor
+- [x] Type scale with body ≥16px, label and prose roles separated
+- [x] Measure cap exists and is structural (`ReadingSurface` owns it)
+- [x] Motion budget documented with a readable mechanism (`allows()`)
+- [x] `full` / `calm` grade profiles defined as consumable data
+- [x] Ghost-numeral decision documented (`RETIRED` in `lib/motion-budget.ts`)
+- [x] Contrast guard exists **and is mutation-tested**
+- [ ] **No-WebGL-on-reading-pages guard — deferred to Phase 7.** Stated
+      plainly: there is no WebGL anywhere in the tree yet, so such a check
+      would pass trivially and could not be mutation-tested. A guard that
+      cannot be made to fail is decorative, which is exactly what
+      ORCHESTRATION.md says not to accept. It is a Phase 7 DoD item.
+- [x] Light and dark both resolve; no colour declared only inside a media or
+      `[data-theme]` block
+- [x] `prefers-reduced-motion` honoured
+- [x] `npm run build` passes
+- [x] `npm run lint` passes (typecheck + contrast guard)
+
+**How to verify**
+
+```bash
+npm run lint            # tsc, then 26 contrast pairings, exits non-zero on any failure
+npm run check:contrast  # guard alone, prints the full table
+
+# prove the guard bites:
+sed -i 's/--muted: #5b636b;/--muted: #b9bec4;/' app/globals.css
+npm run check:contrast  # expect: FAIL muted on ground 1.68:1
+git checkout app/globals.css
+```
+
+**Note on the build as verification.** The three typefaces are requested with
+`subsets: ['latin','latin-ext','greek','cyrillic']`. `next/font/google` fails
+the build on an unsupported subset, so a green build is direct proof that all
+three carry the scripts `/el` and `/mk` need.
 
 ---
 
@@ -413,3 +507,68 @@ through `--font-display` / `--font-body` / `--font-mono` only, as Phase 0
 established, so the pairing stays a one-file change while it is being judged.
 The body face is chosen for reading at 16–18px first and for character second —
 that ordering is the point of the ruling.
+
+---
+
+*DD-13 … DD-14 arose during Phase 1.*
+
+### DD-13 — Type pairing: Sofia Sans Condensed / Source Serif 4 / JetBrains Mono
+
+**Context:** DD-12 called for a new pairing. The binding constraint turned out
+not to be taste but script coverage — DD-2 ships EL and MK, so every face must
+carry **Greek and Cyrillic**. That eliminates most display typefaces outright.
+Archivo, the first choice, offers `latin, latin-ext, vietnamese` and neither
+of the scripts needed. Of the full Google Fonts catalogue, 104 families carry
+both Greek and Cyrillic; 58 of those are variable-weight.
+
+**Ruling:**
+
+- **Display — Sofia Sans Condensed.** Bulgarian-designed, so Cyrillic is a
+  native script rather than an appended subset, and it carries Greek. Its
+  signage lineage suits a studio named for a smith. *Condensed is a functional
+  choice, not a stylistic one:* Greek and Macedonian headlines run materially
+  longer than their English equivalents, and a normal-width display face wraps
+  badly on `/el` and `/mk` at the same type sizes.
+- **Body — Source Serif 4.** Chosen for reading at 17px first and character
+  second, per SPEC §11. A serif body also separates NovaFaber from the
+  geometric-sans look every local template shop ships.
+- **Mono — JetBrains Mono.** Labels, prices, metrics. Carries both scripts and
+  keeps the old build's mono role.
+
+**Binding:** Any future substitution must be verified for Greek and Cyrillic
+before it is proposed. The build enforces this — `next/font/google` fails on an
+unsupported subset — so do not "fix" a build error by narrowing the `subsets`
+array. Narrowing it silently drops script coverage for two of three locales.
+
+### DD-14 — Motion budget: per-surface allowances
+
+**Context:** the owner asked whether the old site's animations could be reused.
+They can, nearly all of them. The defect was never an individual effect — it
+was eight running simultaneously, over body copy, under a film grade.
+
+**Ruling:** effects are allocated per surface in `lib/motion-budget.ts`.
+
+| Surface | Allowed |
+|---|---|
+| `spectacle` | cursor, magnetic, velocitySkew, reveal, cameraScroll, grade |
+| `reading` | cursor, reveal |
+| `chrome` | cursor, textRoll |
+
+Carried over unchanged: `lib/journey.ts`, `lib/motion.ts`, the Lenis↔GSAP
+ticker marriage, `lib/reveal.ts`, `lib/quality.tsx`. That architecture is
+sound and none of it caused the problem.
+
+**Retired, with reasons:**
+
+- **Preloader** — delays LCP on a site whose pitch is speed (SPEC §7 sets LCP
+  ≤ 2.0s). This one costs money, not just legibility.
+- **Ghost numeral** — the `clamp(6rem,18vw,15rem)` numeral drifting behind
+  every H2. Two elements occupied one spot and neither won.
+- **VelocitySkew on reading surfaces** — shearing the page up to 3.2° while
+  scrolling was the most reading-hostile DOM effect in the old build.
+- **TiltStage on services** — card tilt fights scanning when someone is
+  comparing four options.
+
+**Binding:** adding an effect to a surface means removing one. If a component
+needs an effect its surface does not allow, that is an escalation — not a
+local exception.

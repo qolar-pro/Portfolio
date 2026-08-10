@@ -1,60 +1,87 @@
 @import 'tailwindcss';
 
-/*
- * PHASE 0 BASELINE ONLY.
- *
- * Phase 1 owns the real design system — measured contrast, the type scale,
- * the measure cap and the motion budget (SPEC §3, PHASE_1_design_system.md).
- * What is here is the minimum needed to render legible stubs, plus the two
- * structural commitments Phase 1 will build on:
- *
- *   1. Font families bind through role variables, never directly. SPEC §11
- *      leaves the typeface choice open, so swapping it must stay a one-file
- *      change.
- *   2. Every colour is declared at :root first, then redefined per theme.
- *      A colour whose only definition sits inside a media query never applies
- *      in the un-stamped system-default state.
- */
+/* ===========================================================================
+   NovaFaber design system — Phase 1
+   Every rule here traces to a diagnosed cause in SPEC.md §2 or a binding
+   constraint in §3. This is not a style sheet; it is the legibility fix.
+   =========================================================================== */
 
 :root {
-  /* Type roles — families are placeholders pending the SPEC §11 ruling. */
-  --font-display: ui-sans-serif, system-ui, sans-serif;
-  --font-body: ui-sans-serif, system-ui, sans-serif;
-  --font-mono: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  /* --- Type roles (DD-12) -------------------------------------------------
+     Families bind through these three variables and nowhere else, so the
+     pairing stays a one-file change while it is being judged. */
+  --font-display: var(--font-sofia), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-source-serif), Georgia, serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, Consolas, monospace;
 
-  /* Light palette. Phase 1 replaces these with measured values. */
-  --ground: #ffffff;
-  --surface: #f4f4f5;
-  --ink: #18181b;
-  --ink-soft: #3f3f46;
-  --muted: #71717a;
-  --rule: #d4d4d8;
-  --accent: #b83e14;
+  /* --- Type scale ---------------------------------------------------------
+     Base is 17px. SPEC §3.3 sets a 16px floor for body copy; the old site
+     ran body-adjacent text at 11px with 0.35em tracking, which is the
+     failure mode this scale exists to make awkward to reproduce. */
+  --text-2xs: 0.75rem;   /* 12px — mono labels ONLY, never prose */
+  --text-xs: 0.8125rem;  /* 13px */
+  --text-sm: 0.9375rem;  /* 15px */
+  --text-base: 1.0625rem; /* 17px — body */
+  --text-lg: 1.1875rem;  /* 19px — lede */
+  --text-xl: 1.4375rem;  /* 23px */
+  --text-2xl: 1.75rem;   /* 28px */
+  --text-3xl: 2.25rem;   /* 36px */
+  --text-4xl: 3rem;      /* 48px */
+  --text-5xl: clamp(3.25rem, 6vw, 4.5rem);
+  --text-6xl: clamp(4rem, 9vw, 7rem); /* hero only */
 
-  /* SPEC §3.2 — running text is capped at 65-75 characters. */
+  --leading-tight: 1.05;
+  --leading-snug: 1.2;
+  --leading-body: 1.62;
+
+  /* --- Measure (SPEC §3.2) ------------------------------------------------
+     The old site had no cap; paragraphs ran the full 1500px container. */
   --measure: 68ch;
+  --measure-narrow: 54ch;
+
+  /* --- Colour: light ------------------------------------------------------
+     Forge palette. Cold iron ground, hot metal accent. Ratios are measured,
+     not estimated — see scripts/check-contrast.mjs. */
+  --ground: #f2f3f5;
+  --surface: #ffffff;
+  --surface-sunk: #e7e9ec;
+  --ink: #14171a;
+  --ink-soft: #3a4147;
+  --muted: #5b636b;
+  /* Two rules, two jobs. --rule is a decorative separator; --rule-strong
+     bounds interactive components and must clear WCAG 1.4.11 at 3:1. */
+  --rule: #c2c9d0;
+  --rule-strong: #838a91;
+  --ember: #a4380f; /* accent — hot iron */
+  --steel: #1d5266; /* secondary — quenched */
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --ground: #0c0d0f;
-    --surface: #17181b;
-    --ink: #e7e7ea;
-    --ink-soft: #c1c1c7;
-    --muted: #8b8b93;
-    --rule: #2c2d31;
-    --accent: #e9743f;
+    --ground: #0e1013;
+    --surface: #16191d;
+    --surface-sunk: #0a0c0e;
+    --ink: #e6e9ec;
+    --ink-soft: #bfc5cb;
+    --muted: #8d959d;
+    --rule: #333940;
+    --rule-strong: #6b727a;
+    --ember: #f2814d;
+    --steel: #74afc9;
   }
 }
 
 :root[data-theme='dark'] {
-  --ground: #0c0d0f;
-  --surface: #17181b;
-  --ink: #e7e7ea;
-  --ink-soft: #c1c1c7;
-  --muted: #8b8b93;
-  --rule: #2c2d31;
-  --accent: #e9743f;
+  --ground: #0e1013;
+  --surface: #16191d;
+  --surface-sunk: #0a0c0e;
+  --ink: #e6e9ec;
+  --ink-soft: #bfc5cb;
+  --muted: #8d959d;
+  --rule: #333940;
+  --rule-strong: #6b727a;
+  --ember: #f2814d;
+  --steel: #74afc9;
 }
 
 @theme inline {
@@ -64,11 +91,26 @@
 
   --color-ground: var(--ground);
   --color-surface: var(--surface);
+  --color-surface-sunk: var(--surface-sunk);
   --color-ink: var(--ink);
   --color-ink-soft: var(--ink-soft);
   --color-muted: var(--muted);
   --color-rule: var(--rule);
-  --color-accent: var(--accent);
+  --color-rule-strong: var(--rule-strong);
+  --color-ember: var(--ember);
+  --color-steel: var(--steel);
+
+  --text-2xs: var(--text-2xs);
+  --text-xs: var(--text-xs);
+  --text-sm: var(--text-sm);
+  --text-base: var(--text-base);
+  --text-lg: var(--text-lg);
+  --text-xl: var(--text-xl);
+  --text-2xl: var(--text-2xl);
+  --text-3xl: var(--text-3xl);
+  --text-4xl: var(--text-4xl);
+  --text-5xl: var(--text-5xl);
+  --text-6xl: var(--text-6xl);
 }
 
 html {
@@ -79,19 +121,42 @@ body {
   background: var(--ground);
   color: var(--ink);
   font-family: var(--font-body);
-  /* SPEC §3.3 — body copy is >=16px at near-normal tracking. The old site
-     styled body-adjacent text as a label (11px, 0.35em); that is the failure
-     mode this baseline exists to prevent from creeping back. */
-  font-size: 1.0625rem;
-  line-height: 1.6;
+  font-size: var(--text-base);
+  line-height: var(--leading-body);
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Display face is for headings. Binding it here rather than per-component is
+   deliberate: SPEC §11 requires body copy never resolve to the display face. */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: var(--leading-snug);
+  text-wrap: balance;
+  letter-spacing: 0.01em;
+}
+
+p {
+  text-wrap: pretty;
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--ember);
   outline-offset: 3px;
 }
 
+::selection {
+  background: var(--ember);
+  color: var(--surface);
+}
+
+/* SPEC §3.1 — motion respects the user's stated preference, always. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
