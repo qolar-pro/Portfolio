@@ -3,6 +3,7 @@ import { Sofia_Sans_Condensed, Source_Serif_4, JetBrains_Mono } from 'next/font/
 import { notFound } from 'next/navigation';
 import SiteHeader from '@/components/SiteHeader';
 import SiteFooter from '@/components/SiteFooter';
+import Reveal from '@/components/Reveal';
 import { LOCALES, isLocale } from '@/lib/locales';
 import { SITE_NAME, SITE_URL } from '@/lib/site';
 import '../globals.css';
@@ -96,6 +97,7 @@ export default async function LocaleLayout({
           {children}
         </main>
         <SiteFooter locale={locale} />
+        <Reveal />
       </body>
     </html>
   );

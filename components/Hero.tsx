@@ -41,52 +41,67 @@ export default function Hero({
   const { tier, detail } = useQuality();
 
   return (
-    <section className="relative isolate overflow-hidden border-b border-rule bg-ground">
-      {/* Static tier gets a real hero, not an empty box: a banked-forge glow,
-          drawn by the browser at zero cost. SPEC §3.4 requires the no-WebGL
-          path be complete rather than degraded. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10"
-        style={{
-          background:
-            'radial-gradient(60% 55% at 72% 38%, color-mix(in oklab, var(--ember) 26%, transparent) 0%, transparent 70%)',
-        }}
-      />
-
+    <section className="forge forge-glow relative isolate min-h-[86vh] overflow-hidden">
+      {/* The shader is emissive — fresnel rim, glowing core — so it needs a
+          dark ground to exist at all. On the light ground it previously sat on,
+          it was fighting the page rather than lighting it (DD-26). */}
       {tier !== 'static' ? (
-        <div className="pointer-events-none absolute inset-0 -z-10 opacity-90">
+        <div className="pointer-events-none absolute inset-0 -z-10">
           <ForgeCanvas detail={detail} grade={FULL} />
         </div>
       ) : null}
 
-      <div className="mx-auto w-full max-w-[1120px] px-5 py-20 md:py-28">
+      <div className="mx-auto flex w-full max-w-[1120px] flex-col justify-center px-5 py-24 md:min-h-[86vh] md:py-32">
         <div className="flex flex-col gap-8">
-          <h1 className="max-w-[20ch] text-5xl md:text-6xl">{headline}</h1>
-          <p className="max-w-[var(--measure)] text-lg text-ink-soft">{subhead}</p>
+          <p
+            data-reveal
+            className="font-mono text-2xs tracking-[0.2em] text-heat-ember uppercase"
+          >
+            Nova&thinsp;·&thinsp;Faber — the new maker
+          </p>
 
-          <div className="flex flex-wrap gap-3">
+          <h1
+            data-reveal
+            data-reveal-delay="80"
+            className="max-w-[18ch] text-5xl text-forge-ink md:text-6xl"
+          >
+            {headline}
+          </h1>
+
+          <p
+            data-reveal
+            data-reveal-delay="160"
+            className="max-w-[var(--measure)] text-lg text-forge-ink-soft"
+          >
+            {subhead}
+          </p>
+
+          <div data-reveal data-reveal-delay="240" className="flex flex-wrap gap-3">
             <Link
               href={hrefPrimary}
-              className="inline-flex items-center justify-center bg-ember px-6 py-3 font-display text-lg tracking-wide text-surface transition-colors hover:bg-ink"
+              className="inline-flex items-center justify-center bg-heat-ember px-6 py-3 font-display text-lg tracking-wide text-forge-void transition-colors hover:bg-heat-bright"
             >
               {ctaPrimary}
             </Link>
             <Link
               href={hrefSecondary}
-              className="inline-flex items-center justify-center border border-rule-strong px-6 py-3 font-display text-lg tracking-wide text-ink transition-colors hover:border-ink"
+              className="inline-flex items-center justify-center border border-forge-rule px-6 py-3 font-display text-lg tracking-wide text-forge-ink transition-colors hover:border-heat-ember hover:text-heat-ember"
             >
               {ctaSecondary}
             </Link>
           </div>
 
-          <div className="mt-4 grid gap-px bg-rule sm:grid-cols-3">
+          <div
+            data-reveal
+            data-reveal-delay="320"
+            className="mt-6 grid gap-px bg-forge-rule sm:grid-cols-3"
+          >
             {proof.map((p) => (
-              <div key={p.label} className="flex flex-col gap-1 bg-surface px-5 py-5">
-                <span className="font-display text-4xl leading-none text-ember tabular-nums">
+              <div key={p.label} className="flex flex-col gap-1 bg-forge-carbon px-5 py-5">
+                <span className="font-display text-4xl leading-none text-heat-bright tabular-nums">
                   {p.value}
                 </span>
-                <span className="font-mono text-2xs tracking-[0.08em] text-muted uppercase">
+                <span className="font-mono text-2xs tracking-[0.08em] text-forge-muted uppercase">
                   {p.label}
                 </span>
               </div>

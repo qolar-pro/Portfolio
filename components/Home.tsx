@@ -38,7 +38,7 @@ export default function Home({ locale }: { locale: Locale }) {
 
       {/* 2 — Services, bento with unequal weight */}
       <Band tone="surface">
-        <SectionHeading eyebrow="What we build">Four ways in.</SectionHeading>
+        <SectionHeading eyebrow="What we build" reveal>Four ways in.</SectionHeading>
         <div className="mt-10 grid gap-px bg-rule md:grid-cols-2">
           {c.services.map((s) => (
             <Link
@@ -58,30 +58,50 @@ export default function Home({ locale }: { locale: Locale }) {
         </div>
       </Band>
 
-      {/* 3 — Flagship case study */}
+      {/* 3 — Flagship case study. Forge tone: the second dark beat, and the
+             one place a single project is allowed to dominate the page. */}
       {flagship ? (
-        <Band className="border-t border-rule">
-          <SectionHeading eyebrow="Selected work">{flagship.name}</SectionHeading>
-          <p className="mt-6 max-w-[var(--measure)] text-lg text-ink-soft">{flagship.tagline}</p>
-          <p className="mt-4 max-w-[var(--measure)]">{flagship.summary}</p>
-          <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2">
+        <Band tone="forge" glow>
+          <div data-reveal className="grid gap-10 md:grid-cols-[1fr_1.1fr] md:items-end">
+            <div>
+              <p className="font-mono text-2xs tracking-[0.14em] text-heat-ember uppercase">
+                Selected work
+              </p>
+              <h2 className="mt-4 text-4xl text-forge-ink md:text-5xl">{flagship.name}</h2>
+              <p className="mt-5 text-lg text-forge-ink-soft">{flagship.tagline}</p>
+            </div>
+            <p className="text-forge-ink-soft">{flagship.summary}</p>
+          </div>
+
+          <ul
+            data-reveal
+            data-reveal-delay="120"
+            className="mt-10 grid gap-px bg-forge-rule sm:grid-cols-2 lg:grid-cols-3"
+          >
             {flagship.facts.map((f) => (
-              <li key={f} className="font-mono text-2xs tracking-[0.08em] text-muted uppercase">
+              <li
+                key={f}
+                className="bg-forge-carbon px-5 py-4 font-mono text-2xs tracking-[0.08em] text-forge-muted uppercase"
+              >
                 {f}
               </li>
             ))}
           </ul>
-          <div className="mt-8">
-            <Button href={href(locale, `work/${flagship.id}`)} variant="secondary">
+
+          <div data-reveal data-reveal-delay="200" className="mt-10">
+            <Link
+              href={href(locale, `work/${flagship.id}`)}
+              className="inline-flex items-center border border-forge-rule px-6 py-3 font-display text-lg tracking-wide text-forge-ink transition-colors hover:border-heat-ember hover:text-heat-ember"
+            >
               Read the case study
-            </Button>
+            </Link>
           </div>
         </Band>
       ) : null}
 
       {/* 4 — Process */}
       <Band tone="surface">
-        <SectionHeading eyebrow="How it runs">From first call to live.</SectionHeading>
+        <SectionHeading eyebrow="How it runs" reveal>From first call to live.</SectionHeading>
         <ol className="mt-10 grid gap-px bg-rule sm:grid-cols-2 lg:grid-cols-4">
           {c.process.map((step) => (
             <li key={step.id} className="flex flex-col gap-3 bg-ground p-6">
@@ -118,7 +138,7 @@ export default function Home({ locale }: { locale: Locale }) {
 
       {/* 6 — Capabilities */}
       <Band tone="surface">
-        <SectionHeading eyebrow="Under the hood">What it is made of.</SectionHeading>
+        <SectionHeading eyebrow="Under the hood" reveal>What it is made of.</SectionHeading>
         <div className="mt-10 grid gap-px bg-rule md:grid-cols-3">
           {c.capabilities.map((cap) => (
             <div key={cap.title} className="flex flex-col gap-3 bg-ground p-6">
@@ -132,22 +152,32 @@ export default function Home({ locale }: { locale: Locale }) {
         </div>
       </Band>
 
-      {/* 7 — Closing CTA, carrying the contact section */}
-      <Band className="border-t border-rule">
-        <div className="flex flex-col gap-6">
-          <Eyebrow>{c.chrome.ctaQuote}</Eyebrow>
-          <h2 className="max-w-[16ch] text-4xl md:text-5xl">
+      {/* 7 — Closing CTA. Final forge beat, so the page ends where it began. */}
+      <Band tone="forge" glow>
+        <div data-reveal className="flex flex-col gap-6">
+          <p className="font-mono text-2xs tracking-[0.14em] text-heat-ember uppercase">
+            {c.chrome.ctaQuote}
+          </p>
+          <h2 className="max-w-[14ch] text-4xl text-forge-ink md:text-6xl">
             Tell me what you need building.
           </h2>
-          <p className="max-w-[var(--measure)] text-ink-soft">
+          <p className="max-w-[var(--measure)] text-forge-ink-soft">
             Describe the project and you get a scoped quote back — not a price list, and not a
             discovery call that turns into a pitch.
           </p>
-          <div className="flex flex-wrap gap-3">
-            <Button href={href(locale, 'contact')}>{c.chrome.ctaBook}</Button>
-            <Button href={href(locale, 'pricing')} variant="secondary">
+          <div className="mt-2 flex flex-wrap gap-3">
+            <Link
+              href={href(locale, 'contact')}
+              className="inline-flex items-center bg-heat-ember px-6 py-3 font-display text-lg tracking-wide text-forge-void transition-colors hover:bg-heat-bright"
+            >
+              {c.chrome.ctaBook}
+            </Link>
+            <Link
+              href={href(locale, 'pricing')}
+              className="inline-flex items-center border border-forge-rule px-6 py-3 font-display text-lg tracking-wide text-forge-ink transition-colors hover:border-heat-ember hover:text-heat-ember"
+            >
               How pricing works
-            </Button>
+            </Link>
           </div>
         </div>
       </Band>

@@ -17,13 +17,16 @@ export function SectionHeading({
   eyebrow,
   children,
   as: Tag = 'h2',
+  reveal = false,
 }: {
   eyebrow?: string;
   children: ReactNode;
   as?: 'h1' | 'h2' | 'h3';
+  /** Opt in to the scroll-entrance defined in globals.css and driven by <Reveal />. */
+  reveal?: boolean;
 }) {
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3" {...(reveal ? { 'data-reveal': '' } : {})}>
       {eyebrow ? <Eyebrow>{eyebrow}</Eyebrow> : null}
       <Tag className="text-3xl md:text-4xl">{children}</Tag>
     </div>
@@ -66,20 +69,43 @@ export function Stat({ value, label }: { value: string; label: string }) {
   );
 }
 
-/** Full-bleed band with its own background. Used to separate homepage sections. */
+/**
+ * Full-bleed band. `forge` is the spectacle tone (DD-26) — always dark, in
+ * both themes, with grain. Alternating it against the light tones is what
+ * gives the page rhythm: the eye reads the switch as a section break, so the
+ * structure comes free rather than needing seven different layouts.
+ */
 export function Band({
   children,
   tone = 'ground',
+  glow = false,
   className = '',
 }: {
   children: ReactNode;
-  tone?: 'ground' | 'surface';
+  tone?: 'ground' | 'surface' | 'forge';
+  glow?: boolean;
   className?: string;
 }) {
-  const bg = tone === 'surface' ? 'bg-surface' : 'bg-ground';
+  const bg =
+    tone === 'forge' ? `forge ${glow ? 'forge-glow' : ''}` : tone === 'surface' ? 'bg-surface' : 'bg-ground';
   return (
     <section className={`${bg} ${className}`}>
       <div className="mx-auto w-full max-w-[1120px] px-5 py-16 md:py-24">{children}</div>
     </section>
   );
 }
+
+/**
+ * Text tones that follow the surface they sit on. On a forge band the normal
+ * ink tokens would be near-invisible, so anything placed there must use these
+ * instead — the contrast guard checks these pairings specifically.
+ */
+export const forgeText = {
+  body: 'text-forge-ink-soft',
+  strong: 'text-forge-ink',
+  muted: 'text-forge-muted',
+  accent: 'text-heat-ember',
+  rule: 'border-forge-rule',
+  divider: 'bg-forge-rule',
+  panel: 'bg-forge-carbon',
+} as const;

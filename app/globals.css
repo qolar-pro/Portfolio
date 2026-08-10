@@ -54,6 +54,30 @@
   --rule-strong: #838a91;
   --ember: #a4380f; /* accent — hot iron */
   --steel: #1d5266; /* secondary — quenched */
+
+  /* --- The forge (DD-26) ------------------------------------------------
+     Theme-INDEPENDENT. These are identical in light and dark, because a
+     forge is dark for a working reason: a smith reads steel's temperature by
+     its colour, which is only possible in low light. Spectacle surfaces are
+     the forge interior; reading surfaces are the finished piece brought out
+     into daylight. The theme toggle changes the daylight, never the forge.
+
+     Every text token here is checked against every forge ground by
+     scripts/check-contrast.mjs — dark is not an excuse for low contrast. */
+  --forge-void: #08090b;
+  --forge-carbon: #10131a;
+  --forge-steel: #1b212a;
+  --forge-ink: #eceef1;
+  --forge-ink-soft: #b8c0ca;
+  --forge-muted: #8b96a4;
+  --forge-rule: #2b333e;
+
+  /* Heat range. A single accent could not express temperature, which is the
+     one thing this brand is actually about. */
+  --heat-dull: #b4471a;
+  --heat-ember: #f2814d;
+  --heat-bright: #ffa268;
+  --heat-white: #ffd8bb;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -97,6 +121,18 @@
   --color-muted: var(--muted);
   --color-rule: var(--rule);
   --color-rule-strong: var(--rule-strong);
+
+  --color-forge-void: var(--forge-void);
+  --color-forge-carbon: var(--forge-carbon);
+  --color-forge-steel: var(--forge-steel);
+  --color-forge-ink: var(--forge-ink);
+  --color-forge-ink-soft: var(--forge-ink-soft);
+  --color-forge-muted: var(--forge-muted);
+  --color-forge-rule: var(--forge-rule);
+  --color-heat-dull: var(--heat-dull);
+  --color-heat-ember: var(--heat-ember);
+  --color-heat-bright: var(--heat-bright);
+  --color-heat-white: var(--heat-white);
   --color-ember: var(--ember);
   --color-steel: var(--steel);
 
@@ -156,6 +192,59 @@ p {
   color: var(--surface);
 }
 
+/* --- Forge surface treatment (DD-26) -------------------------------------
+   Grain and a heat bloom, on dark only. The old site applied a full-frame
+   grain over body copy, which is one of the diagnosed causes in SPEC §2 —
+   here it is confined to surfaces that carry no prose. */
+.forge {
+  background-color: var(--forge-void);
+  color: var(--forge-ink);
+  position: relative;
+  isolation: isolate;
+}
+
+.forge::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  /* feTurbulence rather than a repeated bitmap: no request, and it scales. */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  opacity: 0.14;
+  mix-blend-mode: overlay;
+}
+
+/* Banked heat. Sits behind content, never over it. */
+.forge-glow::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(
+    60% 60% at 78% 30%,
+    color-mix(in oklab, var(--heat-ember) 22%, transparent) 0%,
+    transparent 68%
+  );
+}
+
+/* --- Scroll reveal (DD-14 permits `reveal` on every surface) --------------
+   Entrance only, fires once, then the content is static — so it never
+   competes with reading, which is the property that earned it the allowance. */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-reveal].is-revealed {
+  opacity: 1;
+  transform: none;
+}
+
 /* SPEC §3.1 — motion respects the user's stated preference, always. */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -165,5 +254,11 @@ p {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+
+  /* Reveal must not leave content invisible when motion is off. */
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
   }
 }

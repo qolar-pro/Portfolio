@@ -24,6 +24,7 @@
 | 5 — Case studies | DONE | — | `/work`, 3 case studies, `/lab`. Images renamed + `next/image`. See DD-24. |
 | 6 — Process / Studio / Contact | DONE | — | Configurator brief round-trips through the URL, server-rendered. Booking tool still unchosen — OQ-7. |
 | 7 — Forge hero & perf budget | DONE | — | Procedural shader hero, zero mesh files. WebGL containment guard added + mutation-tested. See DD-25. |
+| 7B — Forge visual identity | DONE | — | Dark spectacle surfaces, heat range, grain, scroll reveals. See DD-26. |
 | 8 — Localization | NOT STARTED | — | EL, MK. |
 | 9 — SEO / schema / migration | NOT STARTED | — | — |
 | 10 — Sweeps (find-only) | NOT STARTED | — | Legibility, perf, a11y. Findings gate launch. |
@@ -1086,3 +1087,86 @@ nothing 3D is eager. But the win is "no models and nothing blocking", not
 a future phase adds `drei`, `postprocessing`, or a physics library, the cost
 goes in the phase report with a measured number. Do not let this grow quietly
 on a site whose pitch is speed.
+
+---
+
+### Phase 7B — Forge visual identity (Director, direct)
+
+**Why this phase exists.** The owner's assessment of the site after Phase 7:
+*"we are lacking colors personality design visuals animations advanced
+interactive components and designs layouts — we just got a base."*
+
+Correct, and the cause was mine. The brief in SPEC §2 was "too cramped, hard
+to read", so Phase 1 wrote hard constraints against noise — density budget,
+motion budget, one interaction per section — and Phase 3 applied them to
+*every* surface. But SPEC §3.2 had already split the site into spectacle and
+reading surfaces. **I never spent the spectacle allowance I had written for
+myself.** The rule was right; the application was uniform where it should have
+been selective.
+
+**What was built**
+
+- **The forge palette** (DD-26) — three darks, a four-step heat range
+  (`--heat-dull` → `--heat-white`), forge-specific text tokens. All
+  theme-independent.
+- `.forge` surface treatment — feTurbulence grain (no request, scales
+  cleanly) and a banked-heat radial, both `z-index: -1` so neither ever sits
+  over text. The old site's full-frame grain over body copy is a diagnosed
+  cause in SPEC §2; this is the same idea confined to surfaces with no prose.
+- `<Reveal />` — one IntersectionObserver for the document. No animation
+  library: DD-25 made three.js the largest dependency here, and adding GSAP to
+  fade things in would be a poor trade. Reveals fire once and never re-run.
+- Hero rebuilt on forge ground with a staggered entrance.
+- Homepage rhythm: **forge → light → forge → light → light → forge**.
+
+**Contrast held.** 37 pairings, 0 failing — 11 of them new forge pairings.
+`forge-muted on forge-void` at 6.64:1 is the one most likely to have drifted,
+which is why it is checked rather than assumed. Dark grounds are where
+contrast discipline usually lapses quietly.
+
+**Verified**
+
+```
+forge bands on homepage ....... 3 (hero, flagship, closing CTA)
+data-reveal targets ........... 27
+<canvas> in SSR HTML .......... 0   (hero still LCP-safe)
+Homepage First Load JS ........ 109 kB  (+1 kB, the observer)
+```
+
+---
+
+### DD-26 — The forge is dark. The daylight follows the theme.
+
+**Owner question:** which visual direction fits the name better?
+
+**Ruling:** spectacle surfaces are **always dark, in both themes**. Reading
+surfaces follow the viewer's theme.
+
+**Reasoning, and it is derived from the name rather than chosen for taste:**
+
+1. *Faber* is a smith, and a forge is dark for a **working reason** — a smith
+   judges steel's temperature by its colour (cherry, orange, straw), which is
+   only possible in low light. The darkness is a working condition, not
+   atmosphere.
+2. *Nova* is a sudden brightening, and brightening only reads as sudden
+   against dark.
+3. A technical argument I had walked into: the Phase 7 shader is **emissive** —
+   fresnel rim, glowing core, ember bloom — and it was sitting on a `#f2f3f5`
+   ground. Glow requires darkness to exist. The hero was fighting its page.
+
+**But not a fully dark site.** The original complaint was that the old dark
+site was hard to read, and the buyers are lawyers and businesses in Greece and
+North Macedonia, where dark-everything reads as gaming rather than a reliable
+supplier. The resolution is the metaphor made literal: **the smith works in
+the dark; the finished piece is shown in daylight.** Drama lives where there
+is no body copy; prose lives on light.
+
+**Binding:**
+- Forge tokens are theme-independent. Do not add light-mode variants — a forge
+  that turns white in light mode abandons the entire rationale.
+- Grain and glow are `z-index: -1` and may never composite over text (DD-8).
+- Any text on a forge surface uses the `forge-*` / `heat-*` tokens. The normal
+  ink tokens are near-invisible there, and the contrast guard checks the forge
+  pairings specifically so this cannot regress silently.
+- Alternating forge against light is the homepage's structural rhythm. It is
+  what makes seven sections read as distinct without seven bespoke layouts.

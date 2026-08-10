@@ -43,6 +43,27 @@ const PAIRINGS = [
   ['rule', 'ground', VISIBLE_HAIRLINE],
 ];
 
+/**
+ * Forge surfaces (DD-26). Theme-independent, so they are checked once rather
+ * than per theme — but they ARE checked. Dark backgrounds are where contrast
+ * discipline usually quietly lapses, on the assumption that light text on dark
+ * is always fine. It is not: --forge-muted on --forge-void is the pairing most
+ * likely to drift below the floor.
+ */
+const FORGE_PAIRINGS = [
+  ['forge-ink', 'forge-void', AA_BODY],
+  ['forge-ink', 'forge-carbon', AA_BODY],
+  ['forge-ink-soft', 'forge-void', AA_BODY],
+  ['forge-ink-soft', 'forge-carbon', AA_BODY],
+  ['forge-muted', 'forge-void', AA_BODY],
+  ['forge-muted', 'forge-carbon', AA_BODY],
+  ['heat-ember', 'forge-void', AA_BODY],
+  ['heat-ember', 'forge-carbon', AA_BODY],
+  ['heat-bright', 'forge-void', AA_BODY],
+  ['heat-dull', 'forge-void', AA_LARGE],
+  ['forge-rule', 'forge-void', VISIBLE_HAIRLINE],
+];
+
 function extractBlock(startPattern) {
   const i = CSS.indexOf(startPattern);
   if (i === -1) throw new Error(`Could not find block: ${startPattern}`);
@@ -114,6 +135,28 @@ for (const [themeName, tokens] of [
       `  ${mark} ${fg.padEnd(9)} on ${bg.padEnd(13)} ${r.toFixed(2).padStart(6)}:1  (min ${min})`,
     );
   }
+}
+
+// Forge tokens live in the bare :root block and are never redefined per theme.
+console.log('\n  FORGE (theme-independent)');
+console.log('  ' + '-'.repeat(46));
+for (const [fg, bg, min] of FORGE_PAIRINGS) {
+  const fgHex = light[fg];
+  const bgHex = light[bg];
+  if (!fgHex || !bgHex) {
+    console.log(`  MISSING TOKEN  ${fg} on ${bg}`);
+    failures++;
+    continue;
+  }
+  const r = ratio(fgHex, bgHex);
+  checks++;
+  const pass = r >= min;
+  if (!pass) failures++;
+  console.log(
+    `  ${pass ? 'ok  ' : 'FAIL'} ${fg.padEnd(14)} on ${bg.padEnd(13)} ${r
+      .toFixed(2)
+      .padStart(6)}:1  (min ${min})`,
+  );
 }
 
 console.log(`\n  ${checks} pairings checked, ${failures} failing.\n`);
