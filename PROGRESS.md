@@ -16,9 +16,9 @@
 |-------|--------|--------|-------|
 | — Research & audit | DONE | — | Source audit of `_current/`, GR/MK/UK/US market research, positioning, page map, feature ranking. Written up in `SPEC.md`. |
 | 0 — Foundation | DONE | `0469e77` | 13 routes × 3 locales prerendered. Pushed to `qolar-pro/Portfolio` main. Fonts deferred to Phase 1 — see report + DD-12. |
-| 1 — Design system | DONE | — | Type pairing (DD-13), measured palette, motion budget (DD-14), grade profiles. Contrast guard gates `npm run lint`. |
-| 2A — Content model (EN structure) | NOT STARTED | — | — |
-| 2B — Content voice rewrite (EN) | NOT STARTED | — | Portfolio voice → builder voice. |
+| 1 — Design system | DONE | `e6936dc` | Type pairing (DD-13), measured palette, motion budget (DD-14), grade profiles. Contrast guard gates `npm run lint`. |
+| 2A — Content model (EN structure) | DONE | — | Entity model + EN copy. Route metadata now sourced from content. See DD-15, DD-16. |
+| 2B — Content voice rewrite (EN) | DONE | — | Merged into 2A — the model and the copy were too coupled to write separately. |
 | 3 — Core pages | NOT STARTED | — | Home shell + 4 service pages. |
 | 4 — Pricing + configurator | BLOCKED | — | Gated on **OQ-1** (pricing model). |
 | 5 — Case studies | NOT STARTED | — | A25 (flagship), Dresscode. |
@@ -572,3 +572,61 @@ sound and none of it caused the problem.
 **Binding:** adding an effect to a surface means removing one. If a component
 needs an effect its surface does not allow, that is an escalation — not a
 local exception.
+
+---
+
+*DD-15 … DD-16 arose during Phase 2.*
+
+### DD-15 — Unwritten locales fall back to English, but never silently
+
+**Context:** DD-10 forbids a locale quietly pretending to be finished — the old
+build aliased four locales to English and called them shipped. But Phase 0
+built the `/el` and `/mk` route trees, and those routes must render something
+before Phase 8 writes their copy.
+
+**Ruling:** `contentFor()` falls back to English for an unwritten locale, and
+three mechanisms stop that being silent:
+
+1. `content.el` and `content.mk` are literally `null` in the registry, so the
+   gap is visible at the definition, not buried in a status field.
+2. `pageMetadata()` sets `robots: noindex, follow` on any locale whose copy is
+   not written. Verified in the build output: `/en/pricing` carries no robots
+   tag, `/el/pricing` and `/mk/pricing` both carry `noindex, follow`.
+3. `scripts/check-content-coverage.mjs` reports the gap on every `npm run lint`.
+
+The noindex is the commercially important one. An English page served at a
+Greek URL competes with the real Greek page for the same queries once it
+exists, and search engines are slow to forgive that overlap.
+
+**Binding:** When Phase 8 lands, delete the fallback and make `contentFor()`
+return non-null. Do not extend the fallback to a fourth locale as a shortcut.
+
+### DD-16 — The services list is repositioned, not ported
+
+**Context:** the old site's five services were Full-Stack Platforms, Commerce
+Systems, Internal Tooling, Data & Security, and Experience Systems.
+
+**None of them is "we build you a website."**
+
+That was not an oversight in the old copy. It accurately described a portfolio
+for a software engineer, and it is precisely why the site could not sell into
+the market NovaFaber is entering — where the highest-volume search in both
+Greek and Macedonian is exactly that phrase.
+
+**Ruling:** the mapping is deliberately not one-to-one.
+
+| New route | Source |
+|---|---|
+| `/services/websites` | **New.** The offering that did not exist. |
+| `/services/ecommerce` | Commerce Systems |
+| `/services/redesign` | **New.** Warmest lead type. |
+| `/services/custom` | Full-Stack Platforms + Internal Tooling + Data & Security + Experience Systems, consolidated into one |
+
+**Binding:** Do not re-split `/services/custom` back into four pages to "cover
+more keywords." Four thin pages describing the same buyer compete with each
+other; one substantial page does not.
+
+Each service carries a `notFor` field, and it is not decorative. Naming who the
+service is wrong for is the cheapest trust signal available to a studio with no
+testimonials yet (DD-5), and it filters enquiries that would waste both sides'
+time.

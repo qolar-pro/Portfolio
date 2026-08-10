@@ -6,8 +6,9 @@
     "dev": "next dev --port 3000",
     "build": "next build",
     "start": "next start",
-    "lint": "tsc --noEmit && node scripts/check-contrast.mjs",
-    "check:contrast": "node scripts/check-contrast.mjs"
+    "lint": "tsc --noEmit && node scripts/check-contrast.mjs && node scripts/check-content-coverage.mjs",
+    "check:contrast": "node scripts/check-contrast.mjs",
+    "check:content": "node scripts/check-content-coverage.mjs"
   },
   "dependencies": {
     "next": "^15.5.0",

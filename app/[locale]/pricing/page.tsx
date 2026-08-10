@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import PageStub from '@/components/PageStub';
 import { isLocale } from '@/lib/locales';
-import { localeAlternates } from '@/lib/metadata';
+import { contentFor, pageMetadata } from '@/lib/content';
 
 const PATH = "pricing";
-const TITLE = "Pricing";
-const NOTE = "How pricing works: what drives cost, what is included, what a range looks like. No price list (DD-1) — the configurator returns an indicative range and routes to a quote.";
+const KEY = "pricing";
 
 export async function generateMetadata({
   params,
@@ -14,9 +14,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   if (!isLocale(locale)) return {};
-  return { title: TITLE, alternates: localeAlternates(PATH, locale) };
+  return pageMetadata(KEY, PATH, locale);
 }
 
-export default function Page() {
-  return <PageStub title={TITLE} note={NOTE} />;
+export default async function Page({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  if (!isLocale(locale)) notFound();
+  const meta = contentFor(locale).meta[KEY];
+  return <PageStub title={meta.title} note={meta.description} />;
 }

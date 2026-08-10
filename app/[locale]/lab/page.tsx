@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import PageStub from '@/components/PageStub';
 import { isLocale } from '@/lib/locales';
-import { localeAlternates } from '@/lib/metadata';
+import { contentFor, pageMetadata } from '@/lib/content';
 
 const PATH = "lab";
-const TITLE = "Lab";
-const NOTE = "Experiments, WebGL sketches, and the custom game engine — capability proof, kept clear of the sales path.";
+const KEY = "lab";
 
 export async function generateMetadata({
   params,
@@ -14,9 +14,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   if (!isLocale(locale)) return {};
-  return { title: TITLE, alternates: localeAlternates(PATH, locale) };
+  return pageMetadata(KEY, PATH, locale);
 }
 
-export default function Page() {
-  return <PageStub title={TITLE} note={NOTE} />;
+export default async function Page({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  if (!isLocale(locale)) notFound();
+  const meta = contentFor(locale).meta[KEY];
+  return <PageStub title={meta.title} note={meta.description} />;
 }
