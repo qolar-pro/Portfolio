@@ -55,7 +55,7 @@ export function assertAllowed(surface: Surface, effect: Effect): boolean {
       `[motion budget] "${effect}" is not permitted on a "${surface}" surface.\n` +
         `Permitted: ${BUDGET[surface].join(", ")}\n` +
         `If this effect belongs here, remove one from the list in ` +
-        `src/lib/motion/budget.ts and log the trade as a Director Decision.`
+        `lib/motion/budget.ts and log the trade as a Director Decision.`
     );
   }
   return ok;

@@ -8,36 +8,62 @@ import { heatTarget, motion, useMotionStore } from "./store";
  *   2. derives heat from idle level + scroll velocity
  *   3. writes --heat, --mx, --my to :root
  *
- * Nothing here touches React. The store is read with getState() and written
- * with setState() outside of any component subscription, so no render is
- * scheduled. CSS does the rest.
+ * Nothing here renders. The store is read with getState() and written outside
+ * any component subscription; CSS does the rest.
  *
- * Returns a teardown function.
+ * ---------------------------------------------------------------------------
+ * WHY THE LOOP SLEEPS
+ *
+ * Each frame this writes --mx/--my/--heat, and those drive a full-viewport
+ * radial-gradient repaint on `.forge::before` plus a mask-image repaint on
+ * `.forge::after`. That is paint work, not compositing — see the note on
+ * CLAUDE.md invariant 6 in PROGRESS.md (DD-41). It is the identity of the
+ * site and worth its cost while something is actually moving, and worth
+ * nothing at all while the page is still.
+ *
+ * So the loop is not perpetual. It stops when every eased value has caught up
+ * with its target, and when the tab is hidden. Input wakes it again through a
+ * non-React store subscription.
+ *
+ * Note on what is NOT gated: an earlier plan was to gate on `.forge` being in
+ * the viewport. That would never fire — SiteHeader carries `.forge`, so a
+ * forge surface is on screen on every route at every scroll position.
+ * ---------------------------------------------------------------------------
  */
+
+/** Below this delta a value has arrived; chasing it further is invisible. */
+const SETTLED = 0.0005;
+
+/** Pointer trail. 0.06 reads as "light moving through a medium". */
+const POINTER_LERP = 0.06;
+
+/** Heat smoothing, per MOTION_SPEC §1. Do not change without updating the spec. */
+const HEAT_LERP = 0.05;
+
 export function startHeatLoop(): () => void {
   const root = document.documentElement;
 
-  // eased bloom position (trails the cursor)
   let bx = 0.5;
   let by = 0.4;
   let heat = motion().heat;
 
   let raf = 0;
-  let lastWrite = { heat: -1, bx: -1, by: -1 };
+  let running = false;
+  const lastWrite = { heat: -1, bx: -1, by: -1 };
 
   const tick = () => {
     const s = motion();
 
-    // trail the pointer — 0.06 lerp reads as "light moving through a medium"
-    bx += (s.pointer.nx - bx) * 0.06;
-    by += (s.pointer.ny - by) * 0.06;
-
-    // exponential smoothing toward the derived target
+    const tx = s.pointer.nx;
+    const ty = s.pointer.ny;
     const target = heatTarget(s.idleLevel, s.scrollVelocity);
-    heat += (target - heat) * 0.05;
 
-    // only touch the DOM when a value actually moved (3dp) — saves style
-    // recalcs when the page is genuinely idle
+    bx += (tx - bx) * POINTER_LERP;
+    by += (ty - by) * POINTER_LERP;
+    heat += (target - heat) * HEAT_LERP;
+
+    // Only touch the DOM when a value actually moved at the precision the CSS
+    // can express — saves style recalcs on near-static frames.
     const h3 = Math.round(heat * 1000) / 1000;
     const bx2 = Math.round(bx * 10000) / 100;
     const by2 = Math.round(by * 10000) / 100;
@@ -55,23 +81,77 @@ export function startHeatLoop(): () => void {
       lastWrite.by = by2;
     }
 
-    // publish the smoothed value back to the store for shaders to read.
-    // setState on a non-subscribed key does not re-render anything.
+    /**
+     * Publish the smoothed value so shaders can read it with getState().
+     *
+     * Correction to a claim this file used to carry: it is NOT true that
+     * "setState on a non-subscribed key does not re-render anything". Zustand
+     * notifies every subscriber on every setState and runs each selector.
+     * Components are spared only when their selector output is unchanged — and
+     * any component calling `useMotionStore()` with no selector re-renders on
+     * every one of these writes, 60× a second.
+     *
+     * The rule that actually keeps this safe is in CLAUDE.md §5: React may
+     * subscribe to discrete state only, always through a selector. This write
+     * is cheap because the subscriber list is short and no selector here
+     * depends on `heat`.
+     */
     if (Math.abs(s.heat - heat) > 0.001) {
       useMotionStore.setState({ heat });
+    }
+
+    const arrived =
+      Math.abs(target - heat) < SETTLED &&
+      Math.abs(tx - bx) < SETTLED &&
+      Math.abs(ty - by) < SETTLED;
+
+    if (arrived || document.hidden) {
+      running = false;
+      raf = 0;
+      return;
     }
 
     raf = requestAnimationFrame(tick);
   };
 
-  raf = requestAnimationFrame(tick);
-  return () => cancelAnimationFrame(raf);
+  const wake = () => {
+    if (running || document.hidden) return;
+    running = true;
+    raf = requestAnimationFrame(tick);
+  };
+
+  /**
+   * Non-React subscription. This is outside the render path entirely — it
+   * exists so input can restart a sleeping loop without adding a second set
+   * of listeners alongside the ones in startInputTracking().
+   *
+   * `heat` is deliberately absent from the selector: the loop writes it, and
+   * including it would wake the loop from its own final frame.
+   */
+  const unsubscribe = useMotionStore.subscribe(
+    (s) => `${s.pointer.nx},${s.pointer.ny},${s.idleLevel},${s.scrollVelocity}`,
+    wake,
+  );
+
+  const onVisibility = () => {
+    if (!document.hidden) wake();
+  };
+  document.addEventListener("visibilitychange", onVisibility);
+
+  wake();
+
+  return () => {
+    unsubscribe();
+    document.removeEventListener("visibilitychange", onVisibility);
+    if (raf) cancelAnimationFrame(raf);
+    running = false;
+  };
 }
 
 /**
- * Pointer + scroll listeners. Passive, and they only write to the store —
- * all DOM writes happen in the loop above so we never interleave
- * reads and writes (layout thrash).
+ * Pointer + scroll listeners. Passive, and they only write to the store — all
+ * DOM writes happen in the loop above, so reads and writes are never
+ * interleaved (layout thrash).
  */
 export function startInputTracking(onActivity: () => void): () => void {
   let lastY = window.scrollY;
@@ -87,7 +167,7 @@ export function startInputTracking(onActivity: () => void): () => void {
     const dt = Math.max(now - lastT, 1);
     const y = window.scrollY;
 
-    // px per ms, clamped — spikes from momentum scrolling shouldn't peg heat
+    // px per ms, clamped — momentum spikes shouldn't peg heat
     const velocity = Math.min(Math.abs(y - lastY) / dt, 4);
 
     const max = document.documentElement.scrollHeight - window.innerHeight;

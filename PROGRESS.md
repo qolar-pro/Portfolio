@@ -1427,3 +1427,179 @@ resolves to a tombstone instead of silently pointing at an unrelated question.
 **Live open questions after the merge:** OQ-7, OQ-8, OQ-9, OQ-10, OQ-12,
 OQ-13, OQ-14, OQ-16. Eight, not eleven. OQ-1…OQ-6 were resolved into
 DD-1…DD-6 during the earlier phases.
+
+---
+
+## Build plan (docs/BUILD_PLAN.md) — phase status
+
+This table was not ported during the kit install; added now so the plan has a
+readable state. It tracks the kit's nine phases, separate from the 0–11 phases
+above, which belong to this repo's own earlier build.
+
+| Phase | State | Notes |
+|---|---|---|
+| 0 — Foundation | DONE | Satisfied during the kit install (`18a06e6`). Criteria re-checked, below. |
+| 1 — Motion system | DONE | This session. DD-41 … DD-43, OQ-18. |
+| 2 — Forge surface | not started | |
+| 3 — Motion components | not started | |
+| 4 — Hero | not started | |
+| 5 — Reading surfaces | not started | |
+| 6 — Chrome | not started | |
+| 7 — Polish | not started | |
+| 8 — Localisation | not started | |
+| 9 — Launch gates | not started | |
+
+### Phase 0 — Foundation (closed retrospectively)
+
+Every done-criterion re-checked before opening Phase 1, rather than assumed
+from the install commit:
+
+```
+check:contrast exits 0        PASS
+tokens.css imported           PASS (via app/globals.css)
+.grain div mounted            PASS
+MotionProvider mounted        PASS
+3 fonts, greek + cyrillic     PASS (unicode-range verified in shipped CSS)
+build clean                   PASS
+```
+
+---
+
+### Phase 1 — The motion system (Director, direct)
+
+**Delegation failed.** The `motion-engineer` subagent was launched with the
+full brief and stalled after 600s with no progress — its entire output was
+"I will start by reading the required documentation." It modified nothing
+(`git status` clean). The phase was implemented in the main thread instead.
+Recorded because ORCHESTRATION.md's premise is that the Director delegates and
+independently verifies; that did not happen here, so this phase had no
+independent reviewer.
+
+**A correction to my own brief.** I instructed the agent to gate the rAF loop
+on `.forge` intersecting the viewport. That was wrong: `SiteHeader` carries
+`.forge`, so a forge surface is on screen on every route at every scroll
+position and the gate would never have fired. Replaced with two gates that do
+fire — see DD-42.
+
+**Files changed**
+
+- `lib/motion/heat.ts` — replaced. Sleep/wake, visibility gating, corrected comment.
+- `lib/motion/budget.ts` — dev error pointed at `src/lib/motion/budget.ts`, a path that does not exist in this repo.
+- `scripts/check-heat-law.mjs` — new gate.
+- `package.json` — `check:heat`, appended to the `lint` chain. No existing guard removed.
+
+**The heat law, as measured by the new gate**
+
+```
+heat target = min( idleBase + min(velocity x 0.5, 0.5), 1 )
+
+idle            v=0  v=0.25   v=0.5     v=1     v=2     v=4
+0 active      0.250   0.375   0.500   0.750   0.750   0.750
+1 drowsy      0.350   0.475   0.600   0.850   0.850   0.850
+2 attract     0.550   0.675   0.800   1.000   1.000   1.000
+
+clamp binds: idle 2 + capped scroll = 1.050 -> 1.000
+```
+
+**Settle time**
+
+```
+heat    k=0.05  n = ln(0.05)/ln(0.95) = 58.40 -> 59 frames = 983ms @60fps
+pointer k=0.06  n = ln(0.05)/ln(0.94) = 48.42 -> 49 frames = 817ms @60fps
+```
+
+**Gates**
+
+```
+tsc --noEmit              0 errors
+check:contrast            25 pairings + 17 aliases, 0 failing
+check:no-webgl            home only; 14 reading routes clean
+check:content-coverage    en written; el, mk noindex
+check:heat                0 failing
+npm run build             clean
+npm run lint (all five)   exit 0
+```
+
+---
+
+### DD-41 — CLAUDE.md invariant 6 has a stated exception: the heat system is paint
+
+**The contradiction.** CLAUDE.md §3 invariant 6 reads *"Compositor-only
+animation. `transform` and `opacity` only."* But the kit's signature effect
+animates `--mx`/`--my` into a `radial-gradient` position, and `--heat` into
+gradient alpha, a `mask-image` and `text-shadow` spread. Every one of those is
+a **paint**, not a composite. MOTION_SPEC §2 concedes as much, listing
+`emberBloom` cost as "free (paint)".
+
+Both statements cannot be true. Left unresolved, the invariant reads as
+routinely violated, which is how an invariant stops being enforced at all.
+
+**Ruling:** invariant 6 governs *element* animation — anything moving, fading
+or scaling. The forge bloom is a deliberate, bounded exception: a background
+paint on surfaces that carry no layout, and the reason this site has an
+identity rather than a palette.
+
+**The bound is what makes it acceptable** (DD-42). Unbounded, a full-viewport
+gradient plus a mask repaint at 60fps is the most expensive thing on the page,
+on precisely the mid-tier mobile the perf gate targets.
+
+**Binding:** no new effect may claim this exception. Anything that animates a
+property other than `transform`/`opacity`, and is not the forge bloom, is a bug.
+
+### DD-42 — The heat loop sleeps; it is not viewport-gated
+
+**Ruling:** the rAF loop stops when (a) every eased value has arrived within
+0.0005 of its target, or (b) `document.hidden`. Input wakes it through a
+non-React store subscription.
+
+**Why not the obvious gate.** Gating on `.forge` intersecting the viewport was
+the first plan and is useless here — `SiteHeader` carries `.forge`, so a forge
+surface is always on screen. The gate would never have fired, and would have
+added an IntersectionObserver for nothing.
+
+**What sleeping actually saves.** A settled page previously ran a rAF callback
+forever, doing arithmetic and comparisons every frame in order to write
+nothing. It now runs zero frames while still, and zero while backgrounded.
+
+**Also corrected:** `heat.ts` carried the comment *"setState on a
+non-subscribed key does not re-render anything."* That is false. Zustand
+notifies every subscriber and runs every selector on every `setState`;
+components are spared only when their selector output is unchanged, and any
+component calling `useMotionStore()` without a selector re-renders 60x a
+second. The safety comes from CLAUDE.md §5, not from the store's mechanics —
+the comment now says so.
+
+### DD-43 — The heat law has a gate, and the scroll term saturates at v=1
+
+`scripts/check-heat-law.mjs` re-derives MOTION_SPEC §1 independently of the
+source and fails if a shipped constant drifts. It prints the worked table
+rather than a verdict.
+
+**What computing the table exposed:** `min(velocity x 0.5, 0.5)` caps the
+scroll term at **velocity 1 px/ms**, so v=1, v=2 and v=4 all produce identical
+heat. `startInputTracking` clamps velocity to 4, which is dead weight for heat
+— though not for `velocitySkew`, which reads the same value and is not capped.
+
+Not changed, because 1 px/ms is 60px/frame at 60fps — a brisk but ordinary
+flick, so heat reaching its ceiling on a real scroll is the intended feel. It
+is recorded so nobody later "fixes" the 4 believing it affects heat.
+
+---
+
+### OQ-18 — Phase 1's behavioural criteria are unverified
+
+BUILD_PLAN Phase 1 says done when *"heat rises on scroll, escalates at 6s and
+16s idle, drops on activity, and `console.count()` in the page body does not
+climb on mousemove."*
+
+**None of that was verified.** There is no browser and no Playwright in this
+environment. What was verified is the arithmetic beneath it — the law matches
+the spec, no constant has drifted, and the smoothing settles in 983ms.
+
+The four behavioural claims remain open. They need either Playwright installed
+or a manual DevTools pass watching `--heat` on `:root` alongside a
+`console.count` in a page component. CLAUDE.md §6 also asks for a screenshot
+pass at 390/768/1440, which is outstanding for the same reason.
+
+**Needed:** a decision on whether to add Playwright to this repo, or to treat
+browser verification as a manual step the owner performs.

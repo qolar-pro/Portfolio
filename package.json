@@ -6,10 +6,11 @@
     "dev": "next dev --port 3000",
     "build": "next build",
     "start": "next start",
-    "lint": "tsc --noEmit && node scripts/check-contrast.mjs && node scripts/check-no-webgl.mjs && node scripts/check-content-coverage.mjs",
+    "lint": "tsc --noEmit && node scripts/check-contrast.mjs && node scripts/check-no-webgl.mjs && node scripts/check-content-coverage.mjs && node scripts/check-heat-law.mjs",
     "check:contrast": "node scripts/check-contrast.mjs",
     "check:content": "node scripts/check-content-coverage.mjs",
-    "check:webgl": "node scripts/check-no-webgl.mjs"
+    "check:webgl": "node scripts/check-no-webgl.mjs",
+    "check:heat": "node scripts/check-heat-law.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.8",
