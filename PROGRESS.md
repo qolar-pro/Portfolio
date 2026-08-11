@@ -222,7 +222,11 @@ for the record; do not reopen without a new Decision.
 Live items still needing owner input (not blocking any phase yet):
 
 - **The three testimonial texts** — verbatim quote, name, role, company, and
-  permission to publish, for each (DD-5).
+  **written** permission to publish, for each (DD-5). Verbal is not enough to
+  put a client's name and firm on a public page. Start with A25.
+  **Minimum to render the section: two** — below that the block stays absent
+  (DD-18), because a single quote reads as the only one that could be
+  obtained. *(Absorbs the kit's OQ-11.)*
 - **Client logos** for the "live in production" strip.
 - **A founder photo** for `/studio` and the homepage (DD-4).
 - **Case-study metrics** for A25 and Dresscode.
@@ -967,15 +971,27 @@ finished; a fake one reads as dishonest.
 ### OQ-7 — Booking tool and transactional email · *blocks launch*
 
 SPEC §4 specifies `/contact` as "a booking calendar, not a mailto." That needs
-two things the studio has not chosen: a scheduling tool (Cal.com, Calendly) and
-a transactional email service (Resend, Postmark) for a real form.
+two things the studio has not chosen: a scheduling tool and a transactional
+email service (Resend, Postmark) for a real form.
 
 `/contact` currently composes the brief into a `mailto:`, marked `INTERIM` in
 `components/ContactPage.tsx`. Shipping that silently would have quietly done
 the thing the spec rules out, so it is flagged rather than absorbed.
 
+**Scheduling tool — the choice, with the kit's reasoning folded in:**
+
+- **Cal.com, self-hosted** — themeable to the ember palette, so the booking
+  step does not hand the visitor off to a page that looks like someone else's
+  product at the exact moment they are deciding to trust this one. Costs
+  hosting and maintenance.
+- **Calendly** — zero maintenance, but its chrome is unbrandable at the free
+  tier and the visual break is real.
+
 **Needed from the owner:** which scheduling tool, and whether a form that
 posts server-side is wanted over a mail client handoff.
+
+*Absorbed the kit's OQ-15, which asked the same question. Its Cal.com
+themeability argument is the paragraph above.*
 
 ### OQ-8 — The configurator has no market modifier · *affects credibility*
 
@@ -992,6 +1008,9 @@ before they reply.
 **Needed from the owner:** whether to add a market selector, and what the
 Macedonian multiplier should be. This compounds with DD-23 — the base rates are
 themselves unapproved.
+
+*Absorbed the kit's OQ-17, which asked the same question and added no detail
+this entry did not already carry.*
 
 ---
 
@@ -1381,20 +1400,30 @@ directly is both correct and simpler than reconciling the union.
 *OQ-9 … OQ-17 are the kit's nine, renumbered to continue from this log's
 existing OQ-8.*
 
+**Three were duplicates and have been struck.** The kit restated three
+questions this log already carried. The originals survive with their own
+numbers and have absorbed whatever extra detail the kit's wording added; the
+kit's numbers are retired rather than reused, so a future reference to OQ-11
+resolves to a tombstone instead of silently pointing at an unrelated question.
+
 - **OQ-9** Hero: CSS ember bloom alone, or bloom + R3F forge orb? Build
   bloom-only first, measure LCP and bundle delta, then decide with numbers.
 - **OQ-10** Custom cursor: desktop only, or drop entirely? Beautiful at 1440px
   and a liability everywhere else.
-- **OQ-11** Testimonials — need ≥2 real named quotes with written permission.
-  Start with A25. Section does not render until then. *(Duplicates OQ-5 in
-  spirit; both stay until the content arrives.)*
+- ~~**OQ-11** Testimonials~~ — **struck. See OQ-5.** Its two additions
+  (*written* permission, and a two-quote minimum before the section renders)
+  are folded into the outstanding-content list above.
 - **OQ-12** Founder photo for `/studio` and the homepage trust slot.
 - **OQ-13** Client logos for the "live in production" strip.
 - **OQ-14** Case-study metrics: no analytics access to A25 or Dresscode.
   Until a client supplies numbers in writing, case studies stay problem-led.
-- **OQ-15** Booking tool: Cal.com self-hosted (themeable to ember) vs Calendly.
-  Currently `mailto:`. *(Same question as OQ-7.)*
+- ~~**OQ-15** Booking tool~~ — **struck. See OQ-7.** Its Cal.com
+  self-hosting/themeability argument is folded into that entry.
 - **OQ-16** Greek legal entity details (ΑΦΜ / ΓΕΜΗ) for the footer, needed once
   trading formally. Do not imply a North Macedonian office (see DD-19).
-- **OQ-17** Quote configurator market modifier — it currently quotes an
-  Athens/London figure to a Skopje client. *(Same question as OQ-8.)*
+- ~~**OQ-17** Configurator market modifier~~ — **struck. See OQ-8.** Added no
+  detail OQ-8 did not already carry.
+
+**Live open questions after the merge:** OQ-7, OQ-8, OQ-9, OQ-10, OQ-12,
+OQ-13, OQ-14, OQ-16. Eight, not eleven. OQ-1…OQ-6 were resolved into
+DD-1…DD-6 during the earlier phases.
