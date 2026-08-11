@@ -229,6 +229,179 @@ p {
   );
 }
 
+/* --- Depth: layered light, not flat fill ---------------------------------
+   The site read as "black plain text with lines" because every surface was a
+   single solid colour with a 1px border. These stack light instead. */
+
+/* Mesh of offset radials. Three sources at different temperatures reads as a
+   lit room; one radial reads as a gradient. */
+.mesh-forge {
+  background-color: var(--forge-void);
+  background-image:
+    radial-gradient(42% 46% at 78% 18%, color-mix(in oklab, var(--heat-ember) 26%, transparent) 0%, transparent 62%),
+    radial-gradient(38% 42% at 12% 78%, color-mix(in oklab, var(--steel) 30%, transparent) 0%, transparent 60%),
+    radial-gradient(60% 50% at 50% 120%, color-mix(in oklab, var(--heat-dull) 22%, transparent) 0%, transparent 70%);
+}
+
+/* Hairline that fades out — a border that stops being a box. */
+.rule-fade {
+  border: 0;
+  height: 1px;
+  background: linear-gradient(90deg, var(--heat-ember), var(--forge-rule) 30%, transparent);
+}
+
+/* Corner marks. Reads as a machined part rather than a div. */
+.corner-mark {
+  position: relative;
+}
+.corner-mark::before,
+.corner-mark::after {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-color: var(--heat-ember);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+}
+.corner-mark::before {
+  top: 0;
+  left: 0;
+  border-top: 1px solid;
+  border-left: 1px solid;
+}
+.corner-mark::after {
+  right: 0;
+  bottom: 0;
+  border-right: 1px solid;
+  border-bottom: 1px solid;
+}
+.corner-mark:hover::before,
+.corner-mark:hover::after {
+  opacity: 1;
+}
+
+/* Card that responds. Lift plus a heat wash from the direction of travel. */
+.card-lift {
+  position: relative;
+  transition:
+    transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 0.35s ease;
+  will-change: transform;
+}
+.card-lift:hover {
+  transform: translateY(-4px);
+}
+.card-lift::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  background: linear-gradient(
+    160deg,
+    color-mix(in oklab, var(--heat-ember) 12%, transparent) 0%,
+    transparent 55%
+  );
+}
+.card-lift:hover::after {
+  opacity: 1;
+}
+
+/* Image inside a card zooms slower than the card lifts, so it reads as depth. */
+.zoom-parent img {
+  transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.zoom-parent:hover img {
+  transform: scale(1.05);
+}
+
+/* Arrow that travels on hover. */
+.arrow-slide {
+  display: inline-block;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.group:hover .arrow-slide {
+  transform: translateX(6px);
+}
+
+/* --- Typographic motion --------------------------------------------------
+   Obys-style: the static frame should already look like a poster, and the
+   motion should be the type arriving rather than decoration around it. */
+
+/* Masked line wipe. Each line rises out of its own clipping box. */
+.line-mask {
+  display: block;
+  overflow: hidden;
+}
+.line-mask > span {
+  display: block;
+  transform: translateY(110%);
+  transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.is-revealed .line-mask > span,
+.line-mask.is-revealed > span {
+  transform: translateY(0);
+}
+
+/* Oversized display. Tight, optically negative tracking at scale. */
+.display-xl {
+  font-family: var(--font-display);
+  font-size: clamp(3.2rem, 11vw, 9rem);
+  line-height: 0.88;
+  letter-spacing: -0.015em;
+  font-weight: 700;
+  text-wrap: balance;
+}
+
+/* Heat gradient across text. Used once per page at most. */
+.text-heat {
+  background-image: linear-gradient(
+    100deg,
+    var(--heat-white) 0%,
+    var(--heat-bright) 34%,
+    var(--heat-ember) 66%,
+    var(--heat-dull) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Hollow display type — outline only. The old site had this and it was one of
+   the few things worth carrying over. */
+.text-hollow {
+  color: transparent;
+  -webkit-text-stroke: 1px var(--forge-rule);
+}
+
+/* --- Marquee -------------------------------------------------------------
+   Earns its place on a capability strip, where continuous motion carries
+   meaning (DD-14). Duplicated track so the loop has no seam. */
+.marquee {
+  display: flex;
+  overflow: hidden;
+  user-select: none;
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+.marquee__track {
+  display: flex;
+  flex-shrink: 0;
+  gap: 3rem;
+  padding-right: 3rem;
+  animation: marquee 38s linear infinite;
+}
+.marquee:hover .marquee__track {
+  animation-play-state: paused;
+}
+@keyframes marquee {
+  to {
+    transform: translateX(-100%);
+  }
+}
+
 /* --- Scroll reveal (DD-14 permits `reveal` on every surface) --------------
    Entrance only, fires once, then the content is static — so it never
    competes with reading, which is the property that earned it the allowance. */
@@ -260,5 +433,14 @@ p {
   [data-reveal] {
     opacity: 1;
     transform: none;
+  }
+
+  /* Masked lines must not stay pushed out of their box. */
+  .line-mask > span {
+    transform: none;
+  }
+
+  .marquee__track {
+    animation: none;
   }
 }

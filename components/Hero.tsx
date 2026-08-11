@@ -4,22 +4,32 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useQuality } from '@/lib/quality';
 import { FULL } from '@/lib/grade';
+import Counter from '@/components/Counter';
+import Marquee from '@/components/Marquee';
 
 /**
  * The homepage hero.
  *
- * Order of operations matters more than the visual here. The type renders on
- * the server and is the LCP element; the canvas is dynamically imported and
- * only mounts after `useQuality` has run on the client. So the hero is
- * complete and readable before any of three.js is requested, and on the
- * `static` tier it is never requested at all.
+ * Ordering still matters most: the type renders on the server and is the LCP
+ * element, and the canvas is dynamically imported after `useQuality` runs on
+ * the client. Nothing below changes that — it changes what the type *does*.
  *
- * That ordering is what lets a site selling performance ship a WebGL hero
- * without contradicting itself.
+ * The headline is split into masked lines that rise out of their own clipping
+ * boxes. That is the one typographic move the reference studios all share:
+ * the static frame already reads as a poster, and the motion is the type
+ * arriving rather than decoration wrapped around it.
  */
-const ForgeCanvas = dynamic(() => import('@/components/canvas/ForgeCanvas'), {
-  ssr: false,
-});
+const ForgeCanvas = dynamic(() => import('@/components/canvas/ForgeCanvas'), { ssr: false });
+
+const CAPABILITIES = [
+  'Custom websites',
+  'Online stores',
+  'Redesigns',
+  'Real-time 3D',
+  'Greek · Macedonian · English',
+  'On-page SEO',
+  'Built from scratch',
+];
 
 export default function Hero({
   headline,
@@ -40,75 +50,88 @@ export default function Hero({
 }) {
   const { tier, detail } = useQuality();
 
+  // Break on the comma so each clause gets its own mask. Falls back to one
+  // line if the copy has no comma, which keeps this safe across locales.
+  const lines = headline.includes(', ')
+    ? headline.split(/,\s+/).map((l, i, arr) => (i < arr.length - 1 ? `${l},` : l))
+    : [headline];
+
   return (
-    <section className="forge forge-glow relative isolate min-h-[86vh] overflow-hidden">
-      {/* The shader is emissive — fresnel rim, glowing core — so it needs a
-          dark ground to exist at all. On the light ground it previously sat on,
-          it was fighting the page rather than lighting it (DD-26). */}
+    <section className="mesh-forge forge relative isolate overflow-hidden">
       {tier !== 'static' ? (
-        <div className="pointer-events-none absolute inset-0 -z-10">
+        <div className="pointer-events-none absolute inset-0 -z-10 opacity-95">
           <ForgeCanvas detail={detail} grade={FULL} />
         </div>
       ) : null}
 
-      <div className="mx-auto flex w-full max-w-[1120px] flex-col justify-center px-5 py-24 md:min-h-[86vh] md:py-32">
-        <div className="flex flex-col gap-8">
-          <p
-            data-reveal
-            className="font-mono text-2xs tracking-[0.2em] text-heat-ember uppercase"
-          >
-            Nova&thinsp;·&thinsp;Faber — the new maker
-          </p>
+      <div className="mx-auto flex w-full max-w-[1320px] flex-col justify-center px-5 pt-28 pb-10 md:min-h-[92vh] md:pt-36">
+        <div data-reveal className="is-revealed flex flex-col gap-9">
+          <div className="flex items-center gap-4">
+            <span className="h-px w-12 bg-heat-ember" />
+            <p className="font-mono text-2xs tracking-[0.22em] text-heat-ember uppercase">
+              Nova&thinsp;·&thinsp;Faber — the new maker
+            </p>
+          </div>
 
-          <h1
-            data-reveal
-            data-reveal-delay="80"
-            className="max-w-[18ch] text-5xl text-forge-ink md:text-6xl"
-          >
-            {headline}
+          <h1 className="display-xl max-w-[15ch] text-forge-ink">
+            {lines.map((line, i) => (
+              <span key={line} className="line-mask">
+                <span
+                  style={{ transitionDelay: `${i * 110}ms` }}
+                  className={i === lines.length - 1 ? 'text-heat' : undefined}
+                >
+                  {line}
+                </span>
+              </span>
+            ))}
           </h1>
 
-          <p
-            data-reveal
-            data-reveal-delay="160"
-            className="max-w-[var(--measure)] text-lg text-forge-ink-soft"
-          >
+          <p className="max-w-[var(--measure)] text-lg text-forge-ink-soft md:text-xl">
             {subhead}
           </p>
 
-          <div data-reveal data-reveal-delay="240" className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-3">
             <Link
               href={hrefPrimary}
-              className="inline-flex items-center justify-center bg-heat-ember px-6 py-3 font-display text-lg tracking-wide text-forge-void transition-colors hover:bg-heat-bright"
+              className="group inline-flex items-center gap-3 bg-heat-ember px-7 py-3.5 font-display text-lg tracking-wide text-forge-void transition-colors hover:bg-heat-bright"
             >
               {ctaPrimary}
+              <span aria-hidden className="arrow-slide">
+                →
+              </span>
             </Link>
             <Link
               href={hrefSecondary}
-              className="inline-flex items-center justify-center border border-forge-rule px-6 py-3 font-display text-lg tracking-wide text-forge-ink transition-colors hover:border-heat-ember hover:text-heat-ember"
+              className="group corner-mark inline-flex items-center gap-3 border border-forge-rule px-7 py-3.5 font-display text-lg tracking-wide text-forge-ink transition-colors hover:border-heat-ember hover:text-heat-ember"
             >
               {ctaSecondary}
+              <span aria-hidden className="arrow-slide">
+                →
+              </span>
             </Link>
           </div>
+        </div>
 
-          <div
-            data-reveal
-            data-reveal-delay="320"
-            className="mt-6 grid gap-px bg-forge-rule sm:grid-cols-3"
-          >
-            {proof.map((p) => (
-              <div key={p.label} className="flex flex-col gap-1 bg-forge-carbon px-5 py-5">
-                <span className="font-display text-4xl leading-none text-heat-bright tabular-nums">
-                  {p.value}
-                </span>
-                <span className="font-mono text-2xs tracking-[0.08em] text-forge-muted uppercase">
-                  {p.label}
-                </span>
-              </div>
-            ))}
-          </div>
+        <div
+          data-reveal
+          data-reveal-delay="380"
+          className="mt-16 grid gap-px bg-forge-rule sm:grid-cols-3"
+        >
+          {proof.map((p) => (
+            <div key={p.label} className="card-lift corner-mark flex flex-col gap-2 bg-forge-carbon px-6 py-7">
+              <Counter
+                value={p.value}
+                className="font-display text-6xl leading-none text-heat-bright tabular-nums"
+              />
+              <span className="font-mono text-2xs tracking-[0.1em] text-forge-muted uppercase">
+                {p.label}
+              </span>
+            </div>
+          ))}
         </div>
       </div>
+
+      <Marquee items={CAPABILITIES} />
     </section>
   );
 }
