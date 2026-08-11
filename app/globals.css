@@ -1,253 +1,42 @@
-@import 'tailwindcss';
+/* Tokens, @theme, base layer, .forge, .grain and reduced-motion all live in
+   tokens.css — imported first so everything below can read its custom
+   properties. This file holds only the utilities the shipped components use.
 
-/* ===========================================================================
-   NovaFaber design system — Phase 1
-   Every rule here traces to a diagnosed cause in SPEC.md §2 or a binding
-   constraint in §3. This is not a style sheet; it is the legibility fix.
-   =========================================================================== */
+   Note on var() names: Tailwind 4's `@theme { --color-ember: … }` publishes
+   the custom property as `--color-ember`, not `--ember`. Every reference below
+   uses the `--color-*` form for that reason. */
+@import "./tokens.css";
 
-:root {
-  /* --- Type roles (DD-12) -------------------------------------------------
-     Families bind through these three variables and nowhere else, so the
-     pairing stays a one-file change while it is being judged. */
-  --font-display: var(--font-sofia), ui-sans-serif, system-ui, sans-serif;
-  --font-body: var(--font-source-serif), Georgia, serif;
-  --font-mono: var(--font-jetbrains), ui-monospace, Consolas, monospace;
+/* --- Depth: layered light, not flat fill --------------------------------- */
 
-  /* --- Type scale ---------------------------------------------------------
-     Base is 17px. SPEC §3.3 sets a 16px floor for body copy; the old site
-     ran body-adjacent text at 11px with 0.35em tracking, which is the
-     failure mode this scale exists to make awkward to reproduce. */
-  --text-2xs: 0.75rem;   /* 12px — mono labels ONLY, never prose */
-  --text-xs: 0.8125rem;  /* 13px */
-  --text-sm: 0.9375rem;  /* 15px */
-  --text-base: 1.0625rem; /* 17px — body */
-  --text-lg: 1.1875rem;  /* 19px — lede */
-  --text-xl: 1.4375rem;  /* 23px */
-  --text-2xl: 1.75rem;   /* 28px */
-  --text-3xl: 2.25rem;   /* 36px */
-  --text-4xl: 3rem;      /* 48px */
-  --text-5xl: clamp(3.25rem, 6vw, 4.5rem);
-  --text-6xl: clamp(4rem, 9vw, 7rem); /* hero only */
-
-  --leading-tight: 1.05;
-  --leading-snug: 1.2;
-  --leading-body: 1.62;
-
-  /* --- Measure (SPEC §3.2) ------------------------------------------------
-     The old site had no cap; paragraphs ran the full 1500px container. */
-  --measure: 68ch;
-  --measure-narrow: 54ch;
-
-  /* --- Colour: light ------------------------------------------------------
-     Forge palette. Cold iron ground, hot metal accent. Ratios are measured,
-     not estimated — see scripts/check-contrast.mjs. */
-  --ground: #f2f3f5;
-  --surface: #ffffff;
-  --surface-sunk: #e7e9ec;
-  --ink: #14171a;
-  --ink-soft: #3a4147;
-  --muted: #5b636b;
-  /* Two rules, two jobs. --rule is a decorative separator; --rule-strong
-     bounds interactive components and must clear WCAG 1.4.11 at 3:1. */
-  --rule: #c2c9d0;
-  --rule-strong: #838a91;
-  --ember: #a4380f; /* accent — hot iron */
-  --steel: #1d5266; /* secondary — quenched */
-
-  /* --- The forge (DD-26) ------------------------------------------------
-     Theme-INDEPENDENT. These are identical in light and dark, because a
-     forge is dark for a working reason: a smith reads steel's temperature by
-     its colour, which is only possible in low light. Spectacle surfaces are
-     the forge interior; reading surfaces are the finished piece brought out
-     into daylight. The theme toggle changes the daylight, never the forge.
-
-     Every text token here is checked against every forge ground by
-     scripts/check-contrast.mjs — dark is not an excuse for low contrast. */
-  --forge-void: #08090b;
-  --forge-carbon: #10131a;
-  --forge-steel: #1b212a;
-  --forge-ink: #eceef1;
-  --forge-ink-soft: #b8c0ca;
-  --forge-muted: #8b96a4;
-  --forge-rule: #2b333e;
-
-  /* Heat range. A single accent could not express temperature, which is the
-     one thing this brand is actually about. */
-  --heat-dull: #b4471a;
-  --heat-ember: #f2814d;
-  --heat-bright: #ffa268;
-  --heat-white: #ffd8bb;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
-    --ground: #0e1013;
-    --surface: #16191d;
-    --surface-sunk: #0a0c0e;
-    --ink: #e6e9ec;
-    --ink-soft: #bfc5cb;
-    --muted: #8d959d;
-    --rule: #333940;
-    --rule-strong: #6b727a;
-    --ember: #f2814d;
-    --steel: #74afc9;
-  }
-}
-
-:root[data-theme='dark'] {
-  --ground: #0e1013;
-  --surface: #16191d;
-  --surface-sunk: #0a0c0e;
-  --ink: #e6e9ec;
-  --ink-soft: #bfc5cb;
-  --muted: #8d959d;
-  --rule: #333940;
-  --rule-strong: #6b727a;
-  --ember: #f2814d;
-  --steel: #74afc9;
-}
-
-@theme inline {
-  --font-display: var(--font-display);
-  --font-body: var(--font-body);
-  --font-mono: var(--font-mono);
-
-  --color-ground: var(--ground);
-  --color-surface: var(--surface);
-  --color-surface-sunk: var(--surface-sunk);
-  --color-ink: var(--ink);
-  --color-ink-soft: var(--ink-soft);
-  --color-muted: var(--muted);
-  --color-rule: var(--rule);
-  --color-rule-strong: var(--rule-strong);
-
-  --color-forge-void: var(--forge-void);
-  --color-forge-carbon: var(--forge-carbon);
-  --color-forge-steel: var(--forge-steel);
-  --color-forge-ink: var(--forge-ink);
-  --color-forge-ink-soft: var(--forge-ink-soft);
-  --color-forge-muted: var(--forge-muted);
-  --color-forge-rule: var(--forge-rule);
-  --color-heat-dull: var(--heat-dull);
-  --color-heat-ember: var(--heat-ember);
-  --color-heat-bright: var(--heat-bright);
-  --color-heat-white: var(--heat-white);
-  --color-ember: var(--ember);
-  --color-steel: var(--steel);
-
-  --text-2xs: var(--text-2xs);
-  --text-xs: var(--text-xs);
-  --text-sm: var(--text-sm);
-  --text-base: var(--text-base);
-  --text-lg: var(--text-lg);
-  --text-xl: var(--text-xl);
-  --text-2xl: var(--text-2xl);
-  --text-3xl: var(--text-3xl);
-  --text-4xl: var(--text-4xl);
-  --text-5xl: var(--text-5xl);
-  --text-6xl: var(--text-6xl);
-}
-
-html {
-  -webkit-text-size-adjust: 100%;
-}
-
-body {
-  background: var(--ground);
-  color: var(--ink);
-  font-family: var(--font-body);
-  font-size: var(--text-base);
-  line-height: var(--leading-body);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-}
-
-/* Display face is for headings. Binding it here rather than per-component is
-   deliberate: SPEC §11 requires body copy never resolve to the display face. */
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: var(--font-display);
-  font-weight: 600;
-  line-height: var(--leading-snug);
-  text-wrap: balance;
-  letter-spacing: 0.01em;
-}
-
-p {
-  text-wrap: pretty;
-}
-
-:focus-visible {
-  outline: 2px solid var(--ember);
-  outline-offset: 3px;
-}
-
-::selection {
-  background: var(--ember);
-  color: var(--surface);
-}
-
-/* --- Forge surface treatment (DD-26) -------------------------------------
-   Grain and a heat bloom, on dark only. The old site applied a full-frame
-   grain over body copy, which is one of the diagnosed causes in SPEC §2 —
-   here it is confined to surfaces that carry no prose. */
-.forge {
-  background-color: var(--forge-void);
-  color: var(--forge-ink);
-  position: relative;
-  isolation: isolate;
-}
-
-.forge::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  /* feTurbulence rather than a repeated bitmap: no request, and it scales. */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
-  opacity: 0.14;
-  mix-blend-mode: overlay;
-}
-
-/* Banked heat. Sits behind content, never over it. */
-.forge-glow::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background: radial-gradient(
-    60% 60% at 78% 30%,
-    color-mix(in oklab, var(--heat-ember) 22%, transparent) 0%,
-    transparent 68%
-  );
-}
-
-/* --- Depth: layered light, not flat fill ---------------------------------
-   The site read as "black plain text with lines" because every surface was a
-   single solid colour with a 1px border. These stack light instead. */
-
-/* Mesh of offset radials. Three sources at different temperatures reads as a
-   lit room; one radial reads as a gradient. */
+/* Static mesh of offset radials. `.forge` in tokens.css is the live,
+   heat-driven version; this is the version that holds up before the motion
+   system mounts and on the static quality tier. */
 .mesh-forge {
-  background-color: var(--forge-void);
+  background-color: var(--color-void);
   background-image:
-    radial-gradient(42% 46% at 78% 18%, color-mix(in oklab, var(--heat-ember) 26%, transparent) 0%, transparent 62%),
-    radial-gradient(38% 42% at 12% 78%, color-mix(in oklab, var(--steel) 30%, transparent) 0%, transparent 60%),
-    radial-gradient(60% 50% at 50% 120%, color-mix(in oklab, var(--heat-dull) 22%, transparent) 0%, transparent 70%);
+    radial-gradient(
+      42% 46% at 78% 18%,
+      color-mix(in oklab, var(--color-ember) 26%, transparent) 0%,
+      transparent 62%
+    ),
+    radial-gradient(
+      38% 42% at 12% 78%,
+      color-mix(in oklab, var(--color-steel) 22%, transparent) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      60% 50% at 50% 120%,
+      color-mix(in oklab, var(--color-ember-deep) 40%, transparent) 0%,
+      transparent 70%
+    );
 }
 
 /* Hairline that fades out — a border that stops being a box. */
 .rule-fade {
   border: 0;
   height: 1px;
-  background: linear-gradient(90deg, var(--heat-ember), var(--forge-rule) 30%, transparent);
+  background: linear-gradient(90deg, var(--color-ember), var(--color-rule) 30%, transparent);
 }
 
 /* Corner marks. Reads as a machined part rather than a div. */
@@ -256,13 +45,13 @@ p {
 }
 .corner-mark::before,
 .corner-mark::after {
-  content: '';
+  content: "";
   position: absolute;
   width: 10px;
   height: 10px;
-  border-color: var(--heat-ember);
+  border-color: var(--color-ember);
   opacity: 0;
-  transition: opacity 0.35s ease;
+  transition: opacity 0.35s var(--ease-out);
   pointer-events: none;
 }
 .corner-mark::before {
@@ -282,27 +71,28 @@ p {
   opacity: 1;
 }
 
-/* Card that responds. Lift plus a heat wash from the direction of travel. */
+/* Card that responds. Lift plus a heat wash from the direction of travel.
+   Compositor-only (transform/opacity), per CLAUDE.md invariant 6. */
 .card-lift {
   position: relative;
   transition:
-    transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
-    background-color 0.35s ease;
+    transform var(--duration-mid) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-soft);
   will-change: transform;
 }
 .card-lift:hover {
   transform: translateY(-4px);
 }
 .card-lift::after {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   pointer-events: none;
   opacity: 0;
-  transition: opacity 0.4s ease;
+  transition: opacity var(--duration-mid) var(--ease-soft);
   background: linear-gradient(
     160deg,
-    color-mix(in oklab, var(--heat-ember) 12%, transparent) 0%,
+    color-mix(in oklab, var(--color-ember) 12%, transparent) 0%,
     transparent 55%
   );
 }
@@ -310,9 +100,9 @@ p {
   opacity: 1;
 }
 
-/* Image inside a card zooms slower than the card lifts, so it reads as depth. */
+/* Image zooms slower than the card lifts, so it reads as depth. */
 .zoom-parent img {
-  transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform var(--duration-slow) var(--ease-out);
 }
 .zoom-parent:hover img {
   transform: scale(1.05);
@@ -321,17 +111,16 @@ p {
 /* Arrow that travels on hover. */
 .arrow-slide {
   display: inline-block;
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform var(--duration-mid) var(--ease-out);
 }
 .group:hover .arrow-slide {
   transform: translateX(6px);
 }
 
 /* --- Typographic motion --------------------------------------------------
-   Obys-style: the static frame should already look like a poster, and the
-   motion should be the type arriving rather than decoration around it. */
+   The static frame should already read as a poster; the motion is the type
+   arriving rather than decoration wrapped around it. */
 
-/* Masked line wipe. Each line rises out of its own clipping box. */
 .line-mask {
   display: block;
   overflow: hidden;
@@ -339,47 +128,46 @@ p {
 .line-mask > span {
   display: block;
   transform: translateY(110%);
-  transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform var(--duration-slow) var(--ease-out);
 }
 .is-revealed .line-mask > span,
 .line-mask.is-revealed > span {
   transform: translateY(0);
 }
 
-/* Oversized display. Tight, optically negative tracking at scale. */
+/* Oversized display. Optically negative tracking at scale. */
 .display-xl {
   font-family: var(--font-display);
-  font-size: clamp(3.2rem, 11vw, 9rem);
+  font-size: var(--text-display-1);
   line-height: 0.88;
   letter-spacing: -0.015em;
-  font-weight: 700;
+  font-weight: 900;
   text-wrap: balance;
 }
 
-/* Heat gradient across text. Used once per page at most. */
+/* Heat gradient across text. Once per page at most. */
 .text-heat {
   background-image: linear-gradient(
     100deg,
-    var(--heat-white) 0%,
-    var(--heat-bright) 34%,
-    var(--heat-ember) 66%,
-    var(--heat-dull) 100%
+    var(--color-ember-white) 0%,
+    var(--color-ember-hot) 34%,
+    var(--color-ember) 66%,
+    var(--color-ember-dull) 100%
   );
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
-/* Hollow display type — outline only. The old site had this and it was one of
-   the few things worth carrying over. */
+/* Outline-only display type. */
 .text-hollow {
   color: transparent;
-  -webkit-text-stroke: 1px var(--forge-rule);
+  -webkit-text-stroke: 1px var(--color-rule-strong);
 }
 
 /* --- Marquee -------------------------------------------------------------
-   Earns its place on a capability strip, where continuous motion carries
-   meaning (DD-14). Duplicated track so the loop has no seam. */
+   Permitted on `chrome` where continuous motion carries meaning. Duplicated
+   track so the loop has no seam. */
 .marquee {
   display: flex;
   overflow: hidden;
@@ -402,15 +190,15 @@ p {
   }
 }
 
-/* --- Scroll reveal (DD-14 permits `reveal` on every surface) --------------
-   Entrance only, fires once, then the content is static — so it never
-   competes with reading, which is the property that earned it the allowance. */
+/* --- Scroll reveal -------------------------------------------------------
+   Entrance only, fires once, then static — which is what earns it a place on
+   reading surfaces as well as spectacle ones. */
 [data-reveal] {
   opacity: 0;
   transform: translateY(14px);
   transition:
-    opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity var(--duration-slow) var(--ease-out),
+    transform var(--duration-slow) var(--ease-out);
 }
 
 [data-reveal].is-revealed {
@@ -418,24 +206,15 @@ p {
   transform: none;
 }
 
-/* SPEC §3.1 — motion respects the user's stated preference, always. */
+/* Reduced motion: the blanket rule in tokens.css kills the transitions, so
+   these must not be left in their pre-reveal state. Information preserved,
+   vestibular load removed — CLAUDE.md invariant 8. */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-
-  /* Reveal must not leave content invisible when motion is off. */
   [data-reveal] {
     opacity: 1;
     transform: none;
   }
 
-  /* Masked lines must not stay pushed out of their box. */
   .line-mask > span {
     transform: none;
   }

@@ -1,102 +1,115 @@
+#!/usr/bin/env node
 /**
- * Contrast guard (SPEC §3.3, Phase 1 DoD).
+ * CONTRAST GATE
  *
- * Parses app/globals.css and computes real WCAG ratios for every declared
- * text-on-surface pairing, in BOTH themes. Fails the build below threshold.
+ * Parses the shipped stylesheet and computes WCAG 2.1 ratios for every
+ * declared pairing. Exits non-zero on a violation.
  *
- * It parses the shipped stylesheet rather than reading a separate palette
- * module on purpose: a guard that checks a copy of the values can pass while
- * the values that actually ship drift. This checks what ships.
+ * It reads `app/tokens.css` rather than a duplicated table on purpose: a gate
+ * that checks a copy of the values can pass while the values that actually
+ * ship drift away from it. This checks what ships.
+ *
+ * Two sections:
+ *   PAIRINGS  — the 25 from the kit's design spec, against the canonical
+ *               `--color-*` tokens.
+ *   ALIASES   — the repo's older token names, which DD-39 keeps as aliases.
+ *               Asserted equal to their canonical counterpart, so an alias
+ *               cannot silently drift and leave ~20 components pointing at a
+ *               colour nobody measured.
  */
 
 import { readFileSync } from 'node:fs';
 
-const CSS = readFileSync(new URL('../app/globals.css', import.meta.url), 'utf8');
+const CSS = readFileSync(new URL('../app/tokens.css', import.meta.url), 'utf8');
 
-const AA_BODY = 4.5; // body text
-const AA_LARGE = 3.0; // WCAG 1.4.11 non-text / large text
-
-/**
- * Not a WCAG figure. A separator at 1.34:1 technically passes every
- * accessibility rule and is still invisible — which is part of why the old
- * site read as undifferentiated mush (SPEC §2). This is a design floor.
- */
-const VISIBLE_HAIRLINE = 1.5;
-
-/** Text tokens paired with the surfaces they are allowed to sit on. */
-const PAIRINGS = [
-  ['ink', 'ground', AA_BODY],
-  ['ink', 'surface', AA_BODY],
-  ['ink-soft', 'ground', AA_BODY],
-  ['ink-soft', 'surface', AA_BODY],
-  ['muted', 'ground', AA_BODY],
-  ['muted', 'surface', AA_BODY],
-  ['ember', 'ground', AA_BODY],
-  ['ember', 'surface', AA_BODY],
-  ['steel', 'ground', AA_BODY],
-  ['steel', 'surface', AA_BODY],
-  // Non-text. WCAG 1.4.11 requires 3:1 for boundaries that identify a
-  // *control*; a decorative separator is exempt. The two are split into
-  // separate tokens so the exemption can't quietly cover a button border.
-  ['rule-strong', 'ground', AA_LARGE],
-  ['rule-strong', 'surface', AA_LARGE],
-  ['rule', 'ground', VISIBLE_HAIRLINE],
-];
-
-/**
- * Forge surfaces (DD-26). Theme-independent, so they are checked once rather
- * than per theme — but they ARE checked. Dark backgrounds are where contrast
- * discipline usually quietly lapses, on the assumption that light text on dark
- * is always fine. It is not: --forge-muted on --forge-void is the pairing most
- * likely to drift below the floor.
- */
-const FORGE_PAIRINGS = [
-  ['forge-ink', 'forge-void', AA_BODY],
-  ['forge-ink', 'forge-carbon', AA_BODY],
-  ['forge-ink-soft', 'forge-void', AA_BODY],
-  ['forge-ink-soft', 'forge-carbon', AA_BODY],
-  ['forge-muted', 'forge-void', AA_BODY],
-  ['forge-muted', 'forge-carbon', AA_BODY],
-  ['heat-ember', 'forge-void', AA_BODY],
-  ['heat-ember', 'forge-carbon', AA_BODY],
-  ['heat-bright', 'forge-void', AA_BODY],
-  ['heat-dull', 'forge-void', AA_LARGE],
-  ['forge-rule', 'forge-void', VISIBLE_HAIRLINE],
-];
-
-function extractBlock(startPattern) {
-  const i = CSS.indexOf(startPattern);
-  if (i === -1) throw new Error(`Could not find block: ${startPattern}`);
-  const open = CSS.indexOf('{', i);
-  let depth = 0;
-  for (let j = open; j < CSS.length; j++) {
-    if (CSS[j] === '{') depth++;
-    else if (CSS[j] === '}') {
-      depth--;
-      if (depth === 0) return CSS.slice(open + 1, j);
-    }
-  }
-  throw new Error(`Unbalanced braces after: ${startPattern}`);
-}
-
-function parseTokens(block) {
+/** Pull every `--color-x: #hex` from the stylesheet. */
+function parseTokens(css) {
   const out = {};
-  for (const m of block.matchAll(/--([a-z-]+):\s*(#[0-9a-fA-F]{6})\s*;/g)) {
-    out[m[1]] = m[2];
+  for (const m of css.matchAll(/--color-([a-z0-9-]+):\s*(#[0-9a-fA-F]{6})\s*;/g)) {
+    out[m[1]] = m[2].toLowerCase();
   }
   return out;
 }
 
-function srgbToLinear(c) {
-  const s = c / 255;
-  return s <= 0.04045 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+const T = parseTokens(CSS);
+T.white = '#ffffff'; // not a token; present only as a regression guard
+
+const PAIRS = [
+  // body text on every ground
+  ['text-primary', 'base', 'normal'],
+  ['text-primary', 'surface-1', 'normal'],
+  ['text-primary', 'surface-2', 'normal'],
+  ['text-secondary', 'base', 'normal'],
+  ['text-secondary', 'surface-1', 'normal'],
+  ['text-secondary', 'surface-2', 'normal'],
+  ['text-muted', 'base', 'normal'],
+  ['text-muted', 'surface-1', 'normal'],
+  ['text-muted', 'surface-2', 'normal'],
+
+  // ember as text / accent
+  ['ember', 'base', 'normal'],
+  ['ember', 'surface-1', 'normal'],
+  ['ember', 'surface-2', 'normal'],
+  ['ember-hot', 'base', 'normal'],
+  ['ember-dull', 'base', 'large'],
+  ['ember-white', 'base', 'normal'],
+
+  // labels on ember fills — kit DD-3 / DD-30 here
+  ['base', 'ember', 'normal'],
+  ['base', 'ember-hot', 'normal'],
+  ['white', 'ember', 'normal'], // MUST FAIL — regression guard
+
+  // meaningful non-text — kit DD-2 / DD-29 here
+  ['ember', 'base', 'nontext'],
+  ['ember', 'surface-2', 'nontext'],
+  ['rule-strong', 'base', 'none'],
+
+  // status
+  ['success', 'base', 'large'],
+  ['error', 'base', 'large'],
+
+  // decorative, reported only
+  ['rule', 'base', 'none'],
+  ['text-disabled', 'base', 'none'],
+];
+
+const THRESHOLD = { normal: 4.5, large: 3.0, nontext: 3.0, none: 0 };
+
+/** Pairs asserted to FAIL, so nobody "fixes" them by loosening the palette. */
+const MUST_FAIL = new Set(['white/ember']);
+
+/** DD-39 aliases: [aliasToken, canonicalToken] must hold identical values. */
+const ALIASES = [
+  ['ground', 'base'],
+  ['surface', 'surface-1'],
+  ['surface-sunk', 'void'],
+  ['ink', 'text-primary'],
+  ['ink-soft', 'text-secondary'],
+  ['muted', 'text-muted'],
+  ['forge-void', 'void'],
+  ['forge-carbon', 'surface-1'],
+  ['forge-steel', 'surface-2'],
+  ['forge-ink', 'text-primary'],
+  ['forge-ink-soft', 'text-secondary'],
+  ['forge-muted', 'text-muted'],
+  ['forge-rule', 'rule'],
+  ['heat-dull', 'ember-dull'],
+  ['heat-ember', 'ember'],
+  ['heat-bright', 'ember-hot'],
+  ['heat-white', 'ember-white'],
+];
+
+function srgbChannel(v) {
+  const c = v / 255;
+  return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
 }
 
 function luminance(hex) {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return 0.2126 * srgbToLinear(r) + 0.7152 * srgbToLinear(g) + 0.0722 * srgbToLinear(b);
+  const h = hex.replace('#', '');
+  const R = srgbChannel(parseInt(h.slice(0, 2), 16));
+  const G = srgbChannel(parseInt(h.slice(2, 4), 16));
+  const B = srgbChannel(parseInt(h.slice(4, 6), 16));
+  return 0.2126 * R + 0.7152 * G + 0.0722 * B;
 }
 
 function ratio(a, b) {
@@ -105,64 +118,70 @@ function ratio(a, b) {
   return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
 }
 
-// `:root {` is the light block; `:root[data-theme='dark'] {` is dark.
-const light = parseTokens(extractBlock(':root {'));
-const dark = parseTokens(extractBlock(":root[data-theme='dark'] {"));
-
 let failures = 0;
-let checks = 0;
 
-for (const [themeName, tokens] of [
-  ['LIGHT', light],
-  ['DARK', dark],
-]) {
-  console.log(`\n  ${themeName}`);
-  console.log('  ' + '-'.repeat(46));
-  for (const [fg, bg, min] of PAIRINGS) {
-    const fgHex = tokens[fg];
-    const bgHex = tokens[bg];
-    if (!fgHex || !bgHex) {
-      console.log(`  MISSING TOKEN  ${fg} on ${bg}`);
-      failures++;
-      continue;
-    }
-    const r = ratio(fgHex, bgHex);
-    checks++;
-    const pass = r >= min;
-    if (!pass) failures++;
-    const mark = pass ? 'ok  ' : 'FAIL';
-    console.log(
-      `  ${mark} ${fg.padEnd(9)} on ${bg.padEnd(13)} ${r.toFixed(2).padStart(6)}:1  (min ${min})`,
-    );
-  }
-}
+console.log('\n  CONTRAST — WCAG 2.1, computed from app/tokens.css');
+console.log('  ' + '-'.repeat(62));
 
-// Forge tokens live in the bare :root block and are never redefined per theme.
-console.log('\n  FORGE (theme-independent)');
-console.log('  ' + '-'.repeat(46));
-for (const [fg, bg, min] of FORGE_PAIRINGS) {
-  const fgHex = light[fg];
-  const bgHex = light[bg];
+for (const [fg, bg, standard] of PAIRS) {
+  const fgHex = T[fg];
+  const bgHex = T[bg];
   if (!fgHex || !bgHex) {
-    console.log(`  MISSING TOKEN  ${fg} on ${bg}`);
+    console.error(`  MISSING TOKEN  ${fg} on ${bg}`);
     failures++;
     continue;
   }
+
   const r = ratio(fgHex, bgHex);
-  checks++;
-  const pass = r >= min;
-  if (!pass) failures++;
+  const min = THRESHOLD[standard];
+  const key = `${fg}/${bg}`;
+  const mustFail = MUST_FAIL.has(key);
+  const meets = r >= min;
+
+  let mark;
+  if (mustFail) {
+    // Inverted: this pair is supposed to be unusable.
+    mark = meets ? 'FAIL' : 'ok  ';
+    if (meets) {
+      failures++;
+      console.error(`  FAIL ${key} now passes at ${r.toFixed(2)}:1 — it must not.`);
+      continue;
+    }
+  } else if (standard === 'none') {
+    mark = 'note';
+  } else {
+    mark = meets ? 'ok  ' : 'FAIL';
+    if (!meets) failures++;
+  }
+
+  const label = mustFail ? `${key} (must fail)` : key;
   console.log(
-    `  ${pass ? 'ok  ' : 'FAIL'} ${fg.padEnd(14)} on ${bg.padEnd(13)} ${r
-      .toFixed(2)
-      .padStart(6)}:1  (min ${min})`,
+    `  ${mark} ${label.padEnd(34)} ${r.toFixed(2).padStart(6)}:1  ${standard} (min ${min})`,
   );
 }
 
-console.log(`\n  ${checks} pairings checked, ${failures} failing.\n`);
+console.log('\n  ALIAS INTEGRITY (DD-39)');
+console.log('  ' + '-'.repeat(62));
+let aliasBad = 0;
+for (const [alias, canonical] of ALIASES) {
+  if (!T[alias] || !T[canonical]) {
+    console.error(`  MISSING  ${alias} → ${canonical}`);
+    aliasBad++;
+    failures++;
+    continue;
+  }
+  if (T[alias] !== T[canonical]) {
+    console.error(`  DRIFT    --color-${alias} (${T[alias]}) != --color-${canonical} (${T[canonical]})`);
+    aliasBad++;
+    failures++;
+  }
+}
+console.log(`  ${ALIASES.length} aliases checked, ${aliasBad} drifted.`);
+
+console.log(`\n  ${PAIRS.length} pairings + ${ALIASES.length} aliases checked, ${failures} failing.\n`);
 
 if (failures > 0) {
-  console.error(`Contrast guard FAILED: ${failures} pairing(s) below threshold.`);
-  console.error('SPEC §3.3 sets the floor. Fix the token, do not lower the threshold.');
+  console.error('Contrast gate FAILED.');
+  console.error('DESIGN_SPEC §4 sets the floor. Fix the token, do not lower the threshold.');
   process.exit(1);
 }

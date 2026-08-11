@@ -1,0 +1,311 @@
+@import "tailwindcss";
+
+/* ============================================================
+   --heat is the one animated custom property everything reads.
+   Registering it with @property makes it interpolatable and
+   type-checked by the browser.
+   ============================================================ */
+@property --heat {
+  syntax: "<number>";
+  initial-value: 0.25;
+  inherits: true;
+}
+
+@property --mx {
+  syntax: "<percentage>";
+  initial-value: 50%;
+  inherits: true;
+}
+
+@property --my {
+  syntax: "<percentage>";
+  initial-value: 40%;
+  inherits: true;
+}
+
+@theme {
+  /* grounds */
+  --color-void: #08080a;
+  --color-base: #0b0b0c;
+  --color-surface-1: #121214;
+  --color-surface-2: #17181b;
+  --color-rule: #24262b;
+  --color-rule-strong: #3a3e44;
+
+  /* ember heat scale */
+  --color-ember-deep: #7a3510;
+  --color-ember-dull: #b4531a;
+  --color-ember: #ff7a1a;
+  --color-ember-hot: #ff9a45;
+  --color-ember-white: #ffd2a6;
+
+  /* type */
+  --color-text-primary: #e6e1da;
+  --color-text-secondary: #b4aea5;
+  --color-text-muted: #9a948c;
+  --color-text-disabled: #5a5e64;
+
+  /* status */
+  --color-success: #3fb27f;
+  --color-error: #e5484d;
+
+  /* fonts — bound to next/font CSS variables in layout.tsx */
+  --font-display: var(--font-sofia), "Arial Narrow", sans-serif;
+  --font-body: var(--font-source-serif), Georgia, serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+
+  /* type scale */
+  --text-display-1: clamp(3rem, 9.5vw, 8.2rem);
+  --text-display-2: clamp(2.4rem, 5.5vw, 4.4rem);
+  --text-display-3: clamp(2rem, 4.5vw, 3.2rem);
+  --text-lead: 1.15rem;
+  --text-body: 1.0625rem;
+  --text-small: 0.92rem;
+  --text-label: 0.72rem;
+
+  /* radii */
+  --radius-input: 6px;
+  --radius-card: 14px;
+
+  /* motion */
+  --duration-fast: 180ms;
+  --duration-mid: 420ms;
+  --duration-slow: 900ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+
+  /* shell */
+  --shell: 1240px;
+
+  /* ============================================================
+     ALIASES + SCALE — added during kit install (DD-39)
+
+     The repo already ships ~20 components written against an earlier
+     token vocabulary. Remapping every className by hand would be a large
+     diff with no visual payoff and real regression risk, so the old names
+     survive as aliases pointing at the kit palette. Same values, two
+     names. New code uses the kit names above.
+     ============================================================ */
+
+  /* Former light-surface tokens. Now dark, per DD-38 — the whole site is
+     the forge; there is no daylight side any more. */
+  --color-ground: #0b0b0c;
+  --color-surface: #121214;
+  --color-surface-sunk: #08080a;
+  --color-ink: #e6e1da;
+  --color-ink-soft: #b4aea5;
+  --color-muted: #9a948c;
+
+  /* Former forge-only tokens. With the site dark throughout these collapse
+     onto the same ramp instead of being a second, parallel set. */
+  --color-forge-void: #08080a;
+  --color-forge-carbon: #121214;
+  --color-forge-steel: #17181b;
+  --color-forge-ink: #e6e1da;
+  --color-forge-ink-soft: #b4aea5;
+  --color-forge-muted: #9a948c;
+  --color-forge-rule: #24262b;
+
+  /* Former heat ramp, aliased onto the kit's ember scale. */
+  --color-heat-dull: #b4531a;
+  --color-heat-ember: #ff7a1a;
+  --color-heat-bright: #ff9a45;
+  --color-heat-white: #ffd2a6;
+
+  /* Cool counterpoint. The kit has no equivalent; kept because quenched
+     steel is the only non-ember colour on the site. */
+  --color-steel: #6fa8c0;
+
+  /* Size scale the shipped components use (text-2xs … text-6xl).
+     The kit's display-1/2/3 remain available alongside. */
+  --text-2xs: 0.72rem;
+  --text-xs: 0.8125rem;
+  --text-sm: 0.92rem;
+  --text-base: 1.0625rem;
+  --text-lg: 1.15rem;
+  --text-xl: 1.4375rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: 2.25rem;
+  --text-4xl: 3rem;
+  --text-5xl: clamp(3.25rem, 6vw, 4.5rem);
+  --text-6xl: clamp(4rem, 9vw, 7rem);
+}
+
+/* P3 displays: push chroma for genuine added luminosity.
+   sRGB devices keep the hex and lose nothing. */
+@media (color-gamut: p3) {
+  @theme {
+    --color-ember: color(display-p3 1 0.49 0.13);
+    --color-ember-hot: color(display-p3 1 0.62 0.3);
+  }
+}
+
+:root {
+  /* Reading measure. DESIGN_SPEC §5 caps at 62ch. Consumed via var() in
+     arbitrary values rather than as a utility. */
+  --measure: 62ch;
+  --measure-narrow: 52ch;
+}
+
+/* ============================================================
+   BASE
+   ============================================================ */
+@layer base {
+  html {
+    background: var(--color-void);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background: var(--color-base);
+    color: var(--color-text-primary);
+    font-family: var(--font-body);
+    font-size: var(--text-body);
+    line-height: 1.65;
+    text-wrap: pretty;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: 900;
+    line-height: 0.92;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+  }
+
+  ::selection {
+    background: var(--color-ember);
+    color: var(--color-base);
+  }
+
+  /* DD-2 (kit) / DD-29 here: focus rings use ember (7.54:1), never
+     rule-strong (1.83:1). */
+  :focus-visible {
+    outline: 2px solid var(--color-ember);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+}
+
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+@layer utilities {
+  .shell {
+    width: min(var(--shell), 92vw);
+    margin-inline: auto;
+  }
+
+  .reading {
+    max-width: 62ch;
+  }
+
+  .label {
+    font-family: var(--font-mono);
+    font-size: var(--text-label);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+}
+
+/* ============================================================
+   FORGE SURFACE
+   Three layers, all behind content:
+     ::before  ember bloom at eased cursor, alpha × heat
+     ::after   engraved grid, MASKED TO THE BLOOM (DD-32)
+   Content must sit at z-index 2 or above.
+   ============================================================ */
+@layer components {
+  .forge {
+    position: relative;
+    isolation: isolate;
+    background: var(--color-base);
+    overflow: hidden;
+  }
+
+  .forge::before {
+    content: "";
+    position: absolute;
+    inset: -20%;
+    z-index: -2;
+    pointer-events: none;
+    background:
+      radial-gradient(
+        42rem 34rem at var(--mx) var(--my),
+        rgb(255 122 26 / calc(0.16 * var(--heat) + 0.03)) 0%,
+        rgb(180 83 26 / calc(0.09 * var(--heat))) 34%,
+        transparent 68%
+      ),
+      radial-gradient(70rem 50rem at 80% 110%, rgb(122 53 16 / 0.2) 0%, transparent 60%);
+  }
+
+  .forge::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+      linear-gradient(to right, rgb(255 122 26 / 0.06) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(255 122 26 / 0.06) 1px, transparent 1px);
+    background-size: 72px 72px;
+    mask-image: radial-gradient(60rem 44rem at var(--mx) var(--my), #000 0%, transparent 72%);
+    opacity: calc(0.45 + 0.55 * var(--heat));
+  }
+
+  /* Filmic grain — one fixed tile, decorative and pointer-transparent. */
+  .grain {
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+    pointer-events: none;
+    opacity: 0.055;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* White-hot word: spread breathes with heat */
+  .forged {
+    color: var(--color-ember-white);
+    text-shadow:
+      0 0 calc(14px + 26px * var(--heat)) rgb(255 122 26 / calc(0.35 + 0.4 * var(--heat))),
+      0 0 calc(46px + 60px * var(--heat)) rgb(255 122 26 / calc(0.18 + 0.25 * var(--heat)));
+  }
+
+  /* Elevation on dark — DESIGN_SPEC §7 */
+  .lift {
+    box-shadow:
+      inset 0 1px 0 rgb(230 225 218 / 0.06),
+      0 8px 30px rgb(0 0 0 / 0.5);
+  }
+
+  .lift-ember {
+    box-shadow: 0 0 42px -6px rgb(255 122 26 / 0.55);
+  }
+}
+
+/* ============================================================
+   REDUCED MOTION
+   Preserve information, remove vestibular load. MOTION_SPEC §6.
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  :root {
+    --heat: 0.3;
+    --mx: 50%;
+    --my: 40%;
+  }
+}

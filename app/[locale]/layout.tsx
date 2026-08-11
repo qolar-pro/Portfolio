@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import SiteHeader from '@/components/SiteHeader';
 import SiteFooter from '@/components/SiteFooter';
 import Reveal from '@/components/Reveal';
+import { MotionProvider } from '@/components/motion/MotionProvider';
 import { LOCALES, isLocale } from '@/lib/locales';
 import { ROUTES, href } from '@/lib/routes';
 import { contentFor } from '@/lib/content';
@@ -104,11 +105,16 @@ export default async function LocaleLayout({
           ctaLabel={contentFor(locale).chrome.ctaBook}
           ctaHref={href(locale, 'contact')}
         />
-        <main id="main" className="flex-1">
-          {children}
-        </main>
+        <MotionProvider>
+          <main id="main" className="flex-1">
+            {children}
+          </main>
+        </MotionProvider>
         <SiteFooter locale={locale} />
         <Reveal />
+        {/* Filmic grain. Fixed, pointer-transparent, z-9998 — decorative only,
+            and above content in stacking order but never intercepting it. */}
+        <div className="grain" aria-hidden />
       </body>
     </html>
   );

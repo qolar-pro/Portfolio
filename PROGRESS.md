@@ -1255,3 +1255,146 @@ light body — rather than two pages that happen to share a palette.
 **Binding:** do not write a bespoke opener for a new page. If `PageHeader` will
 not carry a case, extend it — a second opener component is how this drifts
 again.
+
+---
+
+## Kit install — ported decisions
+
+*DD-28 … DD-37 are the novafaber-kit's ten Director Decisions, renumbered to
+continue this log (kit DD-1…DD-10). Internal cross-references have been
+updated to the new numbers. DD-38 … DD-40 arose during the install itself.*
+
+### DD-28 — Grounds bottom out at `#08080A`; `#000000` is never used
+Pure black gives the ember bloom nothing to fall on. `#0B0B0C` reads as black
+on every display while still accepting a gradient.
+
+### DD-29 — `--rule-strong` is decorative only
+Measures **1.83:1** on `--bg-base`, below the 3:1 non-text requirement. Focus
+rings, input borders and selected states use `--ember` (**7.54:1**). Enforced
+by `scripts/check-contrast.mjs`, which records the 1.83 figure as a `none`
+pairing rather than pretending the token is usable for meaning.
+
+### DD-30 — Button labels on ember fills are `#0B0B0C`
+**7.54:1.** White-on-ember is **2.61:1** and forbidden — kept in the gate as a
+regression guard that must continue to *fail*. Verified: the gate reports
+`white/ember (must fail) 2.61:1` and would error if that pair ever passed.
+
+### DD-31 — Type stack: Sofia Sans Condensed / Source Serif 4 / JetBrains Mono
+Chosen for simultaneous Latin + Greek + Cyrillic coverage. Space Grotesk,
+Archivo and Satoshi are disqualified. Any substitution requires re-verifying
+all three scripts.
+
+**Note:** this repo reached the identical stack independently in DD-13, for the
+same reason. The kit and the existing build agree; nothing changed.
+
+### DD-32 — The engraved grid is masked to the ember bloom
+Not applied flat across the page. A flat grid is the generic dark-site look;
+local emergence under the cursor is the signature.
+
+### DD-33 — `--ember` verified at 7.54:1 on `--bg-base`
+By hand in DESIGN_SPEC §4 and independently by
+`scripts/check-contrast.mjs`, which now reproduces the same figure from the
+shipped stylesheet. An earlier research figure of 4.9:1 was miscalculated and
+is superseded.
+
+### DD-34 — Motion architecture: one scalar `heat ∈ [0,1]`
+Derived from idle level + scroll velocity, smoothed at 0.05/frame, written to
+`--heat` on `:root`. All ember effects read it, so they rise and fall in
+agreement instead of being six unrelated animations.
+
+### DD-35 — Continuous motion values never enter the React render path
+Pointer and scroll fire at 60–120Hz; routing them through `useState` or a
+subscribing selector re-renders the tree every frame and destroys INP. React
+may subscribe only to discrete state (`qualityTier`, `reducedMotion`,
+`idleLevel`, `cursorVariant`, `webglEnabled`).
+
+### DD-36 — Per-surface motion budgets enforced at runtime
+`spectacle` / `reading` / `chrome`, via `assertAllowed()`. Throws in dev,
+no-ops in prod. Adding an effect to a surface requires removing one.
+
+### DD-37 — `three` loads only through `dynamic(ssr:false)`
+Hero text is the LCP element. `dpr` capped at 1.75.
+
+---
+
+*DD-38 … DD-40 arose during the install.*
+
+### DD-38 — The site is dark throughout. DD-26 is reversed.
+
+**Owner ruling during kit install:** the kit wins; the whole site goes dark.
+
+**What this reverses.** DD-26 established a two-surface split — spectacle
+surfaces always dark, reading surfaces following the viewer's theme (light by
+default) — on the reasoning that *the smith works in the dark and the finished
+piece is shown in daylight*. That rationale is now retired. The kit's
+`tokens.css` sets `body { background: var(--color-base) }` with no light path,
+and adapting it to preserve DD-26 would have meant rewriting the kit's core
+premise rather than installing it.
+
+**What survives from DD-26.** The forge/daylight metaphor is gone, but the
+constraint it protected is not: prose still has to be readable. That is now
+carried by the contrast gate (25 pairings, all text pairings ≥ 4.5:1 measured
+on the actual dark grounds) rather than by putting body copy on a light
+surface.
+
+**Binding:** there is no light theme. Do not reintroduce `prefers-color-scheme`
+branches for the page ground. The only remaining theme-like variation is
+`--heat`, which is a motion value, not a palette switch.
+
+### DD-39 — Old token names survive as aliases, not as a second palette
+
+**Context:** roughly twenty shipped components are written against the earlier
+vocabulary (`bg-ground`, `text-ink`, `text-forge-ink`, `text-heat-ember`, …).
+The kit uses `--color-base`, `--color-text-primary`, `--color-ember`.
+
+**Ruling:** the kit names are canonical; the old names are declared in the same
+`@theme` block as aliases pointing at identical values.
+
+**Reasoning:** a hand sweep of ~20 files converting every `className` would be
+a large diff with real regression risk and no visual payoff, and it would have
+to happen before anything could be verified. Aliasing makes the migration a
+single file, and the components keep working unchanged.
+
+Because the site is now dark throughout, the two former sets — light surface
+tokens and forge tokens — collapse onto one ramp. They are no longer two
+palettes; they are two names for one.
+
+**Binding:** new code uses the kit names. `scripts/check-contrast.mjs` asserts
+every alias equals its canonical token, so an alias cannot silently drift and
+leave twenty components pointing at a colour nobody measured. 17 aliases
+checked, 0 drifted.
+
+### DD-40 — `IgniteText` builds its element with `createElement`
+
+The kit shipped `const Tag = as as React.ElementType`, which widens to a union
+TypeScript cannot narrow across a JSX call. Every prop on the tag then resolves
+to `never`, and `ref`, `className` and `children` all fail to compile — 3 of
+the 10 TS errors on first install came from this file.
+
+`h1`/`h2`/`h3`/`p` accept identical attributes, so constructing the element
+directly is both correct and simpler than reconciling the union.
+
+---
+
+## Kit install — ported open questions
+
+*OQ-9 … OQ-17 are the kit's nine, renumbered to continue from this log's
+existing OQ-8.*
+
+- **OQ-9** Hero: CSS ember bloom alone, or bloom + R3F forge orb? Build
+  bloom-only first, measure LCP and bundle delta, then decide with numbers.
+- **OQ-10** Custom cursor: desktop only, or drop entirely? Beautiful at 1440px
+  and a liability everywhere else.
+- **OQ-11** Testimonials — need ≥2 real named quotes with written permission.
+  Start with A25. Section does not render until then. *(Duplicates OQ-5 in
+  spirit; both stay until the content arrives.)*
+- **OQ-12** Founder photo for `/studio` and the homepage trust slot.
+- **OQ-13** Client logos for the "live in production" strip.
+- **OQ-14** Case-study metrics: no analytics access to A25 or Dresscode.
+  Until a client supplies numbers in writing, case studies stay problem-led.
+- **OQ-15** Booking tool: Cal.com self-hosted (themeable to ember) vs Calendly.
+  Currently `mailto:`. *(Same question as OQ-7.)*
+- **OQ-16** Greek legal entity details (ΑΦΜ / ΓΕΜΗ) for the footer, needed once
+  trading formally. Do not imply a North Macedonian office (see DD-19).
+- **OQ-17** Quote configurator market modifier — it currently quotes an
+  Athens/London figure to a Skopje client. *(Same question as OQ-8.)*
