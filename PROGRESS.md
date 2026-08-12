@@ -1440,7 +1440,7 @@ above, which belong to this repo's own earlier build.
 |---|---|---|
 | 0 — Foundation | DONE | Satisfied during the kit install (`18a06e6`). Criteria re-checked, below. |
 | 1 — Motion system | DONE | This session. DD-41 … DD-43, OQ-18. |
-| 2 — Forge surface | not started | |
+| 2 — Forge surface | in progress | Behaviour gates installed first, per owner instruction. |
 | 3 — Motion components | not started | |
 | 4 — Hero | not started | |
 | 5 — Reading surfaces | not started | |
@@ -1603,3 +1603,93 @@ pass at 390/768/1440, which is outstanding for the same reason.
 
 **Needed:** a decision on whether to add Playwright to this repo, or to treat
 browser verification as a manual step the owner performs.
+
+---
+
+### OQ-18 — CLOSED. Behavioural verification is automated.
+
+Playwright 1.62.1 + Chromium 151.0.7922.34 installed; `scripts/check-behaviour.mjs`
+starts a production server, runs five gates, and exits non-zero on failure.
+`.mcp.json` adds `@playwright/mcp` for interactive use in later sessions.
+
+**Phase 1's behavioural criteria, retro-verified — the four claims that were
+open at the end of Phase 1 are now measured:**
+
+```
+React does not re-render on pointer move
+  40 mouse moves across 1440px -> commits 8 -> 8, delta 0 (budget <= 2)
+  0.000 commits per pointer move
+
+heat rises on scroll, escalates on idle, drops on activity
+  a resting, 1s no input        0.250
+  b peak within 1500ms of wheel 0.304   b > a  +0.054
+  c drowsy plateau (6s step)    0.332   c > a  +0.082
+  d attract plateau (16s step)  0.535   d > c  +0.203
+  e floor after input           0.290   e < d  -0.245
+
+reduced motion   12 [data-reveal] elements, 0 with opacity != 1; --heat pinned 0.300, drift 0.000
+keyboard         23 elements reached by Tab, 23/23 with the ember focus ring, 0 with outline:none
+renders          390 / 768 / 1440 captured to .playwright/
+
+5/5 gates passed, exit 0
+```
+
+**A measurement the gate exposed that nothing else would have:** rAF on the
+homepage runs at **~10 fps**, not 60. Attribution measured by the agent:
+`about:blank` 60.9 fps · site with WebGL blocked 60.1 fps · site with the R3F
+hero 10.2 fps. The forge orb renders through SwiftShader in headless Chromium
+at ~106ms/frame. That is a headless-software-GL artefact rather than a
+statement about real hardware — but it means heat easing, which is *per frame*,
+closes only ~42% of the gap per second here instead of 95%. Recorded because
+any future timing assertion written against wall-clock milliseconds will be
+wrong for the same reason.
+
+### DD-44 — The P3 ember override is removed
+
+`app/tokens.css` carried `@media (color-gamut: p3) { @theme { --color-ember: color(display-p3 …) } }`.
+
+**Tailwind compiles that to `@supports (color: color(display-p3 0 0 0))`**,
+which is true in every modern browser regardless of the display. Verified in
+the built CSS: `color-gamut` appears **0 times**. So every visitor received the
+P3 value and sRGB screens clipped it to `rgb(255,115,0)` — while
+`check-contrast.mjs` graded `#ff7a1a`, a colour much of the audience never saw.
+
+| variant | sRGB | vs `#0B0B0C` |
+|---|---|---|
+| authored `#ff7a1a` | 255,122,26 | **7.54:1** — what the gate grades |
+| what actually painted on sRGB | 255,115,0 | 7.22:1 |
+
+No WCAG break, but a gate that grades an unshipped colour is not a gate.
+Removed. Verified after a clean rebuild: `#ff7a1a` ×7, `display-p3` ×0.
+
+**Correcting the subagent's diagnosis.** It reported the fallback hex `#ff7d24`
+as evidence of a stale `.next` cache. It is not — after `rm -rf .next/cache`
+and a full rebuild, `#ff7d24` still shipped, because Tailwind *generates* it as
+the sRGB fallback for the P3 colour. Removing the P3 block removed it. Recorded
+because the stale-cache theory was plausible, was reported confidently, and was
+wrong.
+
+**Binding:** do not reintroduce a gamut-conditional token until Tailwind emits
+a real `@media (color-gamut: p3)` query. Any token the contrast gate cannot
+resolve to one sRGB value is not gradeable.
+
+### DD-45 — Subagent briefs must name files, not documents
+
+**Tested, not assumed.** The `motion-engineer` brief for Phase 1 opened with
+"read CLAUDE.md, docs/MOTION_SPEC.md, docs/BUILD_PLAN.md and lib/motion/*.ts"
+— roughly 30KB of reading before any action. It stalled at 600s having produced
+one sentence and modified nothing.
+
+The retry used the same agent type with a narrow brief: one named output file,
+every needed fact stated inline, and an explicit instruction *not* to read the
+spec documents. It completed — 62 tool calls, 5/5 gates, and it found two real
+defects (the P3 override, and three flaws in its own harness that it diagnosed
+and fixed before reporting).
+
+**Ruling:** agent briefs name the exact files the agent owns and inline the
+facts it needs. They do not point at the constitution and hope. The four agent
+definitions in `.claude/agents/` are amended to say so.
+
+**Binding:** if an agent stalls, retry ONCE with a narrower brief before
+falling back to the main thread — and log the missing review either way, as
+Phase 1 did.

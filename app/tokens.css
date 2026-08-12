@@ -132,14 +132,13 @@
   --text-6xl: clamp(4rem, 9vw, 7rem);
 }
 
-/* P3 displays: push chroma for genuine added luminosity.
-   sRGB devices keep the hex and lose nothing. */
-@media (color-gamut: p3) {
-  @theme {
-    --color-ember: color(display-p3 1 0.49 0.13);
-    --color-ember-hot: color(display-p3 1 0.62 0.3);
-  }
-}
+/* The P3 override was removed — DD-44.
+   It was authored as `@media (color-gamut: p3)`, but Tailwind compiles that to
+   `@supports (color: color(display-p3 0 0 0))`, which is true in every modern
+   browser regardless of the display. Verified: `color-gamut` appears 0 times in
+   the built CSS. So every visitor got the P3 value, sRGB screens clipped it to
+   rgb(255,115,0), and the contrast gate was grading #ff7a1a — a colour much of
+   the audience never saw. */
 
 :root {
   /* Reading measure. DESIGN_SPEC §5 caps at 62ch. Consumed via var() in

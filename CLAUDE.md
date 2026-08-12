@@ -44,7 +44,9 @@ Consequences that are **not optional**:
 3. **Dark labels on ember buttons.** `#0B0B0C` on `--ember` = 7.5:1. White on ember = 2.6:1 and is forbidden.
 4. **Never pure black or pure white.** Grounds bottom out at `#08080A`; text tops out at `#E6E1DA`.
 5. **One focal point per viewport.** If 3D is animating, type is still. If type is kinetic, the background is quiet.
-6. **Compositor-only animation.** `transform` and `opacity` only. Animating `width`, `height`, `top`, `left`, `margin` is a bug.
+6. **Element animation is compositor-only.** Anything that moves, fades or scales animates `transform` and `opacity` only. Animating `width`, `height`, `top`, `left` or `margin` is a bug.
+
+   **One named exception: the forge bloom** (DD-41). `--heat`, `--mx` and `--my` drive a `radial-gradient` position, gradient alpha, a `mask-image` and `text-shadow` spread — all paint, not composite. It is permitted because it is confined to a fixed-count background layer (`.forge::before` / `.forge::after`, `z-index` below content) that carries no layout, and because it is bounded: the rAF loop sleeps once values settle and while the tab is hidden (DD-42). No other effect may claim this exception — anything else animating a paint property is a bug.
 7. **Text is the LCP element.** The hero canvas mounts after paint via `next/dynamic({ ssr: false })`. LCP budget ≤ 2.0s on mid-tier mobile / 4G.
 8. **Every effect has a reduced-motion path** that preserves the information, not just an `animation: none` blanket.
 9. **Unwritten locales are `noindex, follow`.** Never ship English copy at an `/el` or `/mk` URL.

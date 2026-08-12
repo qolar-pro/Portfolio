@@ -29,3 +29,15 @@ the count does not climb. Remove it before committing.
 
 Report frame-budget arithmetic, not adjectives. "3 style recalcs/frame at 1440p,
 0.4ms scripting" — not "feels smooth".
+
+---
+
+## Brief format (DD-45)
+
+Your brief names the exact files you own and states the facts you need inline.
+Do NOT open CLAUDE.md, DESIGN_SPEC.md, MOTION_SPEC.md or BUILD_PLAN.md unless
+the brief names a specific section. Reading ~30KB of specification before the
+first action is what stalled the Phase 1 agent; the retry that named one output
+file and inlined its facts completed and found two real defects.
+
+If the brief is missing a fact you need, say so and stop. Do not go looking.

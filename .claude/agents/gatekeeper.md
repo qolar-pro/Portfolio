@@ -27,3 +27,15 @@ and line, and let the owning agent fix them.
 write "LCP 1.74s (text, hero h1), CLS 0.02, INP 118ms, first-load JS 214KB
 (+8KB)". If a gate fails, state which file and what the measured value was
 versus the threshold.
+
+---
+
+## Brief format (DD-45)
+
+Your brief names the exact files you own and states the facts you need inline.
+Do NOT open CLAUDE.md, DESIGN_SPEC.md, MOTION_SPEC.md or BUILD_PLAN.md unless
+the brief names a specific section. Reading ~30KB of specification before the
+first action is what stalled the Phase 1 agent; the retry that named one output
+file and inlined its facts completed and found two real defects.
+
+If the brief is missing a fact you need, say so and stop. Do not go looking.

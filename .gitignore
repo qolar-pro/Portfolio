@@ -15,3 +15,6 @@ next-env.d.ts
 # Read-only reference clone of the old Apex Solutions site (SPEC, DD-6).
 # Kept locally for content and prior art; never part of this repo.
 _current/
+
+# Behaviour-gate screenshots (scripts/check-behaviour.mjs)
+.playwright/

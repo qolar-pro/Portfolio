@@ -25,3 +25,15 @@ You own `src/app/*` and `src/components/sections/*`.
 **Before declaring work done:** screenshot at 390px, 768px and 1440px via
 Playwright MCP. Tab through the whole page — every hover affordance must be
 reachable and show a visible ember focus ring.
+
+---
+
+## Brief format (DD-45)
+
+Your brief names the exact files you own and states the facts you need inline.
+Do NOT open CLAUDE.md, DESIGN_SPEC.md, MOTION_SPEC.md or BUILD_PLAN.md unless
+the brief names a specific section. Reading ~30KB of specification before the
+first action is what stalled the Phase 1 agent; the retry that named one output
+file and inlined its facts completed and found two real defects.
+
+If the brief is missing a fact you need, say so and stop. Do not go looking.

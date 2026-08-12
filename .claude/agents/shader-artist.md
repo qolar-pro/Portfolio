@@ -26,3 +26,15 @@ You own `src/components/canvas/*`.
 **Before declaring work done:** report measured numbers — draw calls, triangle
 count, gzipped bundle delta from `next build`, and frame time on a throttled
 CPU (4× slowdown in DevTools). Log the bundle cost as a DD.
+
+---
+
+## Brief format (DD-45)
+
+Your brief names the exact files you own and states the facts you need inline.
+Do NOT open CLAUDE.md, DESIGN_SPEC.md, MOTION_SPEC.md or BUILD_PLAN.md unless
+the brief names a specific section. Reading ~30KB of specification before the
+first action is what stalled the Phase 1 agent; the retry that named one output
+file and inlined its facts completed and found two real defects.
+
+If the brief is missing a fact you need, say so and stop. Do not go looking.
