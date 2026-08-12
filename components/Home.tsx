@@ -3,20 +3,18 @@ import type { Locale } from '@/lib/locales';
 import { href } from '@/lib/routes';
 import { contentFor } from '@/lib/content';
 import Hero from '@/components/Hero';
-import { Band, Button, Eyebrow, SectionHeading } from '@/components/ui';
+import { Eyebrow, Highlighted } from '@/components/ui';
 
 /**
  * The homepage.
  *
- * SPEC §5 lists ten sections; SPEC §3.3 caps a page at roughly seven blocks.
- * Both cannot hold, so the proof strip is composed into the hero band rather
- * than standing alone, and the closing CTA carries the contact section. That
- * lands at seven. Resolving this at build time rather than shipping ten and
- * calling it dense is the entire point of having the budget.
+ * Seven blocks, holding the density budget. Every section heading carries one
+ * bracketed phrase in the heat gradient and nothing else — which is how the
+ * "one white-hot moment per section" rule stays enforceable rather than
+ * aspirational.
  *
- * The hero is the site's only spectacle surface (DD-14). Everything below it
- * is a reading surface — no canvas, no camera choreography, no grade. That
- * separation is enforced by scripts/check-no-webgl.mjs rather than trusted.
+ * There is no WebGL anywhere on this page any more. The ambient life comes
+ * from `LiquidField` inside the hero, which is CSS.
  */
 export default function Home({ locale }: { locale: Locale }) {
   const c = contentFor(locale);
@@ -25,7 +23,6 @@ export default function Home({ locale }: { locale: Locale }) {
 
   return (
     <>
-      {/* 1 — Hero + proof. The only spectacle surface on the site (DD-14). */}
       <Hero
         headline={c.home.headline}
         subhead={c.home.subhead}
@@ -36,217 +33,255 @@ export default function Home({ locale }: { locale: Locale }) {
         proof={c.home.proof}
       />
 
-      {/* 2 — Services, bento with unequal weight */}
-      <Band tone="surface">
-        <SectionHeading eyebrow="What we build" reveal>Four ways in.</SectionHeading>
-        <div className="mt-10 grid gap-px bg-rule md:grid-cols-2">
-          {c.services.map((s) => (
+      {/* 2 — Services. Bento with unequal weight; `websites` takes the wide
+             cell because it is the highest-volume service (DD-16). */}
+      <Section>
+        <SectionHead eyebrow="What we build" title="Four ways [in.]" />
+
+        <div className="mt-12 grid gap-px overflow-hidden rounded-2xl border border-forge-rule bg-forge-rule md:grid-cols-2">
+          {c.services.map((s, i) => (
             <Link
               key={s.id}
               href={href(locale, `services/${s.id}`)}
-              /* `websites` spans both columns: it is the highest-volume service
-                 (DD-16) and a uniform grid would give it the same weight as the
-                 narrowest one. Unequal weight is the point of a bento. */
-              className={`group flex flex-col gap-3 bg-ground p-7 transition-colors hover:bg-surface ${
+              data-reveal
+              data-reveal-delay={String(i * 70)}
+              className={`card-lift corner-mark group flex flex-col gap-3 bg-surface-1 p-8 ${
                 s.id === 'websites' ? 'md:col-span-2' : ''
               }`}
             >
-              <h3 className="text-2xl group-hover:text-ember">{s.name}</h3>
-              <p className="text-ink-soft">{s.summary}</p>
+              <span className="font-mono text-2xs tracking-[0.14em] text-text-muted tabular-nums">
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              <h3 className="font-display text-3xl text-text-primary transition-colors group-hover:text-ember">
+                {s.name}
+              </h3>
+              <p className="max-w-[46ch] text-text-secondary">{s.summary}</p>
+              <span className="mt-2 inline-flex items-center gap-2 font-mono text-2xs tracking-[0.12em] text-ember uppercase">
+                See what you get
+                <span aria-hidden className="arrow-slide">
+                  →
+                </span>
+              </span>
             </Link>
           ))}
         </div>
 
-        {/* Split CTA by audience. WP Buffs forks "business owners" vs
-            "agencies" before the first scroll; the equivalent fork here is
-            whether a site already exists, because the two arrive with
-            completely different questions. */}
-        <div className="mt-10 grid gap-px bg-rule sm:grid-cols-2">
-          <Link
+        {/* Split by intent. The two arrive with completely different
+            questions, so they get different doors. */}
+        <div className="mt-6 grid gap-px overflow-hidden rounded-2xl border border-forge-rule bg-forge-rule sm:grid-cols-2">
+          <SplitCta
             href={href(locale, 'services/websites')}
-            className="group flex items-center justify-between gap-4 bg-ground p-6 transition-colors hover:bg-surface"
-          >
-            <span>
-              <span className="block font-display text-xl group-hover:text-ember">
-                I need a website
-              </span>
-              <span className="mt-1 block text-sm text-muted">Starting from nothing</span>
-            </span>
-            <span aria-hidden className="text-ember">→</span>
-          </Link>
-          <Link
+            title="I need a website"
+            hint="Starting from nothing"
+          />
+          <SplitCta
             href={href(locale, 'services/redesign')}
-            className="group flex items-center justify-between gap-4 bg-ground p-6 transition-colors hover:bg-surface"
-          >
-            <span>
-              <span className="block font-display text-xl group-hover:text-ember">
-                Mine needs fixing
-              </span>
-              <span className="mt-1 block text-sm text-muted">Slow, dated, or you cannot edit it</span>
-            </span>
-            <span aria-hidden className="text-ember">→</span>
-          </Link>
+            title="Mine needs fixing"
+            hint="Slow, dated, or you cannot edit it"
+          />
         </div>
-      </Band>
+      </Section>
 
-      {/* 3 — Flagship case study. Forge tone: the second dark beat, and the
-             one place a single project is allowed to dominate the page. */}
+      {/* 3 — Flagship */}
       {flagship ? (
-        <Band tone="forge" glow>
-          <div data-reveal className="grid gap-10 md:grid-cols-[1fr_1.1fr] md:items-end">
+        <Section tone="sunk">
+          <div data-reveal className="grid gap-10 md:grid-cols-[1fr_1.15fr] md:items-end">
             <div>
-              <p className="font-mono text-2xs tracking-[0.14em] text-heat-ember uppercase">
-                Selected work
-              </p>
-              <h2 className="mt-4 text-4xl text-forge-ink md:text-5xl">{flagship.name}</h2>
-              <p className="mt-5 text-lg text-forge-ink-soft">{flagship.tagline}</p>
+              <Eyebrow>Selected work</Eyebrow>
+              <h2 className="mt-5 font-display text-4xl leading-[0.95] text-text-primary md:text-6xl">
+                <Highlighted text="A25 — [in production.]" />
+              </h2>
             </div>
-            <p className="text-forge-ink-soft">{flagship.summary}</p>
+            <p className="text-lead text-text-secondary">{flagship.summary}</p>
           </div>
 
-          <ul
+          <div
             data-reveal
             data-reveal-delay="120"
-            className="mt-10 grid gap-px bg-forge-rule sm:grid-cols-2 lg:grid-cols-3"
+            className="mt-12 grid gap-px overflow-hidden rounded-2xl border border-forge-rule bg-forge-rule sm:grid-cols-2 lg:grid-cols-3"
           >
             {flagship.facts.map((f) => (
-              <li
+              <p
                 key={f}
-                className="bg-forge-carbon px-5 py-4 font-mono text-2xs tracking-[0.08em] text-forge-muted uppercase"
+                className="bg-surface-1 px-6 py-5 font-mono text-2xs tracking-[0.1em] text-text-secondary uppercase"
               >
                 {f}
-              </li>
+              </p>
             ))}
-          </ul>
+          </div>
 
           <div data-reveal data-reveal-delay="200" className="mt-10">
             <Link
               href={href(locale, `work/${flagship.id}`)}
-              className="inline-flex items-center border border-forge-rule px-6 py-3 font-display text-lg tracking-wide text-forge-ink transition-colors hover:border-heat-ember hover:text-heat-ember"
+              className="group inline-flex items-center gap-2.5 rounded-full border border-rule-strong px-7 py-3.5 font-display text-lg tracking-wide text-text-primary transition-colors hover:border-ember hover:text-ember"
             >
               Read the case study
+              <span aria-hidden className="arrow-slide">
+                →
+              </span>
             </Link>
           </div>
-        </Band>
+        </Section>
       ) : null}
 
       {/* 4 — Process */}
-      <Band tone="surface">
-        <SectionHeading eyebrow="How it runs" reveal>From first call to live.</SectionHeading>
-        <ol className="mt-10 grid gap-px bg-rule sm:grid-cols-2 lg:grid-cols-4">
-          {c.process.map((step) => (
-            <li key={step.id} className="flex flex-col gap-3 bg-ground p-6">
-              <div className="flex items-baseline gap-3">
-                <h3 className="text-2xl">{step.name}</h3>
-                <span className="font-mono text-2xs text-muted">{step.greekName}</span>
-              </div>
-              <p className="text-sm text-ink-soft">{step.deliverable}</p>
+      <Section>
+        <SectionHead eyebrow="How it runs" title="Four steps. [Something real] at the end of each." />
+        <ol className="mt-12 grid gap-px overflow-hidden rounded-2xl border border-forge-rule bg-forge-rule sm:grid-cols-2 lg:grid-cols-4">
+          {c.process.map((step, i) => (
+            <li
+              key={step.id}
+              data-reveal
+              data-reveal-delay={String(i * 70)}
+              className="card-lift group flex flex-col gap-3 bg-surface-1 p-7"
+            >
+              <span className="h-px w-full bg-forge-rule transition-colors duration-500 group-hover:bg-ember" />
+              <span className="mt-2 font-mono text-2xs tracking-[0.14em] text-text-muted tabular-nums">
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              <h3 className="font-display text-3xl text-text-primary">{step.name}</h3>
+              <span className="font-display text-lg text-ember">{step.greekName}</span>
+              <p className="mt-1 text-sm text-text-secondary">{step.deliverable}</p>
             </li>
           ))}
         </ol>
-      </Band>
+      </Section>
 
-      {/* 5 — Testimonials.
-          DD-5: designed for three, each substantial. Renders nothing at all
-          while the quotes are unsupplied — a placeholder testimonial costs
-          more trust than an absent one, and an empty section styled to look
-          intentional is just a slower way of lying. */}
+      {/* 5 — Testimonials. Renders nothing until real quotes exist (DD-18). */}
       {testimonials.length > 0 ? (
-        <Band className="border-t border-rule">
-          <SectionHeading eyebrow="Clients">In their words.</SectionHeading>
-          <div className="mt-10 flex flex-col gap-10">
+        <Section tone="sunk">
+          <SectionHead eyebrow="Clients" title="In [their words.]" />
+          <div className="mt-12 flex flex-col gap-10">
             {testimonials.map((t) => (
-              <figure key={t!.name} className="flex max-w-[var(--measure)] flex-col gap-4">
-                <blockquote className="text-xl text-ink">&ldquo;{t!.quote}&rdquo;</blockquote>
-                <figcaption className="font-mono text-2xs tracking-[0.08em] text-muted uppercase">
+              <figure key={t!.name} className="max-w-[var(--measure)]">
+                <blockquote className="font-display text-3xl text-text-primary">
+                  &ldquo;{t!.quote}&rdquo;
+                </blockquote>
+                <figcaption className="mt-4 font-mono text-2xs tracking-[0.1em] text-text-muted uppercase">
                   {t!.name} — {t!.role}, {t!.company}
                 </figcaption>
               </figure>
             ))}
           </div>
-        </Band>
+        </Section>
       ) : null}
 
-      {/* 6 — Risk reversal, with capabilities folded in as a strip.
-             Every teardown in the research put a guarantee or a
-             pay-after-approval promise early, before the visitor had decided.
-             The handover promise is the strongest one this studio has and it
-             was previously only in the footer.
-
-             This replaces a standalone capabilities section rather than adding
-             to it: the density budget is seven (SPEC §3.3), and a tech-stack
-             list is the weakest section commercially — clients do not buy
-             Redis. */}
-      <Band tone="surface">
-        <SectionHeading eyebrow="What you are not risking" reveal>
-          You will own all of it.
-        </SectionHeading>
-        <div className="mt-10 grid gap-px bg-rule md:grid-cols-3">
+      {/* 6 — Risk reversal. Early, per the research: guarantees land before the
+             visitor has decided, not after. */}
+      <Section tone="sunk">
+        <SectionHead eyebrow="What you are not risking" title="You will [own all of it.]" />
+        <div className="mt-12 grid gap-px overflow-hidden rounded-2xl border border-forge-rule bg-forge-rule md:grid-cols-3">
           {[
-            [
-              'The scope comes first',
-              'A written scope before any number is agreed. Yours to keep, and to take to another studio if you want to.',
-            ],
-            [
-              'You pay as it appears',
-              'Payment staged against the four steps, so you are never far ahead of work you can actually see.',
-            ],
-            [
-              'Domain, hosting, code, logins',
-              'All in your name at handover. If you never speak to me again, the site keeps working and you can still change it.',
-            ],
+            ['The scope comes first', 'A written scope before any number is agreed. Yours to keep, and to take to another studio if you want to.'],
+            ['You pay as it appears', 'Payment staged against the four steps, so you are never far ahead of work you can actually see.'],
+            ['Domain, hosting, code, logins', 'All in your name at handover. Being locked out of your own site by whoever built it is common enough here to be worth stating.'],
           ].map(([title, body], i) => (
             <div
               key={title}
               data-reveal
-              data-reveal-delay={String(i * 90)}
-              className="flex flex-col gap-3 bg-ground p-7"
+              data-reveal-delay={String(i * 70)}
+              className="card-lift corner-mark flex flex-col gap-3 bg-surface-1 p-8"
             >
-              <h3 className="text-xl">{title}</h3>
-              <p className="text-ink-soft">{body}</p>
+              <h3 className="font-display text-2xl text-text-primary">{title}</h3>
+              <p className="text-text-secondary">{body}</p>
             </div>
           ))}
         </div>
 
-        <div className="mt-10 flex flex-wrap items-baseline gap-x-8 gap-y-3 border-t border-rule pt-8">
+        <div className="mt-10 flex flex-wrap items-baseline gap-x-8 gap-y-3 border-t border-forge-rule pt-8">
           <Eyebrow>Built with</Eyebrow>
           {c.capabilities.map((cap) => (
-            <p key={cap.title} className="font-mono text-2xs tracking-[0.06em] text-muted">
+            <p key={cap.title} className="font-mono text-2xs tracking-[0.08em] text-text-muted">
               {cap.tools.join(' · ')}
             </p>
           ))}
         </div>
-      </Band>
+      </Section>
 
-      {/* 7 — Closing CTA. Final forge beat, so the page ends where it began. */}
-      <Band tone="forge" glow>
-        <div data-reveal className="flex flex-col gap-6">
-          <p className="font-mono text-2xs tracking-[0.14em] text-heat-ember uppercase">
-            {c.chrome.ctaQuote}
-          </p>
-          <h2 className="max-w-[14ch] text-4xl text-forge-ink md:text-6xl">
-            Tell me what you need building.
+      {/* 7 — Closing CTA */}
+      <Section>
+        <div data-reveal className="flex flex-col items-start gap-6">
+          <Eyebrow>{c.chrome.ctaQuote}</Eyebrow>
+          <h2 className="display-xl max-w-[14ch] text-text-primary">
+            <Highlighted text="Tell me what you need [building.]" />
           </h2>
-          <p className="max-w-[var(--measure)] text-forge-ink-soft">
+          <p className="max-w-[var(--measure)] text-lead text-text-secondary">
             Describe the project and you get a scoped quote back — not a price list, and not a
             discovery call that turns into a pitch.
           </p>
           <div className="mt-2 flex flex-wrap gap-3">
             <Link
               href={href(locale, 'contact')}
-              className="inline-flex items-center bg-heat-ember px-6 py-3 font-display text-lg tracking-wide text-forge-void transition-colors hover:bg-heat-bright"
+              className="group inline-flex items-center gap-2.5 rounded-full bg-ember py-3.5 ps-7 pe-3 font-display text-lg tracking-wide text-base transition-colors hover:bg-ember-hot"
             >
               {c.chrome.ctaBook}
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-base/15">
+                <span aria-hidden className="arrow-slide leading-none">
+                  →
+                </span>
+              </span>
             </Link>
             <Link
               href={href(locale, 'pricing')}
-              className="inline-flex items-center border border-forge-rule px-6 py-3 font-display text-lg tracking-wide text-forge-ink transition-colors hover:border-heat-ember hover:text-heat-ember"
+              className="group inline-flex items-center gap-2.5 rounded-full border border-rule-strong px-7 py-3.5 font-display text-lg tracking-wide text-text-primary transition-colors hover:border-ember hover:text-ember"
             >
               How pricing works
+              <span aria-hidden className="arrow-slide">
+                →
+              </span>
             </Link>
           </div>
         </div>
-      </Band>
+      </Section>
     </>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+
+function Section({
+  children,
+  tone = 'base',
+}: {
+  children: React.ReactNode;
+  tone?: 'base' | 'sunk';
+}) {
+  return (
+    <section className={tone === 'sunk' ? 'bg-void' : 'bg-base'}>
+      <div className="mx-auto w-full max-w-[1240px] px-5 py-20 md:py-28">{children}</div>
+    </section>
+  );
+}
+
+function SectionHead({ eyebrow, title }: { eyebrow: string; title: string }) {
+  return (
+    <div data-reveal className="flex flex-col gap-5">
+      <Eyebrow>{eyebrow}</Eyebrow>
+      <h2 className="max-w-[20ch] font-display text-4xl leading-[0.95] text-text-primary md:text-6xl">
+        <Highlighted text={title} />
+      </h2>
+    </div>
+  );
+}
+
+function SplitCta({ href: to, title, hint }: { href: string; title: string; hint: string }) {
+  return (
+    <Link
+      href={to}
+      className="card-lift group flex items-center justify-between gap-4 bg-surface-1 p-7"
+    >
+      <span>
+        <span className="block font-display text-2xl text-text-primary transition-colors group-hover:text-ember">
+          {title}
+        </span>
+        <span className="mt-1 block text-sm text-text-muted">{hint}</span>
+      </span>
+      <span
+        aria-hidden
+        className="arrow-slide flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-rule-strong text-ember transition-colors group-hover:border-ember"
+      >
+        →
+      </span>
+    </Link>
   );
 }

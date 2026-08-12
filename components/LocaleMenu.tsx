@@ -10,9 +10,9 @@ import { LOCALES, localeNames, localeShortNames, type Locale } from '@/lib/local
  *
  * Switches to the *same page* in the target locale rather than dumping the
  * visitor on the homepage — the single most common failure in multilingual
- * sites, and the one that makes people stop using the switcher at all.
+ * sites, and the reason people stop using switchers at all.
  *
- * Full names in the menu, short codes on the trigger. "Македонски" tells a
+ * Full names in the panel, short code on the trigger: "Македонски" tells a
  * Macedonian speaker this site is for them in a way "MK" does not.
  */
 export default function LocaleMenu({ locale }: { locale: Locale }) {
@@ -20,7 +20,6 @@ export default function LocaleMenu({ locale }: { locale: Locale }) {
   const wrap = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
 
-  // Strip the current locale prefix so the same page can be re-prefixed.
   const rest = pathname.replace(new RegExp(`^/(${LOCALES.join('|')})`), '') || '';
 
   useEffect(() => {
@@ -28,9 +27,7 @@ export default function LocaleMenu({ locale }: { locale: Locale }) {
     const onDown = (e: MouseEvent) => {
       if (wrap.current && !wrap.current.contains(e.target as Node)) setOpen(false);
     };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
-    };
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
     document.addEventListener('mousedown', onDown);
     document.addEventListener('keydown', onKey);
     return () => {
@@ -46,18 +43,21 @@ export default function LocaleMenu({ locale }: { locale: Locale }) {
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-haspopup="menu"
-        className="flex items-center gap-1.5 border border-forge-rule px-3 py-1.5 font-mono text-2xs tracking-[0.1em] text-forge-ink-soft uppercase transition-colors hover:border-heat-ember hover:text-heat-ember"
+        aria-label="Change language"
+        className="flex items-center gap-2 rounded-full border border-rule-strong px-3.5 py-2 font-mono text-2xs tracking-[0.12em] text-text-secondary uppercase transition-colors hover:border-ember hover:text-ember"
       >
-        {localeShortNames[locale]}
-        <svg width="8" height="5" viewBox="0 0 8 5" fill="none" aria-hidden>
-          <path d="M1 1l3 3 3-3" stroke="currentColor" strokeWidth="1.2" />
+        <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden>
+          <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1.1" />
+          <ellipse cx="7" cy="7" rx="2.6" ry="6" stroke="currentColor" strokeWidth="1.1" />
+          <path d="M1.4 5h11.2M1.4 9h11.2" stroke="currentColor" strokeWidth="1.1" />
         </svg>
+        {localeShortNames[locale]}
       </button>
 
       {open ? (
         <div
           role="menu"
-          className="absolute end-0 top-full z-50 mt-2 min-w-[10rem] border border-forge-rule bg-forge-carbon py-1 shadow-lg"
+          className="absolute end-0 top-full z-50 mt-3 min-w-[12rem] overflow-hidden rounded-xl border border-forge-rule bg-surface-1 py-1.5 shadow-2xl"
         >
           {LOCALES.map((l) => (
             <Link
@@ -67,16 +67,22 @@ export default function LocaleMenu({ locale }: { locale: Locale }) {
               hrefLang={l}
               onClick={() => setOpen(false)}
               aria-current={l === locale ? 'true' : undefined}
-              className={`flex items-center justify-between gap-4 px-4 py-2 text-sm transition-colors ${
+              className={`flex items-center justify-between gap-4 px-4 py-2.5 text-sm transition-colors ${
                 l === locale
-                  ? 'text-heat-ember'
-                  : 'text-forge-ink-soft hover:bg-forge-steel hover:text-forge-ink'
+                  ? 'text-ember'
+                  : 'text-text-secondary hover:bg-surface-2 hover:text-text-primary'
               }`}
             >
               <span>{localeNames[l]}</span>
-              <span className="font-mono text-2xs tracking-[0.1em] opacity-70">
-                {localeShortNames[l]}
-              </span>
+              {l === locale ? (
+                <svg width="12" height="9" viewBox="0 0 12 9" fill="none" aria-hidden>
+                  <path d="M1 4.5L4.5 8L11 1" stroke="currentColor" strokeWidth="1.6" />
+                </svg>
+              ) : (
+                <span className="font-mono text-2xs tracking-[0.1em] opacity-60">
+                  {localeShortNames[l]}
+                </span>
+              )}
             </Link>
           ))}
         </div>

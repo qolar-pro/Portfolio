@@ -1,39 +1,51 @@
 'use client';
 
-import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { useQuality } from '@/lib/quality';
-import { FULL } from '@/lib/grade';
 import Counter from '@/components/Counter';
 import Marquee from '@/components/Marquee';
+import LiquidField from '@/components/LiquidField';
 
 /**
  * The homepage hero.
  *
- * Ordering still matters most: the type renders on the server and is the LCP
- * element, and the canvas is dynamically imported after `useQuality` runs on
- * the client. Nothing below changes that — it changes what the type *does*.
+ * The R3F orb is gone. It cost ~700KB of deferred JavaScript, rendered through
+ * software GL where hardware acceleration was unavailable, and measured ~10fps
+ * under the behaviour gate. `LiquidField` replaces it with drifting CSS blobs:
+ * nothing to download, `transform`-only animation, and the same job done — an
+ * ambient sense that the surface is alive.
  *
- * The headline is split into masked lines that rise out of their own clipping
- * boxes. That is the one typographic move the reference studios all share:
- * the static frame already reads as a poster, and the motion is the type
- * arriving rather than decoration wrapped around it.
+ * The headline highlights word by word rather than line by line. One phrase
+ * carries the ember; the rest stays quiet. That is the reference site's move
+ * and it works because the eye lands on the claim, not on the sentence.
  */
-const ForgeCanvas = dynamic(() => import('@/components/canvas/ForgeCanvas'), { ssr: false });
 
 const CAPABILITIES = [
   'Custom websites',
   'Online stores',
   'Redesigns',
-  'Real-time 3D',
   'Greek · Macedonian · English',
   'On-page SEO',
   'Built from scratch',
 ];
 
+/** Words wrapped in [brackets] resolve to ember. Everything else stays quiet. */
+function Highlighted({ text }: { text: string }) {
+  const parts = text.split(/(\[[^\]]+\])/g).filter(Boolean);
+  return (
+    <>
+      {parts.map((part, i) => {
+        const key = part.startsWith('[') && part.endsWith(']');
+        return (
+          <span key={i} className={key ? 'text-heat' : undefined}>
+            {key ? part.slice(1, -1) : part}
+          </span>
+        );
+      })}
+    </>
+  );
+}
+
 export default function Hero({
-  headline,
-  subhead,
   ctaPrimary,
   ctaSecondary,
   hrefPrimary,
@@ -48,61 +60,58 @@ export default function Hero({
   hrefSecondary: string;
   proof: { value: string; label: string }[];
 }) {
-  const { tier, detail } = useQuality();
-
-  // Break on the comma so each clause gets its own mask. Falls back to one
-  // line if the copy has no comma, which keeps this safe across locales.
-  const lines = headline.includes(', ')
-    ? headline.split(/,\s+/).map((l, i, arr) => (i < arr.length - 1 ? `${l},` : l))
-    : [headline];
-
   return (
-    <section className="mesh-forge forge relative isolate overflow-hidden">
-      {tier !== 'static' ? (
-        <div className="pointer-events-none absolute inset-0 -z-10 opacity-95">
-          <ForgeCanvas detail={detail} grade={FULL} />
-        </div>
-      ) : null}
+    <section className="relative isolate overflow-hidden bg-base">
+      <LiquidField />
 
-      <div className="mx-auto flex w-full max-w-[1320px] flex-col justify-center px-5 pt-28 pb-10 md:min-h-[92vh] md:pt-36">
-        <div data-reveal className="is-revealed flex flex-col gap-9">
+      <div className="mx-auto flex w-full max-w-[1240px] flex-col justify-center px-5 pt-24 pb-12 md:min-h-[88vh] md:pt-32">
+        <div data-reveal className="is-revealed flex flex-col gap-8">
           <div className="flex items-center gap-4">
-            <span className="h-px w-12 bg-heat-ember" />
-            <p className="font-mono text-2xs tracking-[0.22em] text-heat-ember uppercase">
+            <span className="h-px w-10 bg-ember" />
+            <p className="font-mono text-2xs tracking-[0.22em] text-ember uppercase">
               Nova&thinsp;·&thinsp;Faber — the new maker
             </p>
           </div>
 
-          <h1 className="display-xl max-w-[15ch] text-forge-ink">
-            {lines.map((line, i) => (
-              <span key={line} className="line-mask">
-                <span
-                  style={{ transitionDelay: `${i * 110}ms` }}
-                  className={i === lines.length - 1 ? 'text-heat' : undefined}
-                >
-                  {line}
-                </span>
+          <h1 className="display-xl max-w-[16ch] text-text-primary">
+            <span className="line-mask">
+              <span>
+                <Highlighted text="Websites built" />
               </span>
-            ))}
+            </span>
+            <span className="line-mask">
+              <span style={{ transitionDelay: '110ms' }}>
+                <Highlighted text="[from scratch,]" />
+              </span>
+            </span>
+            <span className="line-mask">
+              <span style={{ transitionDelay: '220ms' }}>
+                <Highlighted text="not from a theme." />
+              </span>
+            </span>
           </h1>
 
-          <p className="max-w-[var(--measure)] text-lg text-forge-ink-soft md:text-xl">
-            {subhead}
+          <p className="max-w-[58ch] text-lead text-text-secondary">
+            Custom sites and online stores for businesses in Greece, North Macedonia and further
+            afield — written to a performance budget, in the languages your customers actually
+            read, by the person who answers your email.
           </p>
 
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap items-center gap-3 pt-2">
             <Link
               href={hrefPrimary}
-              className="group inline-flex items-center gap-3 bg-heat-ember px-7 py-3.5 font-display text-lg tracking-wide text-forge-void transition-colors hover:bg-heat-bright"
+              className="group inline-flex items-center gap-2.5 rounded-full bg-ember py-3.5 ps-7 pe-3 font-display text-lg tracking-wide text-base transition-colors hover:bg-ember-hot"
             >
               {ctaPrimary}
-              <span aria-hidden className="arrow-slide">
-                →
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-base/15">
+                <span aria-hidden className="arrow-slide leading-none">
+                  →
+                </span>
               </span>
             </Link>
             <Link
               href={hrefSecondary}
-              className="group corner-mark inline-flex items-center gap-3 border border-forge-rule px-7 py-3.5 font-display text-lg tracking-wide text-forge-ink transition-colors hover:border-heat-ember hover:text-heat-ember"
+              className="group inline-flex items-center gap-2.5 rounded-full border border-rule-strong px-7 py-3.5 font-display text-lg tracking-wide text-text-primary transition-colors hover:border-ember hover:text-ember"
             >
               {ctaSecondary}
               <span aria-hidden className="arrow-slide">
@@ -114,16 +123,19 @@ export default function Hero({
 
         <div
           data-reveal
-          data-reveal-delay="380"
-          className="mt-16 grid gap-px bg-forge-rule sm:grid-cols-3"
+          data-reveal-delay="340"
+          className="mt-14 grid gap-px overflow-hidden rounded-2xl border border-forge-rule bg-forge-rule sm:grid-cols-3"
         >
           {proof.map((p) => (
-            <div key={p.label} className="card-lift corner-mark flex flex-col gap-2 bg-forge-carbon px-6 py-7">
+            <div
+              key={p.label}
+              className="card-lift corner-mark flex flex-col gap-2 bg-surface-1 px-7 py-8"
+            >
               <Counter
                 value={p.value}
-                className="font-display text-6xl leading-none text-heat-bright tabular-nums"
+                className="font-display text-6xl leading-none text-ember tabular-nums"
               />
-              <span className="font-mono text-2xs tracking-[0.1em] text-forge-muted uppercase">
+              <span className="font-mono text-2xs tracking-[0.1em] text-text-muted uppercase">
                 {p.label}
               </span>
             </div>

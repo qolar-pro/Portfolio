@@ -7,6 +7,38 @@
    uses the `--color-*` form for that reason. */
 @import "./tokens.css";
 
+/* --- Liquid field --------------------------------------------------------
+   Ambient drifting blobs. Replaced the R3F orb: no WebGL, nothing to
+   download, and `transform`-only animation, so it composites rather than
+   repaints and needs no exception to CLAUDE.md invariant 6.
+
+   No `filter: blur()`.
+   The first version blurred each blob at 60px, which measured 2.8fps under the
+   behaviour gate — worse than the WebGL orb it replaced, because a large blur
+   is a full-surface convolution every composite. The radial-gradient already
+   fades to transparent at 68%, so the blur was buying softness the gradient
+   was giving away free. Removing it is not a compromise; it is deleting a
+   duplicate. */
+.liquid-blob {
+  position: absolute;
+  border-radius: 50%;
+  translate: -50% -50%;
+  will-change: transform;
+  animation-name: drift;
+  animation-timing-function: var(--ease-soft);
+  animation-iteration-count: infinite;
+}
+
+@keyframes drift {
+  from {
+    transform: translate3d(-6%, -4%, 0) scale(0.94);
+  }
+  to {
+    transform: translate3d(7%, 6%, 0) scale(1.08);
+  }
+}
+
+
 /* --- Depth: layered light, not flat fill --------------------------------- */
 
 /* Static mesh of offset radials. `.forge` in tokens.css is the live,
@@ -221,5 +253,12 @@
 
   .marquee__track {
     animation: none;
+  }
+
+  /* Blobs hold a fixed position rather than vanishing — the ambient colour is
+     information about the surface, the drift is not. */
+  .liquid-blob {
+    animation: none;
+    transform: translate3d(0, 0, 0) scale(1);
   }
 }

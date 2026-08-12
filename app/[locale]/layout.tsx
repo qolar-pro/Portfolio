@@ -5,7 +5,7 @@ import SiteHeader from '@/components/SiteHeader';
 import SiteFooter from '@/components/SiteFooter';
 import Reveal from '@/components/Reveal';
 import { MotionProvider } from '@/components/motion/MotionProvider';
-import { LOCALES, isLocale } from '@/lib/locales';
+import { LOCALES, isLocale, type Locale } from '@/lib/locales';
 import { ROUTES, href } from '@/lib/routes';
 import { contentFor } from '@/lib/content';
 import { SITE_NAME, SITE_URL } from '@/lib/site';
@@ -73,6 +73,12 @@ export function generateStaticParams() {
   return LOCALES.map((locale) => ({ locale }));
 }
 
+/** Nav label from content, falling back to the route registry's placeholder. */
+function navLabel(locale: Locale, key: string): string {
+  const route = ROUTES.find((r) => r.key === key);
+  return contentFor(locale).chrome.navLabels[key] ?? route?.placeholderLabel ?? key;
+}
+
 export default async function LocaleLayout({
   children,
   params,
@@ -97,11 +103,29 @@ export default async function LocaleLayout({
         </a>
         <SiteHeader
           locale={locale}
-          items={ROUTES.filter((r) => r.inNav).map((r) => ({
-            key: r.key,
-            href: href(locale, r.path),
-            label: contentFor(locale).chrome.navLabels[r.key] ?? r.placeholderLabel,
-          }))}
+          utility={contentFor(locale).chrome.footerNote}
+          /**
+           * Five items, not ten. The four service pages collapse under one
+           * word, and Lab moves to the footer — it is capability proof, and it
+           * was competing with Pricing for a slot in a sales nav.
+           */
+          items={[
+            { key: 'work', href: href(locale, 'work'), label: navLabel(locale, 'work') },
+            {
+              key: 'services',
+              href: href(locale, 'services/websites'),
+              label: 'Services',
+              children: [
+                { href: href(locale, 'services/websites'), label: navLabel(locale, 'services.websites'), hint: 'A site your business is judged by' },
+                { href: href(locale, 'services/ecommerce'), label: navLabel(locale, 'services.ecommerce'), hint: 'Storefront, orders and admin' },
+                { href: href(locale, 'services/redesign'), label: navLabel(locale, 'services.redesign'), hint: 'For a site that has aged out' },
+                { href: href(locale, 'services/custom'), label: navLabel(locale, 'services.custom'), hint: 'When nothing off the shelf fits' },
+              ],
+            },
+            { key: 'process', href: href(locale, 'process'), label: navLabel(locale, 'process') },
+            { key: 'pricing', href: href(locale, 'pricing'), label: navLabel(locale, 'pricing') },
+            { key: 'studio', href: href(locale, 'studio'), label: navLabel(locale, 'studio') },
+          ]}
           ctaLabel={contentFor(locale).chrome.ctaBook}
           ctaHref={href(locale, 'contact')}
         />

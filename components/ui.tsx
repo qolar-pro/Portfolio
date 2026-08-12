@@ -19,6 +19,31 @@ export type Tone = 'light' | 'forge';
 /* Primitives                                                          */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Word-level emphasis inside a heading.
+ *
+ * Wrap the phrase that carries the claim in [brackets] and it resolves to the
+ * heat gradient; everything else stays quiet. Emphasising a *phrase* rather
+ * than a line is what makes the eye land on the argument instead of reading
+ * the sentence — and it keeps the "one white-hot moment per section" rule
+ * enforceable, because there is exactly one bracket per heading.
+ */
+export function Highlighted({ text }: { text: string }) {
+  const parts = text.split(/(\[[^\]]+\])/g).filter(Boolean);
+  return (
+    <>
+      {parts.map((part, i) => {
+        const key = part.startsWith('[') && part.endsWith(']');
+        return (
+          <span key={i} className={key ? 'text-heat' : undefined}>
+            {key ? part.slice(1, -1) : part}
+          </span>
+        );
+      })}
+    </>
+  );
+}
+
 export function Eyebrow({ children, tone = 'light' }: { children: ReactNode; tone?: Tone }) {
   return (
     <p
