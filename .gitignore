@@ -1,0 +1,13 @@
+node_modules
+.next
+out
+
+# Un-blurred screenshots of work still under embargo. These are the originals
+# the public/ copies were blurred from — restore them the day the client
+# launches. They must never reach a public repo, which is the whole point of
+# this line.
+_embargoed-originals/
+.env*.local
+*.tsbuildinfo
+next-env.d.ts
+.DS_Store

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Redrawn at scale from the live site's header mark: the shipped favicon
+       is only 32px and falls apart at tile size. Colours and the bordered
+       serif KD match kdlaw's own identity. -->
+  <rect width="128" height="128" rx="26" fill="#f7f4ef"/>
+  <rect x="30" y="30" width="68" height="68" fill="none" stroke="#7a2233" stroke-width="3"/>
+  <text x="64" y="79" font-family="Georgia, 'Times New Roman', serif" font-size="34"
+        fill="#7a2233" text-anchor="middle" letter-spacing="1">KD</text>
+</svg>
