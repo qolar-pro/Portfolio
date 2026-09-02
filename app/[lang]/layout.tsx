@@ -2,6 +2,11 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { JetBrains_Mono, Sofia_Sans_Condensed, Source_Serif_4 } from 'next/font/google';
 import '../globals.css';
+/* Section stylesheets, after globals so they win the cascade without
+   !important. See DD-4 in PROGRESS.md — they are separate files so parallel
+   work cannot collide in one 3,900-line stylesheet. */
+import '../css/ledger.css';
+import '../css/stack.css';
 import { MotionProvider } from '@/components/motion/MotionProvider';
 import { MotionScope } from '@/components/motion/MotionScope';
 import { StructuredData } from '@/components/StructuredData';

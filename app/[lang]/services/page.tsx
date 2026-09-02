@@ -4,7 +4,7 @@ import { CtaBand } from '@/components/CtaBand';
 import { Nav } from '@/components/Nav';
 import { PageHero } from '@/components/PageHero';
 import { Reveal } from '@/components/motion/Reveal';
-import { CapabilityBrowser } from '@/components/CapabilityBrowser';
+import { CapabilityLedger } from '@/components/CapabilityLedger';
 import { SiteFooter } from '@/components/SiteFooter';
 import { ROUTES } from '@/lib/content';
 import { resolveLang } from '@/lib/params';
@@ -31,7 +31,7 @@ export default async function ServicesPage({ params }: { params: Promise<{ lang:
 
         <section className="section">
           <div className="shell">
-            <CapabilityBrowser c={c} lang={lang} headingLevel={2} />
+            <CapabilityLedger c={c} lang={lang} headingLevel={2} />
           </div>
         </section>
 

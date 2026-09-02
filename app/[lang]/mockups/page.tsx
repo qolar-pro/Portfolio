@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
-import { CapabilityBrowser } from '@/components/CapabilityBrowser';
+import { CapabilityLedger } from '@/components/CapabilityLedger';
 import { Nav } from '@/components/Nav';
-import { ProcessFlow } from '@/components/ProcessFlow';
+import { ProcessStack } from '@/components/ProcessStack';
 import { SiteFooter } from '@/components/SiteFooter';
 import {
   CapAccordion,
@@ -44,8 +44,8 @@ const CAPS = [
   {
     id: 'cap-current',
     tag: 'Current',
-    name: 'Index + detail panel',
-    note: 'One discipline at a time. Shortest section of the five, and the only one where the sub-items are tiles rather than a list.',
+    name: 'Ledger (chosen, built)',
+    note: 'The picked shape, built properly: scroll-linked differential drift, a hairline that draws itself as the row passes, and a teal edge on hover and focus.',
   },
   {
     id: 'cap-ledger',
@@ -77,8 +77,8 @@ const PROCS = [
   {
     id: 'proc-current',
     tag: 'Current',
-    name: 'Horizontal deck',
-    note: 'Prev/next, a segmented bar, swipe and arrow keys. The page never takes over your scroll.',
+    name: 'Sticky stack (chosen, built)',
+    note: 'The picked shape, built properly: position:sticky so the page keeps the scroll, with scrubbed recession giving the pile real depth.',
   },
   {
     id: 'proc-spine',
@@ -152,7 +152,7 @@ export default async function MockupsPage({ params }: { params: Promise<{ lang: 
         <Band title="Capabilities" count={CAPS.length} />
 
         <Slot v={CAPS[0]}>
-          <CapabilityBrowser c={c} lang={lang} headingLevel={3} />
+          <CapabilityLedger c={c} lang={lang} headingLevel={3} />
         </Slot>
         <Slot v={CAPS[1]}>
           <CapLedger c={c} />
@@ -171,7 +171,7 @@ export default async function MockupsPage({ params }: { params: Promise<{ lang: 
         <Band title="How it runs" count={PROCS.length} />
 
         <Slot v={PROCS[0]} bleed>
-          <ProcessFlow c={c} lang={lang} />
+          <ProcessStack c={c} lang={lang} />
         </Slot>
         <Slot v={PROCS[1]}>
           <ProcSpine c={c} />

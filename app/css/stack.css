@@ -1,0 +1,335 @@
+/* ==================================================================
+   HOW IT RUNS — the sticky stack
+   ------------------------------------------------------------------
+   Owned by components/ProcessStack.tsx. Imported after globals.css so
+   these rules take the cascade position they need without !important
+   (DD-4).
+
+   DD-2 governs everything below: what is written here IS the finished
+   state. Every card is full size, full contrast and fully readable
+   with no JavaScript at all. The scrub in ProcessStack animates away
+   from this and back — it is never responsible for undoing a
+   from-state authored here.
+   ================================================================== */
+
+.stk {
+  position: relative;
+  overflow: clip;
+  border-top: 1px solid var(--line-soft);
+  background: var(--panel);
+  padding: clamp(72px, 11vw, 140px) 0 clamp(48px, 8vw, 96px);
+}
+
+/* DD-3. The opacity is set here and derived from --tex-strength so both
+   themes stay in proportion, and it is masked to the top-left where there
+   is no copy. An inset:0 texture layer with no opacity renders at full
+   strength directly over the text — that is not hypothetical, it shipped
+   on the pillar cards. */
+.stk-tex {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: var(--tex-topo);
+  background-size: var(--tex-topo-size);
+  background-repeat: repeat;
+  mix-blend-mode: var(--tex-blend);
+  opacity: calc(var(--tex-strength) * 0.3);
+  mask-image: radial-gradient(ellipse 110% 120% at 10% 4%, #000 18%, transparent 86%);
+  -webkit-mask-image: radial-gradient(ellipse 110% 120% at 10% 4%, #000 18%, transparent 86%);
+}
+
+.stk-inner { position: relative; z-index: 1; }
+
+/* ---------- header + rail ---------- */
+
+.stk-head {
+  max-width: 72ch;
+  margin-bottom: clamp(34px, 5vw, 60px);
+}
+.stk-head .lede { margin-top: 16px; }
+
+.stk-rail {
+  display: flex;
+  align-items: center;
+  gap: clamp(16px, 2.4vw, 30px);
+  margin-top: clamp(26px, 3.4vw, 40px);
+}
+
+.stk-count {
+  margin: 0;
+  flex: none;
+  font-family: var(--font-m);
+  font-size: 0.82rem;
+  letter-spacing: 0.14em;
+  color: var(--text-muted);
+  /* the leading number changes on every stage; without tabular figures the
+     whole rail twitches sideways each time it does */
+  font-variant-numeric: tabular-nums;
+}
+.stk-count span { color: var(--accent); font-size: 1.25rem; }
+.stk-count i { font-style: normal; margin: 0 5px; color: var(--line-strong); }
+
+.stk-ticks {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(8px, 1.2vw, 16px);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1;
+  min-width: 0;
+}
+.stk-tick { min-width: 0; }
+
+/* The fill IS the progress indicator — passed and current ticks are full,
+   the rest empty. One mechanism, so there is no second bar to keep in sync
+   with the counter. */
+.stk-tick-rule {
+  display: block;
+  height: 3px;
+  border-radius: 3px;
+  background: var(--line);
+  overflow: hidden;
+  position: relative;
+}
+.stk-tick-rule::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 3px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--dur-md) var(--ease-out);
+}
+.stk-tick.on .stk-tick-rule::after,
+.stk-tick.done .stk-tick-rule::after { transform: scaleX(1); }
+.stk-tick.done .stk-tick-rule::after { background: rgba(var(--accent-rgb), 0.45); }
+
+.stk-tick-name {
+  display: block;
+  margin-top: 9px;
+  font-family: var(--font-d);
+  font-size: 0.94rem;
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--text-muted);
+  transition: color var(--dur-sm) var(--ease);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.stk-tick.done .stk-tick-name { color: var(--text-secondary); }
+.stk-tick.on .stk-tick-name { color: var(--text-primary); }
+
+/* ---------- the pile ----------
+   `position: sticky` and nothing else. This is the browser's own mechanism,
+   running on the compositor: the page keeps control of the scroll the whole
+   way through, which is the entire reason this shape replaced two pinned
+   versions that took it away. */
+
+.stk-pile {
+  list-style: none;
+  margin: 0;
+  /* enough tail for the last card to sit at rest before the section ends */
+  padding: 0 0 clamp(60px, 12vh, 130px);
+}
+
+/* ---- WHY EACH ITEM CARRIES ITS OWN SCROLL DISTANCE ----
+   A sticky element only sticks while its CONTAINING BOX is still crossing
+   the sticky position. With every <li> only as tall as its own card, each
+   one un-stuck the moment the next arrived and scrolled away — the first
+   build of this pile showed card 01 and card 04 and nothing in between,
+   because 02 and 03 had already left.
+
+   So each item is padded downward by however many cards still have to
+   arrive after it: the first item's box now reaches the foot of the pile
+   and it stays stuck the whole way, the last needs no padding at all. That
+   padding is also the scroll distance between one card settling and the
+   next covering it, which is why `--stk-step` is set from the component
+   and used by both the layout and the scrub — one number, one source. */
+.stk-item {
+  position: sticky;
+  /* each card rests slightly lower than the one before, so every header
+     stays visible down the left edge of the finished pile */
+  top: calc(var(--nav-h) + clamp(18px, 2.4vh, 30px) + var(--i) * clamp(46px, 6vh, 62px));
+  padding-bottom: calc((var(--stk-n) - 1 - var(--i)) * var(--stk-step));
+  /* a stacking context per card so a lower card can never paint over a
+     higher one once transforms are in play */
+  z-index: calc(var(--i) + 1);
+}
+
+.stk-card {
+  position: relative;
+  padding: clamp(24px, 3vw, 44px);
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  background: var(--panel-2);
+  box-shadow: var(--el-3);
+  /* the scrub writes `transform` and `filter`; naming them keeps the card on
+     its own layer instead of promoting and demoting it every frame */
+  will-change: transform, filter;
+  /* recession scales toward the top edge, so the header — the part that
+     stays visible in the pile — holds its position while the body shrinks
+     away underneath the next card */
+  transform-origin: 50% 0%;
+  transition: border-color var(--dur-md) var(--ease);
+}
+.stk-card:hover,
+.stk-card:focus-within { border-color: var(--accent); }
+
+/* the hover/focus edge: a teal spine, not a shadow change — per the state
+   rule in DESIGN.md, depth alone is not a state */
+.stk-edge {
+  position: absolute;
+  left: 0;
+  top: clamp(22px, 3vw, 40px);
+  bottom: clamp(22px, 3vw, 40px);
+  width: 3px;
+  border-radius: var(--r-pill);
+  background: var(--accent);
+  transform: scaleY(0);
+  transform-origin: center;
+  pointer-events: none;
+  transition: transform var(--dur-sm) var(--ease-out);
+}
+.stk-card:hover .stk-edge,
+.stk-card:focus-within .stk-edge { transform: scaleY(1); }
+
+.stk-card-head {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(14px, 1.8vw, 22px);
+  min-width: 0;
+}
+
+.stk-n {
+  flex: none;
+  font-family: var(--font-d);
+  font-size: clamp(1.9rem, 3.2vw, 2.9rem);
+  font-weight: 900;
+  line-height: 0.9;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.stk-card-head h3 {
+  min-width: 0;
+  font-family: var(--font-d);
+  font-size: clamp(1.5rem, 2.9vw, 2.4rem);
+  font-weight: 700;
+  line-height: 1.03;
+  margin: 0;
+  color: var(--text-primary);
+  text-wrap: balance;
+}
+
+/* `min-width: 0` on the body as well as the head: a flex/grid child defaults
+   to `min-width: auto`, refuses to shrink below its content, and widens its
+   track instead — which on a phone pushes copy off the right edge where
+   body{overflow-x:hidden} silently eats it. That exact bug has shipped in
+   this codebase before. */
+.stk-body { min-width: 0; }
+
+.stk-desc {
+  color: var(--text-secondary);
+  font-size: var(--t-md);
+  margin: clamp(14px, 1.8vw, 20px) 0 0;
+  max-width: 62ch;
+}
+
+/* the deliverable, set apart as the thing you are handed rather than as
+   another paragraph — the section's whole claim is that each stage ends in
+   something real */
+.stk-out {
+  margin: clamp(18px, 2.2vw, 26px) 0 0;
+  padding: clamp(14px, 1.8vw, 20px) clamp(16px, 2vw, 22px);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  box-shadow: var(--el-in);
+  max-width: 62ch;
+}
+.stk-out-tag {
+  margin: 0 0 8px;
+  font-family: var(--font-m);
+  font-size: 0.66rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.stk-out-text {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.99rem;
+  line-height: 1.5;
+}
+
+.stk-cta { display: flex; justify-content: center; margin-top: clamp(10px, 2vw, 24px); }
+
+/* ==================================================================
+   WHERE STICKY STOPS BEING A GOOD IDEA
+   ------------------------------------------------------------------
+   A card taller than the space it has to stick in cannot stick
+   usefully: it pins with its foot below the fold, and the reader
+   scrolls a card that never moves and never finishes. That is the
+   classic failure of this pattern and it is a HEIGHT problem, not a
+   width one — a 1440px laptop in a short window hits it before a
+   phone does.
+
+   So the opt-out is keyed to viewport height, not to breakpoint. Below
+   roughly the height where the tallest card still clears the offsets,
+   the pile becomes a plain column: same cards, same order, no
+   overlap, nothing hidden.
+   ================================================================== */
+
+@media (max-height: 720px) {
+  .stk-item {
+    position: static;
+    /* the per-item scroll distance only exists to keep a card stuck; with
+       nothing sticking it is just a screen of empty space between cards */
+    padding-bottom: clamp(16px, 2vw, 24px);
+  }
+  .stk-pile { padding-bottom: 0; }
+}
+
+@media (max-width: 860px) {
+  /* On a phone the offsets would eat most of the viewport before the first
+     card even appeared, so the stagger tightens and the pile shallows. */
+  .stk-item {
+    top: calc(var(--nav-h) + 10px + var(--i) * 34px);
+  }
+  .stk-pile { padding-bottom: clamp(40px, 8vh, 90px); }
+  .stk-rail { flex-direction: column; align-items: stretch; gap: 14px; }
+  .stk-ticks { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 14px; }
+  .stk-tick-name { white-space: normal; }
+}
+
+@media (max-width: 480px) {
+  .stk-card-head { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .stk-item { top: calc(var(--nav-h) + 8px + var(--i) * 26px); }
+}
+
+/* ==================================================================
+   MOTION OFF
+   ------------------------------------------------------------------
+   `useScrubbed` registers nothing under reduced motion, so no card is
+   ever scaled. The pile itself is CSS, though, and four overlapping
+   cards with nothing to explain the overlap is worse than a list — so
+   the stacking goes too. Every stage present, in order, no overlap.
+   ================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .stk-item { position: static; padding-bottom: clamp(16px, 2vw, 24px); }
+  .stk-pile { padding-bottom: 0; }
+  .stk-card { will-change: auto; transition: none; }
+  .stk-edge,
+  .stk-tick-rule::after,
+  .stk-tick-name { transition: none; }
+}
+
+@media (forced-colors: active) {
+  /* the whole elevation language disappears here by design; the borders
+     that carry meaning are what has to survive */
+  .stk-card { border: 1px solid ButtonBorder; }
+  .stk-out { border: 1px solid ButtonBorder; }
+}

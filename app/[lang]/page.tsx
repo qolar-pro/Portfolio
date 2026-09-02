@@ -3,8 +3,8 @@ import { HeroTitle } from '@/components/HeroTitle';
 import { CtaBand } from '@/components/CtaBand';
 import { Marquee } from '@/components/Marquee';
 import { Nav } from '@/components/Nav';
-import { ProcessFlow } from '@/components/ProcessFlow';
-import { CapabilityBrowser } from '@/components/CapabilityBrowser';
+import { ProcessStack } from '@/components/ProcessStack';
+import { CapabilityLedger } from '@/components/CapabilityLedger';
 import { ArticleCard } from '@/components/ArticleCard';
 import { SiteFooter } from '@/components/SiteFooter';
 import { WorkGallery } from '@/components/WorkGallery';
@@ -109,7 +109,7 @@ export default async function Page({ params }: { params: Promise<{ lang: string 
         </section>
 
         {/* ---- process sits directly under the hero, per the plan ---- */}
-        <ProcessFlow c={c} lang={lang} />
+        <ProcessStack c={c} lang={lang} />
 
         {/* ---------------- SERVICES ---------------- */}
         <section className="section" id="services">
@@ -119,7 +119,7 @@ export default async function Page({ params }: { params: Promise<{ lang: string 
               <h2 className="h2" data-anim="clip">{c.services.heading}</h2>
               <p className="lede">{c.services.lede}</p>
             </Reveal>
-            <CapabilityBrowser c={c} lang={lang} />
+            <CapabilityLedger c={c} lang={lang} />
           </div>
         </section>
 

@@ -126,6 +126,33 @@ permanently and silently. This has already happened twice.
 - `prefers-reduced-motion` is honoured everywhere, and everything — every
   number, every word, every stage marker — is fully present with motion off.
 
+## Two kinds of motion
+
+There are two systems and they are not interchangeable. Pick by asking
+whether the thing should keep responding after it has arrived.
+
+**One-shot** — `lib/inview.ts` + `data-anim` + `MotionScope`. An element
+arrives, the transition runs, done. Use for anything whose animation is
+punctuation: a card appearing, a heading wiping in.
+
+Since DD-8 these are *reversible*: an element that leaves the viewport
+entirely is re-armed, so scrolling back replays it. The re-arm only ever
+happens fully off-screen — nothing the reader can see animates away from
+them.
+
+**Scroll-linked** — `lib/scrollMotion.ts` (`useScrubbed`,
+`useScrollProgress`). The tween's playhead is tied to scroll position, so it
+runs forward going down and backward coming up and is never "already
+played". Use for anything whose state should track where the reader is: the
+Ledger's drift, the stack's recession.
+
+`useScrubbed` registers **nothing** under `prefers-reduced-motion`, which is
+only safe because of DD-2 — the resting CSS is always the finished state.
+Never author a from-state in CSS and rely on JS to undo it.
+
+Why not CSS `animation-timeline` (DD-1): not Baseline in 2026, Firefox has it
+behind a flag. ScrollTrigger works everywhere and is already a dependency.
+
 ## The three rebuilt sections
 
 **Hero.** No footage. The backdrop is the site's own contour tile used as a
@@ -136,23 +163,16 @@ recolours with the theme for free. The tile it masks with is
 white-on-black tile used directly as a mask is opaque everywhere and masks
 nothing. Headline is 900 weight.
 
-**Process** (`ProcessFlow`). Two scroll-driven versions of this section were
-built and both were rejected for the same reason: pinning the page takes over
-the one gesture people rely on, and no amount of on-screen explanation makes
-that comfortable. It is now a **horizontal deck the page never controls** —
-prev/next buttons, a segmented bar naming all four stages, native scroll-snap
-(so a phone swipes it with the platform's own physics), and arrow keys. The
-active stage is read back from an IntersectionObserver on the panels, so all
-four inputs stay in sync. Each stage ends in its deliverable, set as a
-document rather than a paragraph.
+**Capabilities** (`CapabilityLedger`, `app/css/ledger.css`). Rebuilt three
+times; this is the shape the client picked off `/mockups`. Full-width
+numbered rows, sub-items running on as one line — a contents page, not
+cards. Scroll-linked differential drift, a hairline that draws itself as the
+row passes, teal edge on hover and focus.
 
-**Capabilities** (`CapabilityBrowser`). Also rebuilt twice. Three columns of
-bullets is a specification; collapsing them behind disclosures made the
-columns shorter without making them better. It is now an **index and one
-detail panel** — one discipline at a time, so nothing has to match anyone
-else's height, and the sub-items are a grid of tiles rather than a list,
-because "Shopify" and "Hosting & domain" have no order between them and a
-bulleted list claims they do.
+**Process** (`ProcessStack`, `app/css/stack.css`). Also the client's pick.
+Four cards that stick and pile up. Stacking is pure `position: sticky` — the
+page keeps the scroll, because two earlier pinned versions were rejected for
+taking it away. Scrubbed recession gives the pile depth (DD-6, DD-7).
 
 **Work gallery.** A stage and an index. One project large in browser chrome
 carrying its real domain; the rest as a strip that responds to hover, focus,

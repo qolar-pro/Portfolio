@@ -1,0 +1,326 @@
+/* ==================================================================
+   CAPABILITIES — THE LEDGER
+   ------------------------------------------------------------------
+   Owned by phase 1A. Loaded after globals.css (DD-4), which is what
+   lets these rules sit on top of the base component styles without a
+   single !important.
+
+   Every value resolves through a token from the globals block. There
+   is no colour, radius or duration written down here — the light
+   theme is a palette swap, not a second stylesheet, and adding a
+   literal here would be the one place that stops being true.
+
+   THE RESTING STATE IS THE FINISHED STATE (DD-2).
+   Nothing below is a from-state. The rule is drawn, the number and
+   the title are at their authored positions, every line of copy is at
+   full opacity. `useScrubbed` in CapabilityLedger.tsx animates AWAY
+   from what is written here and back to it, and under
+   `prefers-reduced-motion` it registers nothing at all — so this file
+   alone has to be a correct, readable section.
+   ================================================================== */
+
+.ldg {
+  position: relative;
+}
+
+/* ---------- the texture layer (DD-3) ----------
+
+   Deliberately `inset: 0` and not bled into the gutters. A layer wider
+   than its container is a horizontal scrollbar waiting for a viewport
+   one pixel past the `--maxw` breakpoint, and the ledger is inside
+   `.shell`, which does not clip.
+
+   The opacity is set here, explicitly, and derived from
+   `--tex-strength` so both themes stay in proportion (0.14 dark, 0.056
+   light). Setting no opacity is not "the default is fine" — an
+   `inset: 0` tile renders at full strength directly over the copy, and
+   that shipped once on the pillar cards.
+
+   The mask anchors the tile's density just off the top-right corner —
+   outside the text column entirely — and decays before it reaches the
+   title and the description, which are the two things in this section
+   with a contrast budget to protect. */
+.ldg-tex {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: var(--tex-topo);
+  background-size: var(--tex-topo-size);
+  background-repeat: repeat;
+  mix-blend-mode: var(--tex-blend);
+  opacity: calc(var(--tex-strength) * 0.28);
+  mask-image: radial-gradient(ellipse 96% 62% at 102% 2%, #000 0%, transparent 66%);
+  -webkit-mask-image: radial-gradient(ellipse 96% 62% at 102% 2%, #000 0%, transparent 66%);
+}
+
+/* ---------- the rows ----------
+
+   An <ol>: three disciplines in a deliberate order (Development leads
+   because it is the pillar the portfolio proves). `z-index: 1` puts the
+   whole list into its own stacking context above the texture, which is
+   also what keeps the per-row hover wash below the copy but above the
+   tile — see `.ldg-row::before`. */
+.ldg-rows {
+  position: relative;
+  z-index: 1;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  /* the ledger's masthead rule. Static: it belongs to the section, not
+     to any one entry, so nothing scrubs it. */
+  border-top: 1px solid var(--line);
+}
+
+.ldg-row {
+  position: relative;
+  display: grid;
+  /* Three tracks: index, entry, contents. Every flexible track is
+     `minmax(0, …)` because a grid item's default `min-width: auto` is
+     its content's minimum size — a long unbroken item like
+     "Conversion-gain calculator" or "Φιλοξενία & κατοχύρωση domain"
+     will push its track wider than the fraction it was given and take
+     the page into horizontal scroll. This has bitten this codebase
+     before. */
+  grid-template-columns: clamp(46px, 4.4vw, 68px) minmax(0, 1.08fr) minmax(0, 1fr);
+  column-gap: clamp(16px, 3vw, 44px);
+  align-items: start;
+  padding: clamp(26px, 3.4vw, 46px) 0;
+}
+
+/* The hover wash: a highlighter stroke coming in from the margin and
+   dying out before the description. `z-index: -1` rather than a lower
+   sibling — an absolutely positioned pseudo would otherwise paint over
+   the row's own text, since in-flow content sits *below* positioned
+   descendants. It cannot escape past the texture because `.ldg-rows`
+   above is a stacking context.
+
+   `position: absolute` also matters structurally: without it the
+   pseudo becomes a grid item and silently shifts every column along. */
+.ldg-row::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0 0 1px;
+  background: linear-gradient(90deg, var(--accent-wash), transparent 42%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-sm) var(--ease-out);
+}
+
+/* ---------- the hairline the scrub draws ----------
+
+   A real element, not `border-bottom` and not a pseudo: GSAP can
+   address neither, and this line is the section's signature motion.
+   Resting state is fully drawn — `scaleX(1)`, i.e. no transform at all
+   — so with no JavaScript the ledger is simply ruled. */
+.ldg-rule {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--line);
+  transform-origin: left center;
+  pointer-events: none;
+  transition: background-color var(--dur-sm) var(--ease-out);
+}
+
+/* ---------- the state bar ----------
+
+   Per the state rule in DESIGN.md, a change of depth is not a state.
+   The row is not interactive (there is no per-discipline route to send
+   it to), so this is a reading aid and nothing more: it reveals no
+   content, so nothing is hidden behind a pointer. `:focus-within` is
+   here so the affordance is not pointer-only the moment anything
+   focusable is ever added inside a row. */
+.ldg-edge {
+  position: absolute;
+  left: clamp(-20px, -1.6vw, -10px);
+  top: clamp(20px, 2.6vw, 34px);
+  bottom: clamp(20px, 2.6vw, 34px);
+  width: 2px;
+  border-radius: var(--r-pill);
+  background: var(--accent);
+  transform: scaleY(0);
+  transform-origin: center top;
+  pointer-events: none;
+  transition: transform var(--dur-sm) var(--ease-out);
+}
+
+.ldg-row:hover .ldg-edge,
+.ldg-row:focus-within .ldg-edge {
+  transform: scaleY(1);
+}
+.ldg-row:hover::before,
+.ldg-row:focus-within::before {
+  opacity: 1;
+}
+.ldg-row:hover .ldg-rule,
+.ldg-row:focus-within .ldg-rule {
+  background: var(--accent);
+}
+
+/* ---------- the index number ---------- */
+
+.ldg-n {
+  font-family: var(--font-m);
+  font-size: 0.8rem;
+  letter-spacing: 0.16em;
+  line-height: 1;
+  color: var(--accent);
+  /* optical, not metric: aligns the digits with the title's cap height
+     rather than with its line box */
+  padding-top: 0.62em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- the entry ---------- */
+
+/* `min-width: 0` on the track's contents as well as the track: a grid
+   item that is itself a block formatting context still reports its own
+   content minimum upward. */
+.ldg-main {
+  min-width: 0;
+}
+
+.ldg-title {
+  font-family: var(--font-d);
+  font-size: clamp(1.7rem, 3.2vw, 2.6rem);
+  font-weight: 900;
+  line-height: 1.02;
+  letter-spacing: -0.005em;
+  margin: 0;
+  color: var(--text-primary);
+  text-wrap: balance;
+  overflow-wrap: break-word;
+}
+
+.ldg-desc {
+  margin: 14px 0 0;
+  color: var(--text-secondary);
+  font-size: var(--t-base);
+  line-height: 1.62;
+  /* a measure, not a column width — the track is wider than this at
+     1440 and the copy should not stretch to fill it */
+  max-width: 46ch;
+}
+
+/* ---------- the contents run ----------
+
+   A list, because that is what it is, laid out as a run rather than a
+   stack: "Shopify" and "Hosting & domain" have no sequence between
+   them and a stacked bulleted list implies one. Separators are drawn,
+   not typed — a `content: '/'` pseudo is announced by several screen
+   readers, and this line is already three lists deep. */
+.ldg-items {
+  list-style: none;
+  margin: 0;
+  padding: 0.75em 0 0;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  color: var(--text-secondary);
+  font-size: var(--t-md);
+  line-height: 1.72;
+}
+
+.ldg-items li {
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+.ldg-items li::after {
+  content: '';
+  flex: none;
+  align-self: center;
+  width: 1px;
+  height: 0.92em;
+  margin-inline: 0.66em;
+  background: var(--accent);
+  opacity: 0.55;
+}
+.ldg-items li:last-child::after {
+  display: none;
+}
+
+/* ==================================================================
+   RESPONSIVE
+   Checked at 320 / 390 / 768 / 1024 / 1440.
+   ================================================================== */
+
+/* Below this the three-track row stops being a ledger and starts being
+   three cramped columns: the contents run drops under the entry and
+   keeps the entry's left edge, so the index column still reads as a
+   margin all the way down. */
+@media (max-width: 1000px) {
+  .ldg-row {
+    grid-template-columns: clamp(40px, 6vw, 52px) minmax(0, 1fr);
+  }
+  .ldg-items {
+    grid-column: 2;
+    padding-top: 1.15em;
+  }
+}
+
+@media (max-width: 560px) {
+  .ldg-row {
+    grid-template-columns: 36px minmax(0, 1fr);
+    column-gap: 12px;
+  }
+  .ldg-n {
+    font-size: 0.74rem;
+    letter-spacing: 0.12em;
+  }
+  /* the state bar has to stay inside the viewport: `--gut` bottoms out
+     at 20px, so it can only step out by half of that */
+  .ldg-edge {
+    left: -10px;
+  }
+  .ldg-desc {
+    font-size: var(--t-sm);
+  }
+  .ldg-items {
+    font-size: var(--t-base);
+  }
+}
+
+/* ==================================================================
+   REDUCED MOTION
+   `useScrubbed` registers nothing, so the only thing left to silence
+   is the CSS state transitions. Everything stays present and readable
+   because the resting state above is already the finished one.
+   ================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .ldg-row::before,
+  .ldg-rule,
+  .ldg-edge {
+    transition: none;
+  }
+}
+
+/* ==================================================================
+   FORCED COLOURS
+   The wash, the texture and the state bar are all colour on colour and
+   disappear here by design. What has to survive is the structure, so
+   the rules come back as real borders the UA will paint.
+   ================================================================== */
+
+@media (forced-colors: active) {
+  .ldg-tex,
+  .ldg-edge {
+    display: none;
+  }
+  .ldg-rule {
+    background: CanvasText;
+    forced-color-adjust: none;
+  }
+  .ldg-items li::after {
+    background: CanvasText;
+    opacity: 1;
+    forced-color-adjust: none;
+  }
+}
