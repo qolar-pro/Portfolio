@@ -24,7 +24,7 @@ export default async function WorkPage({ params }: { params: Promise<{ lang: str
   return (
     <>
       <Nav lang={lang} c={c} />
-      <main>
+      <main id="main">
         <PageHero c={c} route="work" />
         <section className="section">
           <div className="shell">

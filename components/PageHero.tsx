@@ -15,9 +15,9 @@ export function PageHero({ c, route }: { c: SiteContent; route: RouteKey }) {
       <div className="hero-glow" aria-hidden="true" />
       <div className="shell">
         <Reveal>
-          <p className="eyebrow">{r.eyebrow}</p>
-          <h1 className="page-title">{r.title}</h1>
-          <p className="lede">{r.lede}</p>
+          <p className="eyebrow" data-anim="fade">{r.eyebrow}</p>
+          <h1 className="page-title" data-anim="clip" data-anim-delay="1">{r.title}</h1>
+          <p className="lede" data-anim="fade" data-anim-delay="2">{r.lede}</p>
         </Reveal>
       </div>
     </header>

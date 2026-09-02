@@ -21,9 +21,9 @@ export function ChosenPanel({ c, lang }: { c: SiteContent; lang: Lang }) {
 
       <div className="chosen-copy">
         <p className="eyebrow">{c.chosen.label}</p>
-        <h2 className="chosen-h">{c.chosen.heading}</h2>
-        <p className="chosen-desc">{c.chosen.desc}</p>
-        <div className="chosen-actions">
+        <h2 className="chosen-h" data-anim="clip">{c.chosen.heading}</h2>
+        <p className="chosen-desc" data-anim="fade" data-anim-delay="1">{c.chosen.desc}</p>
+        <div className="chosen-actions" data-anim="rise" data-anim-delay="2">
           <Link className="btn btn-solid" href={`/${lang}${ROUTES.book}`}>
             {c.chosen.primary}
             <span className="circ" aria-hidden="true">
@@ -39,7 +39,7 @@ export function ChosenPanel({ c, lang }: { c: SiteContent; lang: Lang }) {
         </div>
       </div>
 
-      <ul className="chosen-logos">
+      <ul className="chosen-logos" data-anim-group="pop">
         {projects.map((p) => {
           const mark = MARKS[p.slug];
           const hidden = Boolean(p.embargo);
@@ -60,7 +60,7 @@ export function ChosenPanel({ c, lang }: { c: SiteContent; lang: Lang }) {
               {hidden ? (
                 <span>{plate}</span>
               ) : (
-                <a href={p.url} target="_blank" rel="noopener noreferrer">
+                <a href={p.liveUrl} target="_blank" rel="noopener noreferrer">
                   {plate}
                 </a>
               )}

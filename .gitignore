@@ -11,3 +11,6 @@ _embargoed-originals/
 *.tsbuildinfo
 next-env.d.ts
 .DS_Store
+
+# Screenshots and profiles written by the QA scripts in tools/.
+.qa/

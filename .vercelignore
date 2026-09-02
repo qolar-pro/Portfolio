@@ -1,0 +1,5 @@
+# QA scripts drive a headless browser against a running dev/prod server.
+# They are development tooling and have no business in a deployment.
+tools/
+.qa/
+_embargoed-originals/

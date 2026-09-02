@@ -5,7 +5,7 @@ import {
   LANGS,
   LOCATION,
   PHONE,
-  SOCIALS,
+  STUDIO_SOCIALS,
   content,
   type Lang,
 } from '@/lib/content';
@@ -58,7 +58,7 @@ export function StructuredData({ lang }: { lang: Lang }) {
         },
       },
       knowsLanguage: ['en', 'el', 'mk'],
-      sameAs: SOCIALS.map((s) => s.url),
+      sameAs: STUDIO_SOCIALS.map((s) => s.url),
       contactPoint: [
         {
           '@type': 'ContactPoint',

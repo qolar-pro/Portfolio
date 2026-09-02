@@ -33,9 +33,12 @@ export default async function Image({ params }: { params: Promise<{ lang: string
           justifyContent: 'space-between',
           background: '#141416',
           padding: '72px 80px',
-          // the orange bleed that runs through the site, bottom-left
+          /* The teal bleed that runs through the site, bottom-left. Hardcoded
+             rather than tokenised: this renders in the build's own renderer,
+             which has no stylesheet and no CSS variables. Keep in step with
+             --accent-teal in globals.css. */
           backgroundImage:
-            'radial-gradient(900px 520px at 8% 112%, rgba(255,106,19,0.28), transparent 60%)',
+            'radial-gradient(900px 520px at 8% 112%, rgba(45,226,197,0.26), transparent 60%)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
@@ -43,7 +46,7 @@ export default async function Image({ params }: { params: Promise<{ lang: string
             style={{
               width: 22,
               height: 22,
-              background: '#ff6a13',
+              background: '#2de2c5',
               borderRadius: 5,
               display: 'flex',
             }}
@@ -73,7 +76,7 @@ export default async function Image({ params }: { params: Promise<{ lang: string
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
-          <div style={{ width: 64, height: 3, background: '#ff6a13', display: 'flex' }} />
+          <div style={{ width: 64, height: 3, background: '#2de2c5', display: 'flex' }} />
           <div style={{ color: '#7d7a76', fontSize: 26, letterSpacing: 3, textTransform: 'uppercase' }}>
             novafaber.com
           </div>

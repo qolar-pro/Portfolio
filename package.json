@@ -6,7 +6,12 @@
     "dev": "next dev --port 3100",
     "build": "next build",
     "start": "next start --port 3100",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "qa:contrast": "node tools/contrast.mjs .qa",
+    "qa:audit": "node tools/audit.mjs .qa",
+    "qa:perf": "node tools/perf.mjs .qa",
+    "qa:shots": "node tools/shot.mjs .qa/shots",
+    "qa": "npm run qa:contrast && npm run qa:audit"
   },
   "dependencies": {
     "gsap": "^3.15.0",

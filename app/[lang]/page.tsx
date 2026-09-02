@@ -1,6 +1,5 @@
 import { ChosenPanel } from '@/components/ChosenPanel';
 import { HeroTitle } from '@/components/HeroTitle';
-import { HeroVideo } from '@/components/HeroVideo';
 import { CtaBand } from '@/components/CtaBand';
 import { Marquee } from '@/components/Marquee';
 import { Nav } from '@/components/Nav';
@@ -8,7 +7,7 @@ import { ProcessPanel } from '@/components/ProcessPanel';
 import { ServicePillars } from '@/components/ServicePillars';
 import { ArticleCard } from '@/components/ArticleCard';
 import { SiteFooter } from '@/components/SiteFooter';
-import { WorkMarks } from '@/components/WorkMarks';
+import { WorkGallery } from '@/components/WorkGallery';
 import { CountUp } from '@/components/motion/CountUp';
 import { Reveal } from '@/components/motion/Reveal';
 import { WordHighlight } from '@/components/motion/WordHighlight';
@@ -42,22 +41,29 @@ export default async function Page({ params }: { params: Promise<{ lang: string 
     <>
       <Nav lang={lang} c={c} />
 
-      <main>
+      <main id="main">
         {/* ---------------- HERO ---------------- */}
         {/* Split: the statement holds the left column, one live project holds
             the right. The grid runs behind both and dissolves before the
             marquee, so the two nav islands sit on the quiet part of it. */}
         <section className="hero">
-          <HeroVideo />
-          <div className="hero-grid" aria-hidden="true" />
-          <div className="hero-glow" aria-hidden="true" />
+          {/* The backdrop is the contour field, drawn in the studio accent —
+              the same topographic tile that runs under every panel on the
+              page, so the hero is made of the site's own material rather
+              than of footage sitting behind it. */}
+          <div className="hero-field" aria-hidden="true">
+            <div className="hero-contours" />
+            <div className="hero-glow" />
+            <div className="hero-vignette" />
+            <div className="hero-grain" />
+          </div>
           <div className="shell">
             <div className="hero-copy">
               <HeroTitle a={c.hero.headA} b={c.hero.headB} />
 
               <Reveal delay={0.16}>
-                <p className="hero-tag">{c.hero.tagline}</p>
-                <div className="hero-cta">
+                <p className="hero-tag" data-anim="fade" data-anim-delay="1">{c.hero.tagline}</p>
+                <div className="hero-cta" data-anim="rise" data-anim-delay="2">
                   <Link className="btn btn-solid" href={`/${lang}${ROUTES.work}`}>
                     {c.hero.ctaWork}
                     <span className="circ" aria-hidden="true">
@@ -85,7 +91,7 @@ export default async function Page({ params }: { params: Promise<{ lang: string 
         <section className="hero-under">
           <div className="shell">
             <WordHighlight text={c.hero.desc} className="hero-desc" />
-            <div className="hero-stats">
+            <div className="hero-stats" data-anim-group>
               {c.hero.stats.map((s) => (
                 <CountUp key={s.label} value={s.value} label={s.label} />
               ))}
@@ -103,14 +109,14 @@ export default async function Page({ params }: { params: Promise<{ lang: string 
         </section>
 
         {/* ---- process sits directly under the hero, per the plan ---- */}
-        <ProcessPanel c={c} />
+        <ProcessPanel c={c} lang={lang} />
 
         {/* ---------------- SERVICES ---------------- */}
         <section className="section" id="services">
           <div className="shell">
             <Reveal className="sec-head">
-              <p className="eyebrow">{c.services.label}</p>
-              <h2 className="h2">{c.services.heading}</h2>
+              <p className="eyebrow" data-anim="fade">{c.services.label}</p>
+              <h2 className="h2" data-anim="clip">{c.services.heading}</h2>
               <p className="lede">{c.services.lede}</p>
             </Reveal>
             <ServicePillars c={c} lang={lang} />
@@ -121,11 +127,11 @@ export default async function Page({ params }: { params: Promise<{ lang: string 
         <section className="section" id="work">
           <div className="shell">
             <Reveal className="sec-head">
-              <p className="eyebrow">{c.work.label}</p>
-              <h2 className="h2">{c.work.heading}</h2>
+              <p className="eyebrow" data-anim="fade">{c.work.label}</p>
+              <h2 className="h2" data-anim="clip">{c.work.heading}</h2>
               <p className="lede">{c.work.lede}</p>
             </Reveal>
-            <WorkMarks c={c} lang={lang} />
+            <WorkGallery c={c} lang={lang} />
           </div>
         </section>
 
@@ -139,8 +145,8 @@ export default async function Page({ params }: { params: Promise<{ lang: string 
             <section className="section">
               <div className="shell">
                 <Reveal className="sec-head">
-                  <p className="eyebrow">{c.testimonials.label}</p>
-                  <h2 className="h2">{c.testimonials.heading}</h2>
+                  <p className="eyebrow" data-anim="fade">{c.testimonials.label}</p>
+                  <h2 className="h2" data-anim="clip">{c.testimonials.heading}</h2>
                   <p className="lede">{c.testimonials.lede}</p>
                 </Reveal>
                 <Testimonials c={c} />
@@ -151,11 +157,11 @@ export default async function Page({ params }: { params: Promise<{ lang: string 
         <section className="section">
           <div className="shell">
             <Reveal className="sec-head">
-              <p className="eyebrow">{c.blog.label}</p>
-              <h2 className="h2">{c.blog.heading}</h2>
+              <p className="eyebrow" data-anim="fade">{c.blog.label}</p>
+              <h2 className="h2" data-anim="clip">{c.blog.heading}</h2>
               <p className="lede">{c.blog.lede}</p>
             </Reveal>
-            <div className="art-grid">
+            <div className="art-grid" data-anim-group>
               {articles[lang].map((a) => (
                 <ArticleCard key={a.slug} a={a} lang={lang} readMore={c.blog.readMore} />
               ))}

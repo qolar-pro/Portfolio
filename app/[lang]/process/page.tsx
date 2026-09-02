@@ -24,28 +24,36 @@ export default async function ProcessPage({ params }: { params: Promise<{ lang: 
   return (
     <>
       <Nav lang={lang} c={c} />
-      <main>
+      <main id="main">
         <PageHero c={c} route="process" />
 
         {/* the homepage pins these; here they are laid out flat and in full,
             because someone on this route came to read rather than to be shown */}
         <section className="section">
           <div className="shell">
-            <div className="steps-flat">
+            {/* An ordered list, because four numbered stages that must happen
+                in order is exactly what <ol> means. A screen reader now
+                announces "1 of 4" without the numerals having to be read
+                aloud as decoration. */}
+            <ol className="steps-flat">
               {c.process.steps.map((s, i) => (
-                <Reveal className="step-flat" key={s.title} delay={i * 0.05}>
-                  <div className="step-flat-n">0{i + 1}</div>
+                <Reveal as="li" className="step-flat" key={s.title} delay={i * 0.05}>
+                  <div className="step-flat-n" aria-hidden="true">
+                    0{i + 1}
+                  </div>
                   <div>
                     <h2>{s.title}</h2>
                     <p className="step-desc">{s.desc}</p>
                     <p className="step-out">
-                      <span className="step-out-label">→</span>
+                      <span className="step-out-label" aria-hidden="true">
+                        →
+                      </span>
                       {s.deliverable}
                     </p>
                   </div>
                 </Reveal>
               ))}
-            </div>
+            </ol>
           </div>
         </section>
       </main>

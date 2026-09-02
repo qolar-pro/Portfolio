@@ -8,19 +8,32 @@ import { ScrollTrigger, gsap, prefersReducedMotion, registerMotion } from '@/lib
  * Smooth scroll, driven from GSAP's ticker so Lenis and ScrollTrigger share
  * one clock. Without this the pinned process panel drifts against the page.
  *
- * Under prefers-reduced-motion Lenis never starts — native scrolling only.
+ * ── POINTER-BASED, NOT VIEWPORT-BASED ────────────────────────────────
+ * Lenis runs on mouse and trackpad only. A phone already has momentum
+ * scrolling, tuned by the OS, that people have spent years learning the feel
+ * of; replacing it with a JS easing curve makes the page feel heavy and
+ * slightly broken in a way nobody can name, and it costs a requestAnimationFrame
+ * every frame of every scroll on the device least able to spare one. The
+ * pinned panel it exists to stabilise is desktop-only anyway.
+ *
+ * Under prefers-reduced-motion it never starts at all — native scrolling only.
  */
 export function MotionProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     registerMotion();
     if (prefersReducedMotion()) return;
 
+    /* `pointer: coarse` is the honest test: it asks what the visitor is
+       actually touching the screen with, rather than guessing from a width
+       that a small laptop window would also match. */
+    const coarse = window.matchMedia('(pointer: coarse)').matches;
+    if (coarse) return;
+
     const lenis = new Lenis({
       // gentler than the old site: longer glide, no rubber-band overshoot
       duration: 1.05,
       easing: (t: number) => 1 - Math.pow(1 - t, 3),
       wheelMultiplier: 0.9,
-      touchMultiplier: 1.4,
     });
 
     lenis.on('scroll', ScrollTrigger.update);

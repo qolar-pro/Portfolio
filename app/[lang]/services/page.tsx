@@ -26,12 +26,12 @@ export default async function ServicesPage({ params }: { params: Promise<{ lang:
   return (
     <>
       <Nav lang={lang} c={c} />
-      <main>
+      <main id="main">
         <PageHero c={c} route="services" />
 
         <section className="section">
           <div className="shell">
-            <ServicePillars c={c} lang={lang} />
+            <ServicePillars c={c} lang={lang} headingLevel={2} />
           </div>
         </section>
 
@@ -40,8 +40,8 @@ export default async function ServicesPage({ params }: { params: Promise<{ lang:
         <section className="section">
           <div className="shell">
             <Reveal className="sec-head">
-              <p className="eyebrow">{c.services.label}</p>
-              <h2 className="h2">{c.services.heading}</h2>
+              <p className="eyebrow" data-anim="fade">{c.services.label}</p>
+              <h2 className="h2" data-anim="clip">{c.services.heading}</h2>
             </Reveal>
             <Reveal>
               <Accordion variant="services" items={c.services.items} />
@@ -52,8 +52,8 @@ export default async function ServicesPage({ params }: { params: Promise<{ lang:
         <section className="section">
           <div className="shell">
             <Reveal className="sec-head">
-              <p className="eyebrow">{c.faq.label}</p>
-              <h2 className="h2">{c.faq.heading}</h2>
+              <p className="eyebrow" data-anim="fade">{c.faq.label}</p>
+              <h2 className="h2" data-anim="clip">{c.faq.heading}</h2>
               <p className="lede">{c.faq.lede}</p>
             </Reveal>
             <Reveal>

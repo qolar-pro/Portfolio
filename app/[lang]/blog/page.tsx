@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { ArticleCard } from '@/components/ArticleCard';
+import { ArticleIndex } from '@/components/ArticleIndex';
 import { CtaBand } from '@/components/CtaBand';
 import { Nav } from '@/components/Nav';
 import { PageHero } from '@/components/PageHero';
@@ -25,15 +25,11 @@ export default async function BlogPage({ params }: { params: Promise<{ lang: str
   return (
     <>
       <Nav lang={lang} c={c} />
-      <main>
+      <main id="main">
         <PageHero c={c} route="blog" />
         <section className="section">
           <div className="shell">
-            <div className="art-grid">
-              {articles[lang].map((a) => (
-                <ArticleCard key={a.slug} a={a} lang={lang} readMore={c.blog.readMore} />
-              ))}
-            </div>
+            <ArticleIndex items={articles[lang]} lang={lang} readMore={c.blog.readMore} />
           </div>
         </section>
       </main>

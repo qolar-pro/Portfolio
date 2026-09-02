@@ -1,58 +1,45 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import { gsap, prefersReducedMotion, registerMotion } from '@/lib/motion';
+import { useCallback, useMemo, useRef } from 'react';
+import { useInView } from '@/lib/inview';
 
 /**
- * Lights the sentence word by word as it passes through the viewport.
+ * Lights the sentence word by word as it enters the viewport.
  *
- * The dim state is applied by GSAP rather than by CSS, so the text ships
- * fully legible: without JS, or under reduced motion, it is simply a
- * paragraph. The tween is scrubbed, so scrolling back up unlights it again.
+ * TWO CHANGES FROM THE SCRUBBED VERSION
+ *
+ * It is no longer scrub-linked. A scrub ties the text's legibility to scroll
+ * position, so a visitor who lands with the line already mid-screen, or whose
+ * viewport is tall enough that the scrub range never completes, reads a
+ * half-lit sentence indefinitely. It now runs once, on entry, and ends lit.
+ *
+ * And the unlit state is 0.62 rather than 0.3. At 0.3 the not-yet-lit half of
+ * the sentence sat around 3:1 against the page — below AA, on the one line
+ * that states what the studio does. 0.62 still reads as unlit and still
+ * clears AA on its own, which is the rule the whole site is held to.
+ *
+ * The stagger is CSS `transition-delay` off an index custom property, so no
+ * JS runs per word.
  */
 export function WordHighlight({ text, className = '' }: { text: string; className?: string }) {
   const ref = useRef<HTMLParagraphElement>(null);
+  const words = useMemo(() => text.split(' '), [text]);
 
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || prefersReducedMotion()) return;
+  const arm = useCallback(() => ref.current?.classList.add('wh'), []);
+  const enter = useCallback(() => ref.current?.classList.add('wh-in'), []);
 
-    registerMotion();
-
-    const ctx = gsap.context(() => {
-      const words = el.querySelectorAll('.w');
-      gsap.fromTo(
-        words,
-        // 0.18 was low enough that the unlit half of the sentence was hard to
-        // read at all; at this size the effect still reads and the words stay
-        // legible before they light
-        { opacity: 0.3 },
-        {
-          opacity: 1,
-          ease: 'none',
-          // stagger > duration is what makes it read word-by-word rather
-          // than as one fade with a slight offset
-          stagger: 0.6,
-          duration: 0.4,
-          scrollTrigger: {
-            trigger: el,
-            start: 'top 88%',
-            end: 'bottom 62%',
-            scrub: 0.5,
-          },
-        },
-      );
-    }, el);
-
-    return () => ctx.revert();
-  }, [text]);
+  useInView(ref, { onEnter: enter, onArm: arm }, [text]);
 
   return (
     <p ref={ref} className={className}>
-      {text.split(' ').map((word, i) => (
-        <span className="w" key={`${word}-${i}`}>
+      {words.map((word, i) => (
+        <span
+          className="w"
+          key={`${word}-${i}`}
+          style={{ ['--w' as string]: i }}
+        >
           {word}
-          {i < text.split(' ').length - 1 ? ' ' : ''}
+          {i < words.length - 1 ? ' ' : ''}
         </span>
       ))}
     </p>

@@ -24,7 +24,7 @@ export default async function AboutPage({ params }: { params: Promise<{ lang: st
   return (
     <>
       <Nav lang={lang} c={c} />
-      <main>
+      <main id="main">
         <PageHero c={c} route="about" />
 
         <section className="section">
@@ -45,7 +45,7 @@ export default async function AboutPage({ params }: { params: Promise<{ lang: st
             </Reveal>
 
             <Reveal className="timeline">
-              <p className="eyebrow">{c.about.trajectoryLabel}</p>
+              <p className="eyebrow" data-anim="fade">{c.about.trajectoryLabel}</p>
               <h2 className="h2" style={{ marginBottom: 34 }}>
                 {c.about.trajectoryHeading}
               </h2>
@@ -53,7 +53,7 @@ export default async function AboutPage({ params }: { params: Promise<{ lang: st
                 <div className="job" key={`${j.company}-${j.period}`}>
                   <div className="period">{j.period}</div>
                   <div>
-                    <h4>{j.role}</h4>
+                    <h3>{j.role}</h3>
                     <p className="co">{j.company}</p>
                     <p>{j.desc}</p>
                   </div>
@@ -66,15 +66,15 @@ export default async function AboutPage({ params }: { params: Promise<{ lang: st
         <section className="section">
           <div className="shell">
             <Reveal className="sec-head">
-              <p className="eyebrow">{c.stack.label}</p>
-              <h2 className="h2">{c.stack.heading}</h2>
+              <p className="eyebrow" data-anim="fade">{c.stack.label}</p>
+              <h2 className="h2" data-anim="clip">{c.stack.heading}</h2>
               <p className="lede">{c.stack.lede}</p>
             </Reveal>
             <Reveal>
               <div className="stack-grid">
                 {c.stack.groups.map((g) => (
                   <div className="sg" key={g.title}>
-                    <h4>{g.title}</h4>
+                    <h3>{g.title}</h3>
                     <p>{g.desc}</p>
                     <div className="chips">
                       {g.skills.map((s) => (

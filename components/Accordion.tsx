@@ -44,7 +44,7 @@ export function Accordion(props: Props) {
         }));
 
   return (
-    <div className={`acc ${props.variant === 'faq' ? 'faq' : ''}`.trim()}>
+    <div className={`acc ${props.variant === 'faq' ? 'faq' : ''}`.trim()} data-anim-group>
       {rows.map((row, i) => {
         const isOpen = open === i;
         const panelId = `${uid}-${i}`;

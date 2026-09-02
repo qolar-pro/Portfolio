@@ -24,22 +24,29 @@ export default async function BookPage({ params }: { params: Promise<{ lang: str
   return (
     <>
       <Nav lang={lang} c={c} />
-      <main>
+      <main id="main">
         <PageHero c={c} route="book" />
 
         <section className="section contact">
           <div className="shell contact-grid">
             <Reveal>
               {/* what the call actually is, so nobody books it expecting a demo */}
+              {/* Only the first stage, so this is one card rather than a
+                  list — what the call actually is, before anyone books it
+                  expecting a demo. */}
               <div className="steps-flat">
                 {c.process.steps.slice(0, 1).map((s) => (
                   <div className="step-flat" key={s.title}>
-                    <div className="step-flat-n">01</div>
+                    <div className="step-flat-n" aria-hidden="true">
+                      01
+                    </div>
                     <div>
                       <h2>{s.title}</h2>
                       <p className="step-desc">{s.desc}</p>
                       <p className="step-out">
-                        <span className="step-out-label">→</span>
+                        <span className="step-out-label" aria-hidden="true">
+                          →
+                        </span>
                         {s.deliverable}
                       </p>
                     </div>

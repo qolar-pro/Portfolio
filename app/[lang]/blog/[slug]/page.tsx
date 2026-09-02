@@ -85,7 +85,7 @@ export default async function ArticlePage({
     <>
       <ArticleJsonLd lang={lang} slug={slug} />
       <Nav lang={lang} c={c} />
-      <main>
+      <main id="main">
         <header className="page-hero article-hero">
           <div className="page-hero-pattern" aria-hidden="true" />
           <div className="shell">

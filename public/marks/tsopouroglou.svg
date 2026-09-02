@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-label="Γ. &amp; Ν. Τσοπούρογλου">
+  <!-- Redrawn from the mark in the live site's header: a mound of earth over
+       a graded bar, on the firm's own green. Their site ships no favicon at a
+       usable size, so this is the same treatment KD Law's mark gets — traced
+       to match their header, not reinterpreted. Green sampled from the
+       original: #0a6136. -->
+  <rect width="128" height="128" rx="30" fill="#0a6136"/>
+  <path d="M64 34c-15.5 0-28 12.8-28 28.6 0 1.1.9 2 2 2h52c1.1 0 2-.9 2-2C92 46.8 79.5 34 64 34z" fill="#ffffff"/>
+  <rect x="30" y="72" width="68" height="9" rx="2.5" fill="#ffffff"/>
+  <rect x="30" y="86" width="68" height="9" rx="2.5" fill="#ffffff"/>
+</svg>

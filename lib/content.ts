@@ -13,6 +13,8 @@
  * the same voice, in both languages, and is flagged in the build notes.
  */
 
+import { PROJECTS, type ProjectAssets } from '@/lib/projects';
+
 export type Lang = 'en' | 'el' | 'mk';
 
 export const LANGS: Lang[] = ['en', 'el', 'mk'];
@@ -23,91 +25,48 @@ export const langNames: Record<Lang, string> = {
   mk: 'МК',
 };
 
-export interface Project {
-  slug: string;
+/**
+ * One project, as the components see it: the registry's language-independent
+ * facts spread together with this locale's title, tagline and description.
+ */
+export interface Project extends ProjectAssets {
   title: string;
   tagline: string;
   desc: string;
-  features: string[];
-  stack: string[];
-  images: string[];
-  url: string;
-  /** Shown in the Lab strip rather than the main work list. */
-  lab?: boolean;
-  /**
-   * The client has not launched yet, so the design does not go public.
-   *
-   * Everywhere a project is rendered, this blurs its screenshots and its mark,
-   * drops the outbound link, and puts a "launching soon" badge in its place.
-   * The work still counts as proof — it just cannot be read off the page.
-   *
-   * Flip to false (or delete the line) the day the client's site is live.
-   */
-  embargo?: boolean;
 }
 
-/** Language-independent project data — ported. */
-const META = {
-  a25: {
-    slug: 'a25',
-    features: ['5 languages', 'Live chat + Telegram', 'Application flows', 'Email automation', 'In production'],
-    stack: ['React', 'TypeScript', 'Tailwind', 'Express', 'Redis'],
-    images: ['/images/a25-1.jpg', '/images/a25-2.jpg', '/images/a25-3.jpg'],
-    url: 'https://a25.mk',
-  },
-  dklaw: {
-    slug: 'kd-law',
-    features: [
-      'Appointment booking',
-      'Six practice areas',
-      'Team profiles',
-      'Insights, written in-house',
-      'Admin article composer',
-      'Multi-language',
-    ],
-    stack: ['Next.js', 'TypeScript', 'Tailwind', 'GSAP', 'PostgreSQL', 'Resend'],
-    images: ['/images/dklaw-1.jpg', '/images/dklaw-2.jpg', '/images/dklaw-3.jpg'],
-    /**
-     * Blank on purpose while `embargo` is on.
-     *
-     * This object is serialised into the RSC payload and into the client JS
-     * bundle, so a real URL here is one Ctrl+F away in view-source no matter
-     * how carefully the components avoid rendering it. Hiding the link in the
-     * markup is not hiding the link.
-     *
-     * At launch, put the firm's own domain here and drop `embargo`. The
-     * staging URL it used to hold was a Vercel preview and should not go back.
-     */
-    url: '',
-    embargo: true,
-  },
-  sneakerAir: {
-    slug: 'sneaker-air',
-    features: ['Live 3D sneaker viewer', 'Stripe + cash checkout', 'Full admin panel', 'Per-size inventory', 'Zero-config database'],
-    stack: ['Next.js', 'TypeScript', 'Tailwind', 'Three.js', 'Stripe', 'Supabase'],
-    images: ['/images/sneaker-air-1.jpg', '/images/sneaker-air-2.jpg', '/images/sneaker-air-3.jpg'],
-    url: 'https://dresscode-rho.vercel.app/',
-  },
-  shift: {
-    slug: 'nova-shift',
-    features: ['Radical customization', 'Earnings engine', 'Schedule orchestration', 'Multi-format export'],
-    stack: ['React', 'TypeScript', 'Tailwind', 'Node.js'],
-    images: ['/images/apex-1.jpg', '/images/apex-2.jpg', '/images/apex-3.jpg'],
-    url: 'https://animated-valkyrie-8d4b67.netlify.app/',
-  },
-  sos: {
-    slug: 'surviving-of-souls',
-    features: ['Survival mechanics', 'Expedition system', 'Procedural worlds', 'Resource economy'],
-    stack: ['TypeScript', 'Canvas', 'Custom engine', 'Pathfinding'],
-    images: ['/images/sos-1.jpg'],
-    url: 'https://celadon-crostata-316852.netlify.app/',
-    lab: true,
-  },
-};
+/**
+ * Language-independent project data.
+ *
+ * This used to hold the URLs, images, features and stack inline. It now
+ * re-exports lib/projects.ts, which is the single registry — one object per
+ * project with a `liveUrl` field, so swapping a deploy subdomain for a real
+ * domain is a one-line change in one file rather than a hunt through
+ * components and three translations.
+ */
+const META = PROJECTS;
 
 export interface SiteContent {
   meta: { title: string; description: string };
-  nav: { links: { label: string; href: string }[]; book: string; menu: string; close: string };
+  nav: {
+    links: { label: string; href: string }[];
+    book: string;
+    menu: string;
+    close: string;
+    /** Accessible name for the language switcher — it is a globe glyph otherwise. */
+    language: string;
+    /** The skip link, first in the tab order on every page. */
+    skip: string;
+  };
+  /**
+   * Theme switch copy.
+   *
+   * `dark`/`light` are the visible labels (what the site IS right now);
+   * `toDark`/`toLight` are the accessible names (what pressing it WILL do).
+   * Keeping both means the label can stay one short word without the
+   * screen-reader announcement becoming ambiguous.
+   */
+  theme: { dark: string; light: string; toDark: string; toLight: string };
   hero: {
     status: string;
     headA: string;
@@ -150,6 +109,8 @@ export interface SiteContent {
     heading: string;
     lede: string;
     cta: string;
+    /** Tells the visitor the stage list scrolls — the old panel had no such cue. */
+    scrollHint: string;
     /** Each step ends in something the client physically receives. */
     steps: { title: string; desc: string; deliverable: string }[];
   };
@@ -292,6 +253,14 @@ const en: SiteContent = {
     book: 'Book a call',
     menu: 'Menu',
     close: 'Close',
+    language: 'Language',
+    skip: 'Skip to content',
+  },
+  theme: {
+    dark: 'Dark',
+    light: 'Light',
+    toDark: 'Switch to dark theme',
+    toLight: 'Switch to light theme',
   },
   hero: {
     status: 'Independent digital studio', // ported
@@ -448,10 +417,20 @@ const en: SiteContent = {
         ...META.dklaw,
       },
       {
-        title: 'Sneaker Air',
-        tagline: 'A cinematic sneaker storefront with a live 3D viewer.',
-        desc: 'Premium sneaker commerce, end to end: a real-time WebGL viewer spins every colorway on a single glTF model, backed by Stripe and cash checkout with per-size inventory. A full admin panel — product, order, and campaign control behind layered auth — rides on a Supabase backend that falls back to a local store so it runs zero-config.',
-        ...META.sneakerAir,
+        /* Renamed: the storefront at this URL trades as Dress Code, not as
+           Sneaker Air. The 3D viewer claim came off with the sneakers —
+           it is not on the live site, and a differentiator you cannot point
+           at is not a differentiator. Everything else is the same build. */
+        title: 'Dress Code',
+        tagline: 'A luxury fashion storefront, engineered end to end.',
+        desc: 'Premium fashion commerce, end to end: a catalogue split by category with live item counts, Stripe and cash checkout, and per-size inventory that stays accurate. A full admin panel — product, order and campaign control behind layered auth — rides on a Supabase backend that falls back to a local store so it runs zero-config.',
+        ...META.dresscode,
+      },
+      {
+        title: 'Tsopouroglou — Χωματουργικά',
+        tagline: 'A Halkidiki earthworks firm, working since 1987.',
+        desc: 'The site of a family earthworks business in Halkidiki: excavations, plot clearing, cesspits and rock breaking, with the service areas and the machine fleet each given a page of their own. Published in Greek, English and Serbian — the three languages its customers actually call in — with a quote request and a phone number answered around the clock.',
+        ...META.tsopouroglou,
       },
       {
         // renamed from "Apex Shift" — the old brand is gone
@@ -473,6 +452,7 @@ const en: SiteContent = {
     heading: 'Four steps. Something real at the end of each.',
     lede: 'No stage ends with a promise. Every one of them ends with a thing you can open, read or click.',
     cta: 'More about the studio',
+    scrollHint: 'Scroll the stages',
     steps: [
       {
         title: 'Conversation',
@@ -647,7 +627,7 @@ const en: SiteContent = {
         role: '[role]',
         company: 'Sneaker Air',
         project: 'sneaker-air',
-        slug: 'sneaker-air',
+        slug: 'dress-code',
         approved: false,
       },
       {
@@ -768,6 +748,14 @@ const el: SiteContent = {
     book: 'Κλείστε κλήση',
     menu: 'Μενού',
     close: 'Κλείσιμο',
+    language: 'Γλώσσα',
+    skip: 'Μετάβαση στο περιεχόμενο',
+  },
+  theme: {
+    dark: 'Σκούρο',
+    light: 'Φωτεινό',
+    toDark: 'Εναλλαγή σε σκούρο θέμα',
+    toLight: 'Εναλλαγή σε φωτεινό θέμα',
   },
   hero: {
     status: 'Ανεξάρτητο ψηφιακό στούντιο', // ported
@@ -924,10 +912,16 @@ const el: SiteContent = {
         ...META.dklaw,
       },
       {
-        title: 'Sneaker Air',
-        tagline: 'Κινηματογραφική βιτρίνα sneaker με ζωντανό 3D viewer.',
-        desc: 'Premium sneaker commerce από άκρη σε άκρη: ένας real-time WebGL viewer περιστρέφει κάθε colorway πάνω σε ένα glTF μοντέλο, με checkout μέσω Stripe και αντικαταβολής και inventory ανά νούμερο. Ένα πλήρες admin panel — έλεγχος προϊόντων, παραγγελιών και καμπανιών πίσω από πολυεπίπεδο auth — πάνω σε Supabase backend που πέφτει σε τοπικό store ώστε να τρέχει zero-config.',
-        ...META.sneakerAir,
+        title: 'Dress Code',
+        tagline: 'Βιτρίνα luxury μόδας, φτιαγμένη από άκρη σε άκρη.',
+        desc: 'Premium fashion commerce από άκρη σε άκρη: κατάλογος χωρισμένος σε κατηγορίες με ζωντανή καταμέτρηση προϊόντων, checkout μέσω Stripe και αντικαταβολής, και inventory ανά νούμερο που μένει σωστό. Ένα πλήρες admin panel — έλεγχος προϊόντων, παραγγελιών και καμπανιών πίσω από πολυεπίπεδο auth — πάνω σε Supabase backend που πέφτει σε τοπικό store ώστε να τρέχει zero-config.',
+        ...META.dresscode,
+      },
+      {
+        title: 'Τσοπούρογλου — Χωματουργικά',
+        tagline: 'Χωματουργικά στη Χαλκιδική, από το 1987.',
+        desc: 'Το site μιας οικογενειακής χωματουργικής επιχείρησης στη Χαλκιδική: εκσκαφές, καθαρισμοί οικοπέδων, βόθροι και εκβραχισμοί, με τις περιοχές εξυπηρέτησης και τον στόλο μηχανημάτων να έχουν η καθεμία τη δική της σελίδα. Δημοσιευμένο στα ελληνικά, τα αγγλικά και τα σερβικά — τις τρεις γλώσσες στις οποίες όντως τηλεφωνούν οι πελάτες του — με αίτημα προσφοράς και τηλέφωνο που απαντά όλο το εικοσιτετράωρο.',
+        ...META.tsopouroglou,
       },
       {
         // μετονομάστηκε από «Apex Shift» — το παλιό brand έφυγε
@@ -949,6 +943,7 @@ const el: SiteContent = {
     heading: 'Τέσσερα βήματα. Κάτι πραγματικό στο τέλος του καθενός.',
     lede: 'Κανένα στάδιο δεν τελειώνει με υπόσχεση. Το καθένα τελειώνει με κάτι που μπορείτε να ανοίξετε, να διαβάσετε ή να πατήσετε.',
     cta: 'Περισσότερα για το στούντιο',
+    scrollHint: 'Κυλήστε τα στάδια',
     steps: [
       {
         title: 'Κουβέντα',
@@ -1123,7 +1118,7 @@ const el: SiteContent = {
         role: '[ιδιότητα]',
         company: 'Sneaker Air',
         project: 'sneaker-air',
-        slug: 'sneaker-air',
+        slug: 'dress-code',
         approved: false,
       },
       {
@@ -1244,6 +1239,14 @@ const mk: SiteContent = {
     book: 'Закажете разговор',
     menu: 'Мени',
     close: 'Затвори',
+    language: 'Јазик',
+    skip: 'Оди на содржината',
+  },
+  theme: {
+    dark: 'Темно',
+    light: 'Светло',
+    toDark: 'Префрли на темна тема',
+    toLight: 'Префрли на светла тема',
   },
   hero: {
     status: 'Независно дигитално студио',
@@ -1391,10 +1394,16 @@ const mk: SiteContent = {
         ...META.dklaw,
       },
       {
-        title: 'Sneaker Air',
-        tagline: 'Кинематографска продавница за патики со жив 3D приказ.',
-        desc: 'Premium продажба на патики од крај до крај: real-time WebGL приказ што ја врти секоја боја на еден glTF модел, со Stripe и плаќање при достава и залиха по број. Целосен admin panel — контрола на производи, нарачки и кампањи зад повеќеслоен auth — врз Supabase backend што паѓа на локална база за да работи без конфигурација.',
-        ...META.sneakerAir,
+        title: 'Dress Code',
+        tagline: 'Продавница за луксузна мода, изградена од крај до крај.',
+        desc: 'Premium продажба на мода од крај до крај: каталог поделен по категории со жива бројка на артикли, Stripe и плаќање при достава, и залиха по број што останува точна. Целосен admin panel — контрола на производи, нарачки и кампањи зад повеќеслоен auth — врз Supabase backend што паѓа на локална база за да работи без конфигурација.',
+        ...META.dresscode,
+      },
+      {
+        title: 'Цопороглу — Земјени работи',
+        tagline: 'Фирма за земјени работи во Халкидики, од 1987.',
+        desc: 'Страницата на семејна фирма за земјени работи во Халкидики: ископи, чистење парцели, септички јами и разбивање карпи, со подрачјата на работа и возниот парк на машини на свои посебни страници. Објавена на грчки, англиски и српски — трите јазици на кои навистина се јавуваат нејзините клиенти — со барање понуда и телефон што се јавува деноноќно.',
+        ...META.tsopouroglou,
       },
       {
         title: 'Nova Shift',
@@ -1415,6 +1424,7 @@ const mk: SiteContent = {
     heading: 'Четири чекори. Нешто вистинско на крајот од секој.',
     lede: 'Ниту еден чекор не завршува со ветување. Секој завршува со нешто што можете да го отворите, прочитате или кликнете.',
     cta: 'Повеќе за студиото',
+    scrollHint: 'Лизгајте низ фазите',
     steps: [
       {
         title: 'Разговор',
@@ -1583,7 +1593,7 @@ const mk: SiteContent = {
         role: '[позиција]',
         company: 'Sneaker Air',
         project: 'sneaker-air',
-        slug: 'sneaker-air',
+        slug: 'dress-code',
         approved: false,
       },
       {
@@ -1690,7 +1700,22 @@ export const content: Record<Lang, SiteContent> = { en, el, mk };
 
 export const BRAND = 'NovaFaber';
 export const FOUNDER = 'Giannis Papadopoulos';
-export const EMAIL = 'yioyiomenyioyiomen@gmail.com';
+/**
+ * THE contact address. One constant, referenced everywhere it appears:
+ * the contact page, book-a-call, the footer card, the footer mail link,
+ * the form's mailto and the Organization JSON-LD. Nothing hardcodes it.
+ *
+ * ── SWITCHING TO THE BRANDED INBOX ────────────────────────────────────
+ * Two ways, both one line:
+ *   1. Set NEXT_PUBLIC_CONTACT_EMAIL=hello@novafaber.com in the Vercel
+ *      project (and .env.local for dev). No code change, no redeploy of
+ *      the source — just a rebuild.
+ *   2. Or change the fallback below.
+ *
+ * The env var wins so the branded address can be staged on a preview
+ * deployment before it goes to production.
+ */
+export const EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? 'yioyiomenyioyiomen@gmail.com';
 
 /**
  * Where the studio works from.
@@ -1720,9 +1745,42 @@ export const INSTAGRAM = {
   url: 'https://instagram.com/giannis.pdl',
 };
 
-export const SOCIALS = [
-  { label: 'GitHub', handle: 'qolar-pro', url: 'https://github.com/qolar-pro' },
-  { label: 'LinkedIn', handle: 'blanco-xd', url: 'https://www.linkedin.com/in/blanco-xd-06313b268' },
-  { label: 'Instagram', handle: INSTAGRAM.handle, url: INSTAGRAM.url },
-  { label: 'TikTok', handle: 'thyswedishguy', url: 'https://tiktok.com/@thyswedishguy' },
+export interface Social {
+  label: string;
+  handle: string;
+  url: string;
+  /**
+   * Whether this account reads as the STUDIO speaking.
+   *
+   * The footer's "Elsewhere" block sits inside studio-branded copy, and a
+   * handle is read as a signature. Three of these are defensible there —
+   * a personal GitHub is normal for a one-person studio and is the
+   * strongest technical credential on the page; LinkedIn is where the
+   * founder is the product; Instagram is already published elsewhere in
+   * the footer as a real contact channel, so hiding it here would be
+   * inconsistent.
+   *
+   * TikTok is the odd one out and is flagged rather than deleted: it is a
+   * real account, but `thyswedishguy` next to "Software with the
+   * precision of engineering" is the one line on the page written in a
+   * different voice, and it is the only handle here with no visible
+   * connection to the work. Set to true the moment it becomes a studio
+   * channel — the data stays, only the rendering changes.
+   */
+  studio: boolean;
+}
+
+export const SOCIALS: Social[] = [
+  { label: 'GitHub', handle: 'qolar-pro', url: 'https://github.com/qolar-pro', studio: true },
+  {
+    label: 'LinkedIn',
+    handle: 'blanco-xd',
+    url: 'https://www.linkedin.com/in/blanco-xd-06313b268',
+    studio: true,
+  },
+  { label: 'Instagram', handle: INSTAGRAM.handle, url: INSTAGRAM.url, studio: true },
+  { label: 'TikTok', handle: 'thyswedishguy', url: 'https://tiktok.com/@thyswedishguy', studio: false },
 ];
+
+/** What the footer and the structured data publish. See `studio` above. */
+export const STUDIO_SOCIALS = SOCIALS.filter((s) => s.studio);

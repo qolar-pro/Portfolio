@@ -8,7 +8,7 @@ import {
   LOCATION,
   PHONE,
   ROUTES,
-  SOCIALS,
+  STUDIO_SOCIALS,
   type Lang,
   type SiteContent,
 } from '@/lib/content';
@@ -80,11 +80,11 @@ function ContactCard({
 }) {
   return (
     <div className="fc-item">
-      <span className="fc-icon" aria-hidden="true">
+      <span className="fc-icon" aria-hidden="true" data-anim="pop">
         {icon}
       </span>
       <div className="fc-body">
-        <h5 className="fc-title">{title}</h5>
+        <h3 className="fc-title">{title}</h3>
         <p className="fc-desc">{desc}</p>
         {children}
       </div>
@@ -104,12 +104,12 @@ export function SiteFooter({ c, lang }: { c: SiteContent; lang: Lang }) {
           <div className="fc-pattern" aria-hidden="true" />
           <div className="fc-head">
             <p className="eyebrow">{fc.eyebrow}</p>
-            <h2 className="fc-h">{fc.heading}</h2>
+            <h2 className="fc-h" data-anim="clip">{fc.heading}</h2>
             <p className="lede">{fc.lede}</p>
           </div>
 
           <div className="fc-grid">
-            <div className="fc-list">
+            <div className="fc-list" data-anim-group>
               <ContactCard icon={<MailIcon />} title={fc.email.title} desc={fc.email.desc}>
                 <a className="fc-value" href={`mailto:${EMAIL}`}>
                   {EMAIL}
@@ -137,7 +137,7 @@ export function SiteFooter({ c, lang }: { c: SiteContent; lang: Lang }) {
             {/* The pin is the city the studio works out of, not a front door.
                 `mapLabel` says exactly that, so the map cannot be read as an
                 invitation to turn up somewhere. */}
-            <div className="fc-map">
+            <div className="fc-map" data-anim="reveal">
               <iframe
                 title={fc.mapLabel}
                 src={mapEmbedUrl(LOCATION.mapQuery)}
@@ -150,7 +150,7 @@ export function SiteFooter({ c, lang }: { c: SiteContent; lang: Lang }) {
         </div>
 
         {/* ---------------- index ---------------- */}
-        <div className="foot-grid">
+        <div className="foot-grid" data-anim-group>
           <div>
             <span className="mark">
               <Logo size={28} />
@@ -165,7 +165,7 @@ export function SiteFooter({ c, lang }: { c: SiteContent; lang: Lang }) {
           </div>
 
           <div className="foot-col">
-            <h5>{c.footer.servicesLabel}</h5>
+            <h3>{c.footer.servicesLabel}</h3>
             {c.services.pillars.map((p) => (
               <Link key={p.title} href={`/${lang}/services`}>
                 {p.title}
@@ -174,7 +174,7 @@ export function SiteFooter({ c, lang }: { c: SiteContent; lang: Lang }) {
           </div>
 
           <div className="foot-col">
-            <h5>{c.footer.studioLabel}</h5>
+            <h3>{c.footer.studioLabel}</h3>
             {c.footer.studioLinks.map((l) => (
               <Link key={l.href} href={`/${lang}${l.href}`}>
                 {l.label}
@@ -183,8 +183,8 @@ export function SiteFooter({ c, lang }: { c: SiteContent; lang: Lang }) {
           </div>
 
           <div className="foot-col">
-            <h5>{c.footer.socialsLabel}</h5>
-            {SOCIALS.map((s) => (
+            <h3>{c.footer.socialsLabel}</h3>
+            {STUDIO_SOCIALS.map((s) => (
               <a key={s.label} href={s.url} target="_blank" rel="noopener noreferrer">
                 {s.label}
                 <span>{s.handle}</span>
@@ -193,7 +193,7 @@ export function SiteFooter({ c, lang }: { c: SiteContent; lang: Lang }) {
           </div>
         </div>
 
-        <div className="foot-bottom">
+        <div className="foot-bottom" data-anim="fade">
           <span>
             © {year} {BRAND} — {FOUNDER}
           </span>

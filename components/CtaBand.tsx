@@ -11,10 +11,10 @@ export function CtaBand({ c, lang }: { c: SiteContent; lang: Lang }) {
         <Reveal className="cta-inner">
           <div>
             <p className="eyebrow">{c.ctaBand.eyebrow}</p>
-            <h2 className="cta-h">{c.ctaBand.heading}</h2>
-            <p className="cta-desc">{c.ctaBand.desc}</p>
+            <h2 className="cta-h" data-anim="clip">{c.ctaBand.heading}</h2>
+            <p className="cta-desc" data-anim="fade" data-anim-delay="1">{c.ctaBand.desc}</p>
           </div>
-          <div className="cta-actions">
+          <div className="cta-actions" data-anim="rise" data-anim-delay="2">
             <Link className="btn btn-solid" href={`/${lang}${ROUTES.book}`}>
               {c.ctaBand.primary}
               <span className="circ" aria-hidden="true">

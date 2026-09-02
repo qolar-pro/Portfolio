@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-label="Dress Code">
+  <!-- Dress Code ships no favicon, so this is a mark in their own register
+       rather than a scaled-up placeholder: their wordmark is a high-contrast
+       serif on near-black, and the ground is sampled from the live site
+       (#0c0c0c). Same house rule as the other redraws in this directory. -->
+  <rect width="128" height="128" rx="26" fill="#0c0c0c"/>
+  <text x="64" y="82" font-family="Didot, 'Bodoni MT', Georgia, 'Times New Roman', serif"
+        font-size="52" fill="#f5f2ee" text-anchor="middle" letter-spacing="1"
+        textLength="70" lengthAdjust="spacingAndGlyphs">DC</text>
+  <rect x="34" y="94" width="60" height="1.6" fill="#c9a227"/>
+</svg>

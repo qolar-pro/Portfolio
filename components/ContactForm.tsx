@@ -35,7 +35,7 @@ export function ContactForm({ c }: { c: SiteContent }) {
   }
 
   return (
-    <form className="form" onSubmit={onSubmit}>
+    <form className="form" onSubmit={onSubmit} data-anim-group>
       <div className="row">
         <div className="field">
           <label htmlFor="cf-name">{f.name}</label>
