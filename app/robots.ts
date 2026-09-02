@@ -8,8 +8,8 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: '*',
         allow: '/',
         // Next's build artefacts are not pages and have no business in an index
-        // /_next/ is build output; /mockups is the internal picking board
-        disallow: ['/_next/', '/en/mockups', '/el/mockups', '/mk/mockups'],
+        // Next's build artefacts are not pages and have no business in an index
+        disallow: ['/_next/'],
       },
     ],
     sitemap: `${SITE_URL}/sitemap.xml`,

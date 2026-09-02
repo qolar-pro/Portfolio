@@ -164,12 +164,12 @@ white-on-black tile used directly as a mask is opaque everywhere and masks
 nothing. Headline is 900 weight.
 
 **Capabilities** (`CapabilityLedger`, `app/css/ledger.css`). Rebuilt three
-times; this is the shape the client picked off `/mockups`. Full-width
+times; this is the shape that was picked from a set of candidates. Full-width
 numbered rows, sub-items running on as one line — a contents page, not
 cards. Scroll-linked differential drift, a hairline that draws itself as the
 row passes, teal edge on hover and focus.
 
-**Process** (`ProcessStack`, `app/css/stack.css`). Also the client's pick.
+**Process** (`ProcessStack`, `app/css/stack.css`). Also picked from a set.
 Four cards that stick and pile up. Stacking is pure `position: sticky` — the
 page keeps the scroll, because two earlier pinned versions were rejected for
 taking it away. Scrubbed recession gives the pile depth (DD-6, DD-7).

@@ -4,7 +4,10 @@ Living state file. Read this first in any new session.
 
 ## What is being built
 
-Two homepage sections, chosen off `/[lang]/mockups`:
+Two homepage sections, chosen off a temporary picking board that rendered
+five candidate layouts per section against the real copy. The board has since
+been deleted — its job was to make the choice, and a picking board left in a
+repo becomes a second, stale copy of the section it was picking.
 
 | Section | Chosen variant | New component | New stylesheet |
 |---|---|---|---|
@@ -45,10 +48,6 @@ _None outstanding._
 
 ## Follow-ups worth doing, not blocking
 
-- The four mockup variants that were not chosen (`components/mockups/`, the
-  `/mockups` route, the `MOCKUPS` block in `globals.css`) are still in the
-  tree. They cost nothing at runtime — the route is noindex and linked from
-  nowhere — but they should go once the client has stopped comparing.
 - `refreshOnFontsReady` fixes stale trigger positions after the webfont
   swap. Worth watching whether the App Router route-change refresh in
   `MotionProvider` is enough on slow connections, where the font can land
@@ -234,9 +233,10 @@ hand for the dimmed state.
 
 `CapabilityLedger` replaces `CapabilityBrowser` on the homepage and
 `/services`; `ProcessStack` replaces `ProcessFlow` on the homepage. Both
-superseded components deleted. The `/mockups` board now shows the built
-versions in its "Current" slots.
+superseded components deleted. The picking board that produced the choice —
+its route, its five-per-section variant components and its ~600 lines of
+`mk`-prefixed CSS — was deleted once the decision was made.
 
-Full QA: WCAG AA in both themes on every route including `/mockups`; 69/69
+Full QA: WCAG AA in both themes on every route; 69/69
 behaviour checks; 108 route × language × width shots with zero overflow and
 zero console errors.

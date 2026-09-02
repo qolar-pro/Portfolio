@@ -36,9 +36,6 @@ const ROUTES = [
   '/en/blog/rebuild-or-redesign',
   '/el',
   '/mk',
-  /* the picking board: the variants on it are candidates for the real
-     site, so they are held to the same bar before one is chosen */
-  '/en/mockups',
 ];
 
 const browser = spawn(
