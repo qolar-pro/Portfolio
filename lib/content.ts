@@ -109,8 +109,11 @@ export interface SiteContent {
     heading: string;
     lede: string;
     cta: string;
-    /** Tells the visitor the stage list scrolls — the old panel had no such cue. */
-    scrollHint: string;
+    /** Deck controls. UI labels, not claims. */
+    prev: string;
+    next: string;
+    /** Introduces the thing the client receives at the end of the stage. */
+    youGet: string;
     /** Each step ends in something the client physically receives. */
     steps: { title: string; desc: string; deliverable: string }[];
   };
@@ -452,7 +455,9 @@ const en: SiteContent = {
     heading: 'Four steps. Something real at the end of each.',
     lede: 'No stage ends with a promise. Every one of them ends with a thing you can open, read or click.',
     cta: 'More about the studio',
-    scrollHint: 'Scroll the stages',
+    prev: 'Previous stage',
+    next: 'Next stage',
+    youGet: 'What you get',
     steps: [
       {
         title: 'Conversation',
@@ -943,7 +948,9 @@ const el: SiteContent = {
     heading: 'Τέσσερα βήματα. Κάτι πραγματικό στο τέλος του καθενός.',
     lede: 'Κανένα στάδιο δεν τελειώνει με υπόσχεση. Το καθένα τελειώνει με κάτι που μπορείτε να ανοίξετε, να διαβάσετε ή να πατήσετε.',
     cta: 'Περισσότερα για το στούντιο',
-    scrollHint: 'Κυλήστε τα στάδια',
+    prev: 'Προηγούμενο στάδιο',
+    next: 'Επόμενο στάδιο',
+    youGet: 'Τι παίρνετε',
     steps: [
       {
         title: 'Κουβέντα',
@@ -1424,7 +1431,9 @@ const mk: SiteContent = {
     heading: 'Четири чекори. Нешто вистинско на крајот од секој.',
     lede: 'Ниту еден чекор не завршува со ветување. Секој завршува со нешто што можете да го отворите, прочитате или кликнете.',
     cta: 'Повеќе за студиото',
-    scrollHint: 'Лизгајте низ фазите',
+    prev: 'Претходна фаза',
+    next: 'Следна фаза',
+    youGet: 'Што добивате',
     steps: [
       {
         title: 'Разговор',

@@ -136,12 +136,23 @@ recolours with the theme for free. The tile it masks with is
 white-on-black tile used directly as a mask is opaque everywhere and masks
 nothing. Headline is 900 weight.
 
-**Process.** A pinned stage sequence with a navigable rail: numbered nodes,
-a scroll-linked progress line, a live counter, and clickable stages (a real
-tablist, arrow keys included). The active stage is **measured** from the DOM —
-which step's midpoint is nearest the middle of the panel — not guessed from
-linear progress, because the steps are different heights and a linear guess
-had the counter running ahead of the content.
+**Process** (`ProcessFlow`). Two scroll-driven versions of this section were
+built and both were rejected for the same reason: pinning the page takes over
+the one gesture people rely on, and no amount of on-screen explanation makes
+that comfortable. It is now a **horizontal deck the page never controls** —
+prev/next buttons, a segmented bar naming all four stages, native scroll-snap
+(so a phone swipes it with the platform's own physics), and arrow keys. The
+active stage is read back from an IntersectionObserver on the panels, so all
+four inputs stay in sync. Each stage ends in its deliverable, set as a
+document rather than a paragraph.
+
+**Capabilities** (`CapabilityBrowser`). Also rebuilt twice. Three columns of
+bullets is a specification; collapsing them behind disclosures made the
+columns shorter without making them better. It is now an **index and one
+detail panel** — one discipline at a time, so nothing has to match anyone
+else's height, and the sub-items are a grid of tiles rather than a list,
+because "Shopify" and "Hosting & domain" have no order between them and a
+bulleted list claims they do.
 
 **Work gallery.** A stage and an index. One project large in browser chrome
 carrying its real domain; the rest as a strip that responds to hover, focus,
