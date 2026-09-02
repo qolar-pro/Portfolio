@@ -152,7 +152,13 @@
   position: sticky;
   /* each card rests slightly lower than the one before, so every header
      stays visible down the left edge of the finished pile */
-  top: calc(var(--nav-h) + clamp(18px, 2.4vh, 30px) + var(--i) * clamp(46px, 6vh, 62px));
+  /* Both offsets are viewport-HEIGHT relative, so the finished pile scales
+     to the window rather than to a number picked on one monitor. Worked
+     through for the deepest card (i=3) against a ~340px card:
+       640px tall -> 84 + 13 + 99  = 196 + 340 = 536   fits
+       900px tall -> 84 + 18 + 140 = 242 + 340 = 582   fits
+      1200px tall -> 84 + 24 + 186 = 294 + 340 = 634   fits */
+  top: calc(var(--nav-h) + clamp(10px, 2vh, 30px) + var(--i) * clamp(30px, 5.2vh, 62px));
   padding-bottom: calc((var(--stk-n) - 1 - var(--i)) * var(--stk-step));
   /* a stacking context per card so a lower card can never paint over a
      higher one once transforms are in play */
@@ -282,7 +288,19 @@
    overlap, nothing hidden.
    ================================================================== */
 
-@media (max-height: 720px) {
+/* 560px, not 720px.
+
+   The first version of this bailed out below 720px viewport height, which
+   is not an edge case at all — a 1366x768 laptop gives about 640px of
+   viewport once browser chrome is taken out, and that is one of the most
+   common windows there is. The result was that a large share of visitors
+   got a plain column and never saw the stack the section exists to be.
+
+   The real limit is where the deepest card's top offset plus the card
+   itself stops fitting on screen, and with the height-relative offsets
+   above that is around 540px. 560 leaves a little margin. Below it the
+   pile becomes a plain column: same cards, same order, nothing hidden. */
+@media (max-height: 560px) {
   .stk-item {
     position: static;
     /* the per-item scroll distance only exists to keep a card stuck; with
