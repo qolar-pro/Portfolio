@@ -34,6 +34,9 @@ const ROUTES = [
   '/en/book-a-call',
   '/en/blog',
   '/en/blog/rebuild-or-redesign',
+  '/en/privacy',
+  '/el/privacy',
+  '/mk/privacy',
   '/el',
   '/mk',
 ];
@@ -250,6 +253,52 @@ for (const theme of ['dark', 'light']) {
     }
     for (const f of JSON.parse(res.result.value)) findings.push({ theme, route, ...f });
   }
+}
+
+/* ── the welcome panel ────────────────────────────────────────────────
+   It never renders in the pass above: it refuses to stack on top of an
+   unanswered consent banner, so with a clean profile it is always suppressed.
+   Answering consent first lets the ordinary scroll sweep trip its 28%
+   threshold, and the panel gets measured like anything else. Without this
+   the only overlay that asks a visitor for their address would be the one
+   surface the contrast audit never looked at. */
+for (const theme of ['dark', 'light']) {
+  await send('Page.addScriptToEvaluateOnNewDocument', {
+    source:
+      `try{localStorage.setItem('nf-theme','${theme}');` +
+      `localStorage.setItem('nf-consent',JSON.stringify({v:1,analytics:'granted'}));` +
+      `localStorage.removeItem('nf-welcome-dismissed');localStorage.removeItem('nf-email');}catch(e){}`,
+  });
+  const route = '/en#welcome-panel';
+  await send('Page.navigate', { url: 'http://localhost:3100/en' });
+  await sleep(2200);
+  await send('Runtime.evaluate', {
+    expression: `(async()=>{const h=document.documentElement.scrollHeight;for(let y=0;y<h;y+=600){window.scrollTo(0,y);await new Promise(r=>setTimeout(r,45));}})()`,
+    awaitPromise: true,
+  });
+  await sleep(900);
+  const open = await send('Runtime.evaluate', {
+    expression: `!!document.querySelector('.wp')`,
+    returnByValue: true,
+  });
+  if (!open.result.value) {
+    console.error('welcome panel never opened — the check above measured nothing');
+    process.exit(1);
+  }
+  await send('Runtime.evaluate', {
+    expression: `(() => {
+      const st = document.createElement('style');
+      st.textContent = '*,*::before,*::after{transition:none!important;animation:none!important}';
+      document.head.appendChild(st);
+    })()`,
+  });
+  await sleep(300);
+  const res = await send('Runtime.evaluate', { expression: AUDIT, returnByValue: true });
+  if (res.exceptionDetails || typeof res.result.value !== 'string') {
+    console.error('AUDIT FAILED on', route, JSON.stringify(res).slice(0, 600));
+    process.exit(1);
+  }
+  for (const f of JSON.parse(res.result.value)) findings.push({ theme, route, ...f });
 }
 
 if (!findings.length) {

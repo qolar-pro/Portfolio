@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
     lang,
     path: ROUTES.services,
     title: c.routes.services.title,
-    description: c.routes.services.lede,
+    description: c.routes.services.seoDesc ?? c.routes.services.lede,
   });
 }
 

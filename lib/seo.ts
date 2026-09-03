@@ -75,8 +75,18 @@ export function pageMetadata({
     },
   ];
 
+  /* Google renders roughly 580px of title, which is about 60 characters —
+     past that it truncates, and a truncated title in a result is a title
+     someone else wrote for you. The layout appends " — NovaFaber" to every
+     page title, which is 12 of those characters; on a route whose own title
+     is already long, the brand is the part worth losing. `absolute` opts
+     that page out of the template rather than shortening real copy. */
+  const withBrand = `${title} — ${BRAND}`;
+  const titleField =
+    withBrand.length > 60 ? { absolute: title } : title;
+
   return {
-    title,
+    title: titleField,
     description,
     alternates: alternatesFor(lang, path),
     openGraph: {

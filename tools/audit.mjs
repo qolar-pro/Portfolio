@@ -220,7 +220,7 @@ const sysDark = await evaluate(`document.documentElement.getAttribute('data-them
 check('with no stored choice, follows prefers-color-scheme: dark', sysDark === 'dark', String(sysDark));
 
 /* ---------------------------------------------------------------- 5. structure */
-for (const route of ['/en', '/en/work', '/en/services', '/en/process', '/en/about', '/en/contact', '/en/blog', '/en/blog/rebuild-or-redesign']) {
+for (const route of ['/en', '/en/work', '/en/services', '/en/process', '/en/about', '/en/contact', '/en/blog', '/en/blog/rebuild-or-redesign', '/en/privacy']) {
   await goto(BASE + route, 1800);
   const s = JSON.parse(
     await evaluate(`(() => {
@@ -239,8 +239,20 @@ for (const route of ['/en', '/en/work', '/en/services', '/en/process', '/en/abou
         unlabelled: [...document.querySelectorAll('button, a')]
           .filter(el => !el.closest('[inert]') && !el.textContent.trim() && !el.getAttribute('aria-label') && !el.getAttribute('title'))
           .map(el => el.tagName + '.' + (el.getAttribute('class')||'').split(' ')[0]).slice(0,4),
+        /* An aria-hidden control is removed from the accessibility tree, so a
+           label requirement is meaningless for it — that is exactly what a
+           honeypot field is. It is only legitimate while the control is also
+           unfocusable, so the focusable case is caught separately below
+           rather than quietly exempted with it. */
         inputsNoLabel: [...document.querySelectorAll('input,select,textarea')]
+          .filter(el => el.getAttribute('aria-hidden') !== 'true')
+          .filter(el => el.type !== 'hidden')
           .filter(el => !el.labels?.length && !el.getAttribute('aria-label')).length,
+        ariaHiddenFocusable: [...document.querySelectorAll('[aria-hidden="true"]')]
+          .filter(el => el.matches('a[href],button,input,select,textarea,[tabindex]'))
+          .filter(el => el.tabIndex >= 0)
+          .map(el => el.tagName.toLowerCase() + '[name=' + (el.getAttribute('name')||'') + ']')
+          .slice(0, 4),
       });
     })()`),
   );
@@ -250,6 +262,11 @@ for (const route of ['/en', '/en/work', '/en/services', '/en/process', '/en/abou
   check(`${route}: every img has alt`, s.noAlt.length === 0, s.noAlt.join(','));
   check(`${route}: no unlabelled control`, s.unlabelled.length === 0, s.unlabelled.join(','));
   check(`${route}: every form control labelled`, s.inputsNoLabel === 0, String(s.inputsNoLabel));
+  check(
+    `${route}: nothing aria-hidden is focusable`,
+    s.ariaHiddenFocusable.length === 0,
+    s.ariaHiddenFocusable.join(','),
+  );
 }
 
 const failed = results.filter((r) => !r.ok);

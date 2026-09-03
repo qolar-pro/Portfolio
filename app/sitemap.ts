@@ -29,7 +29,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `${SITE_URL}/${lang}${path}`,
       lastModified: now,
       changeFrequency: 'monthly' as const,
-      priority: 0.8,
+      /* The policy page belongs in the index — it should be findable — but it
+         is not competing for the same attention as the commercial pages, and
+         giving it their weight would tell a crawler otherwise. */
+      priority: path === ROUTES.privacy ? 0.3 : 0.8,
       alternates: { languages: languagesFor(path) },
     })),
     ...articles[lang].map((a) => ({

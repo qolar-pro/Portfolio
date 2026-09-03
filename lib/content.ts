@@ -67,6 +67,28 @@ export interface SiteContent {
    * screen-reader announcement becoming ambiguous.
    */
   theme: { dark: string; light: string; toDark: string; toLight: string };
+  /** The consent banner, and the footer control that reopens the choice. */
+  consent: {
+    title: string;
+    body: string;
+    accept: string;
+    decline: string;
+    readMore: string;
+    reset: string;
+  };
+  /** The welcome panel: greeting plus an opt-in for updates, news and offers. */
+  welcome: {
+    eyebrow: string;
+    title: string;
+    body: string;
+    emailLabel: string;
+    emailPh: string;
+    submit: string;
+    sending: string;
+    thanks: string;
+    error: string;
+    consent: string;
+  };
   hero: {
     status: string;
     headA: string;
@@ -177,8 +199,18 @@ export interface SiteContent {
   chosen: { label: string; heading: string; desc: string; primary: string; secondary: string };
   /** The band above the footer, on every route. */
   ctaBand: { eyebrow: string; heading: string; desc: string; primary: string; secondary: string };
-  /** Hero copy for each inner route. */
-  routes: Record<RouteKey, { eyebrow: string; title: string; lede: string }>;
+  /**
+   * Hero copy for each inner route.
+   *
+   * `seoDesc` is the meta description where the on-page lede is too long to
+   * survive a search result — Google shows about 155 characters and cuts the
+   * rest mid-word. It is a summary of the lede, not new copy, and it is only
+   * present on the routes that need it; everything else uses the lede.
+   */
+  routes: Record<
+    RouteKey,
+    { eyebrow: string; title: string; lede: string; seoDesc?: string }
+  >;
   footer: {
     tagline: string;
     note: string;
@@ -222,7 +254,15 @@ export interface Testimonial {
   approved: boolean;
 }
 
-export type RouteKey = 'services' | 'work' | 'process' | 'about' | 'contact' | 'book' | 'blog';
+export type RouteKey =
+  | 'services'
+  | 'work'
+  | 'process'
+  | 'about'
+  | 'contact'
+  | 'book'
+  | 'blog'
+  | 'privacy';
 
 /** Route paths, language-prefixed at render time. */
 export const ROUTES: Record<RouteKey, string> = {
@@ -233,6 +273,7 @@ export const ROUTES: Record<RouteKey, string> = {
   contact: '/contact',
   book: '/book-a-call',
   blog: '/blog',
+  privacy: '/privacy',
 };
 
 /* ------------------------------------------------------------------ */
@@ -264,6 +305,26 @@ const en: SiteContent = {
     light: 'Light',
     toDark: 'Switch to dark theme',
     toLight: 'Switch to light theme',
+  },
+  consent: {
+    title: 'Cookies',
+    body: 'We use necessary cookies to make the site work, and — with your permission — analytics and marketing cookies to understand how it is used. You can change your mind at any time.',
+    accept: 'Accept',
+    decline: 'Decline',
+    readMore: 'Cookie policy',
+    reset: 'Cookie choices',
+  },
+  welcome: {
+    eyebrow: 'Welcome',
+    title: 'Worth staying in touch?',
+    body: 'Occasional updates on what the studio ships, plus news and offers. No schedule, no filler, unsubscribe whenever.',
+    emailLabel: 'Your email',
+    emailPh: 'you@company.com',
+    submit: 'Keep me posted',
+    sending: 'Sending',
+    thanks: 'Got it — thank you.',
+    error: 'That did not send. Try again, or email us directly.',
+    consent: 'I agree to receive updates, news and offers, and to this address being linked to my visits. Withdraw any time.',
   },
   hero: {
     status: 'Independent digital studio', // ported
@@ -674,6 +735,8 @@ const en: SiteContent = {
       eyebrow: 'Services',
       title: 'Everything a modern studio should carry.',
       lede: 'Three disciplines, one team, one invoice. Development is the one with four platforms in production behind it — the other two exist because a site that nobody finds, or nobody trusts, is not finished work.',
+      seoDesc:
+        'Development, design and digital marketing from one studio, on one invoice. Websites, e-shops, custom applications and the traffic to reach them.',
     },
     work: {
       eyebrow: 'Our work',
@@ -704,6 +767,11 @@ const en: SiteContent = {
       eyebrow: 'Notes',
       title: 'Straight answers, written down.',
       lede: 'The questions that come up in every first call, answered properly instead of over the phone each time.',
+    },
+    privacy: {
+      eyebrow: 'Privacy',
+      title: 'What we collect, and why.',
+      lede: 'Everything this site records about a visit, what it is used for, and how to change your mind. Written out in full rather than summarised.',
     },
   },
   footer: {
@@ -761,6 +829,26 @@ const el: SiteContent = {
     light: 'Φωτεινό',
     toDark: 'Εναλλαγή σε σκούρο θέμα',
     toLight: 'Εναλλαγή σε φωτεινό θέμα',
+  },
+  consent: {
+    title: 'Cookies',
+    body: 'Χρησιμοποιούμε απαραίτητα cookies για να λειτουργεί το site και — με την άδειά σας — cookies αναλύσεων και marketing για να κατανοούμε πώς χρησιμοποιείται. Μπορείτε να αλλάξετε γνώμη οποτεδήποτε.',
+    accept: 'Αποδοχή',
+    decline: 'Απόρριψη',
+    readMore: 'Πολιτική cookies',
+    reset: 'Επιλογές cookies',
+  },
+  welcome: {
+    eyebrow: 'Καλώς ήρθατε',
+    title: 'Να κρατήσουμε επαφή;',
+    body: 'Περιστασιακά νέα για όσα βγάζει το στούντιο, μαζί με ενημερώσεις και προσφορές. Χωρίς πρόγραμμα, χωρίς γέμισμα, διαγραφή όποτε θέλετε.',
+    emailLabel: 'Το email σας',
+    emailPh: 'esy@etaireia.com',
+    submit: 'Κρατήστε με ενήμερο',
+    sending: 'Αποστολή',
+    thanks: 'Ελήφθη — ευχαριστούμε.',
+    error: 'Δεν στάλθηκε. Δοκιμάστε ξανά ή στείλτε μας email απευθείας.',
+    consent: 'Συμφωνώ να λαμβάνω ενημερώσεις, νέα και προσφορές, και να συνδέεται αυτή η διεύθυνση με τις επισκέψεις μου. Ανάκληση όποτε θέλω.',
   },
   hero: {
     status: 'Ανεξάρτητο ψηφιακό στούντιο', // ported
@@ -1167,6 +1255,8 @@ const el: SiteContent = {
       eyebrow: 'Υπηρεσίες',
       title: 'Ό,τι πρέπει να έχει ένα σύγχρονο στούντιο.',
       lede: 'Τρία αντικείμενα, μία ομάδα, ένα τιμολόγιο. Το Development είναι αυτό με τέσσερις πλατφόρμες σε παραγωγή από πίσω — τα άλλα δύο υπάρχουν επειδή ένα site που δεν το βρίσκει ή δεν το εμπιστεύεται κανείς, δεν είναι τελειωμένη δουλειά.',
+      seoDesc:
+        'Ανάπτυξη, σχεδιασμός και digital marketing από ένα στούντιο, σε ένα τιμολόγιο. Websites, e-shops, custom εφαρμογές και η επισκεψιμότητα που τα βρίσκει.',
     },
     work: {
       eyebrow: 'Τα έργα μας',
@@ -1197,6 +1287,11 @@ const el: SiteContent = {
       eyebrow: 'Σημειώσεις',
       title: 'Καθαρές απαντήσεις, γραμμένες.',
       lede: 'Οι ερωτήσεις που έρχονται σε κάθε πρώτη κουβέντα, απαντημένες σωστά αντί για κάθε φορά στο τηλέφωνο.',
+    },
+    privacy: {
+      eyebrow: 'Απόρρητο',
+      title: 'Τι συλλέγουμε, και γιατί.',
+      lede: 'Όλα όσα καταγράφει αυτό το site για μια επίσκεψη, σε τι χρησιμοποιούνται και πώς αλλάζετε γνώμη. Γραμμένα αναλυτικά, όχι σε περίληψη.',
     },
   },
   footer: {
@@ -1254,6 +1349,26 @@ const mk: SiteContent = {
     light: 'Светло',
     toDark: 'Префрли на темна тема',
     toLight: 'Префрли на светла тема',
+  },
+  consent: {
+    title: 'Колачиња',
+    body: 'Користиме неопходни колачиња за да работи страницата и — со ваша дозвола — колачиња за аналитика и маркетинг за да разбереме како се користи. Можете да се предомислите во секое време.',
+    accept: 'Прифати',
+    decline: 'Одбиј',
+    readMore: 'Политика за колачиња',
+    reset: 'Избор за колачиња',
+  },
+  welcome: {
+    eyebrow: 'Добредојдовте',
+    title: 'Вреди ли да останеме во контакт?',
+    body: 'Повремени новости за тоа што пушта студиото, плус вести и понуди. Без распоред, без полнило, отпишете се кога сакате.',
+    emailLabel: 'Вашиот email',
+    emailPh: 'vie@kompanija.com',
+    submit: 'Известувајте ме',
+    sending: 'Се испраќа',
+    thanks: 'Примено — благодариме.',
+    error: 'Не се испрати. Обидете се повторно или пишете ни директно.',
+    consent: 'Се согласувам да примам новости, вести и понуди, и оваа адреса да се поврзе со моите посети. Повлекување во секое време.',
   },
   hero: {
     status: 'Независно дигитално студио',
@@ -1643,6 +1758,8 @@ const mk: SiteContent = {
       eyebrow: 'Услуги',
       title: 'Сѐ што треба да носи едно современо студио.',
       lede: 'Три дисциплини, еден тим, една фактура. Development е оној со четири платформи во продукција зад себе — другите две постојат затоа што страница што никој не ја наоѓа, или на која никој не ѝ верува, не е завршена работа.',
+      seoDesc:
+        'Развој, дизајн и дигитален маркетинг од едно студио, на една фактура. Веб-страници, е-продавници, наменски апликации и сообраќајот што ги наоѓа.',
     },
     work: {
       eyebrow: 'Нашите проекти',
@@ -1673,6 +1790,11 @@ const mk: SiteContent = {
       eyebrow: 'Белешки',
       title: 'Јасни одговори, запишани.',
       lede: 'Прашањата што доаѓаат во секој прв разговор, одговорени како треба наместо секој пат по телефон.',
+    },
+    privacy: {
+      eyebrow: 'Приватност',
+      title: 'Што собираме и зошто.',
+      lede: 'Сè што оваа страница запишува за една посета, за што се користи и како да се предомислите. Напишано целосно, не како резиме.',
     },
   },
   footer: {

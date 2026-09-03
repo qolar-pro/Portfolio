@@ -1,0 +1,346 @@
+/* ==================================================================
+   CONSENT, WELCOME PANEL, POLICY TABLES
+   ------------------------------------------------------------------
+   Imported after globals.css (DD-4). Everything resolves through the
+   shared tokens, so both themes are covered without a second set of
+   rules.
+   ================================================================== */
+
+/* ---------------------------------------------------------------- banner
+   A band across the bottom, not a modal. It must not trap focus and must
+   not block reading — including reading the policy it links to. */
+
+.cc {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 130;
+  padding: clamp(14px, 2vw, 20px) var(--gut);
+  background: rgba(var(--glass-rgb), 0.97);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border-top: 1px solid var(--line);
+  box-shadow: 0 -18px 44px -30px rgba(var(--shadow-rgb), 0.9);
+  animation: cc-in 0.5s var(--ease-out) both;
+  /* clears the iOS home indicator, and is 0 everywhere else */
+  padding-bottom: calc(clamp(14px, 2vw, 20px) + env(safe-area-inset-bottom, 0px));
+}
+@keyframes cc-in {
+  from { transform: translateY(100%); }
+  to { transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cc { animation: none; }
+}
+
+.cc-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: clamp(16px, 3vw, 40px);
+  max-width: var(--maxw);
+  margin: 0 auto;
+}
+.cc-copy { min-width: 0; }
+
+.cc-title {
+  font-family: var(--font-d);
+  font-size: 1.06rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 4px;
+}
+.cc-text {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  max-width: 92ch;
+}
+.cc-link { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+
+/* Both actions are the same size and weight. A reject buried behind a
+   settings link while accept sits in the accent colour is the pattern
+   regulators have been fining people for, and the few percent of extra
+   consent it buys is not worth it. */
+.cc-actions { display: flex; gap: 10px; flex: none; }
+.cc-btn { font-size: 1rem; padding: 12px 22px; }
+
+@media (max-width: 800px) {
+  .cc-body { grid-template-columns: 1fr; gap: 14px; }
+  .cc-actions { width: 100%; }
+  .cc-btn { flex: 1; justify-content: center; }
+
+  /* Stacked, the full disclosure runs to eleven lines and swallows half of a
+     320px screen — which reads as a wall to get past rather than something
+     to read. The copy keeps every word and scrolls within its own box, so
+     the banner stays a band and the page stays visible behind it. Shortening
+     the text instead would mean the categories someone is consenting to are
+     no longer all in front of them at the moment they consent. */
+  .cc-copy {
+    max-height: 22vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .cc-text { font-size: 0.875rem; }
+}
+
+/* the footer control that reopens the choice */
+.cc-reset {
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color var(--dur-xs) var(--ease);
+}
+.cc-reset:hover { color: var(--accent); }
+
+.foot-legal { display: inline-flex; gap: 16px; align-items: baseline; flex-wrap: wrap; }
+.foot-legal a { text-decoration: underline; text-underline-offset: 3px; }
+.foot-legal a:hover { color: var(--accent); }
+
+/* ---------------------------------------------------------- welcome panel
+   This one IS a modal — it covers the page and asks for something — so
+   unlike the banner it traps focus and closes on Escape. */
+
+.wp-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 140;
+  display: grid;
+  place-items: center;
+  padding: var(--gut);
+  background: rgba(var(--scrim-rgb), 0.72);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  animation: wp-fade 0.32s var(--ease-out) both;
+}
+@keyframes wp-fade { from { opacity: 0; } to { opacity: 1; } }
+
+.wp {
+  position: relative;
+  width: min(520px, 100%);
+  padding: clamp(26px, 4vw, 40px);
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  background: var(--panel-2);
+  box-shadow: var(--el-3);
+  animation: wp-rise 0.42s var(--ease-out) both;
+}
+@keyframes wp-rise {
+  from { opacity: 0; transform: translateY(16px) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wp-scrim, .wp { animation: none; }
+}
+
+.wp-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  box-shadow: var(--el-1);
+  color: var(--text-secondary);
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color var(--dur-xs) var(--ease), color var(--dur-xs) var(--ease);
+}
+.wp-close:hover { border-color: var(--accent); color: var(--accent); }
+
+.wp-title {
+  font-family: var(--font-d);
+  font-size: clamp(1.6rem, 3.4vw, 2.1rem);
+  font-weight: 900;
+  line-height: 1.04;
+  margin: 0;
+  color: var(--text-primary);
+  text-wrap: balance;
+}
+.wp-text { color: var(--text-secondary); margin: 14px 0 0; font-size: var(--t-base); }
+
+.wp-form { margin-top: 22px; }
+.wp-label {
+  display: block;
+  font-family: var(--font-m);
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+.wp-row { display: flex; gap: 10px; }
+.wp-row input[type='email'] {
+  flex: 1;
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  background: var(--surface);
+  box-shadow: var(--el-in);
+  color: var(--text-primary);
+  font-family: var(--font-b);
+  font-size: 1rem;
+}
+.wp-row input[type='email']:focus {
+  border-color: var(--accent);
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.wp-row .btn { flex: none; padding: 13px 20px; font-size: 1rem; }
+.wp-row .btn:disabled { opacity: 0.45; cursor: not-allowed; animation: none; }
+
+.wp-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 16px;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.wp-consent input { margin-top: 3px; flex: none; accent-color: var(--accent); }
+
+.wp-done { margin: 22px 0 0; color: var(--accent); font-size: var(--t-md); }
+.wp-error { margin: 12px 0 0; color: var(--text-primary); font-size: 0.9rem; }
+
+/* The honeypot. Off-screen rather than display:none — some bots skip
+   hidden inputs, and none of them read the accessible tree. */
+.wp-hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (max-width: 520px) {
+  .wp-row { flex-direction: column; }
+  .wp-row .btn { justify-content: center; }
+}
+
+/* ------------------------------------------------------------ policy page */
+
+.prose-wide { max-width: 88ch; }
+.prose-wide .h2 { margin-top: clamp(44px, 6vw, 76px); }
+.prose-wide .h2:first-child { margin-top: 0; }
+.prose-wide p {
+  color: var(--text-secondary);
+  font-size: var(--t-md);
+  margin: 16px 0 0;
+  max-width: 74ch;
+}
+.prose-wide a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+.prose-wide strong { color: var(--text-primary); }
+.prose-wide code {
+  font-family: var(--font-m);
+  font-size: 0.86em;
+  padding: 2px 7px;
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  box-shadow: var(--el-in);
+  color: var(--text-primary);
+}
+
+/* A table is the honest shape for "what, when, why" — three parallel facts
+   per row. It scrolls in its own box rather than widening the page. */
+.tbl-wrap {
+  margin-top: 24px;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--panel);
+  box-shadow: var(--el-1);
+}
+.tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.96rem;
+  min-width: 640px;
+}
+.tbl th,
+.tbl td {
+  text-align: left;
+  vertical-align: top;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.tbl thead th {
+  font-family: var(--font-m);
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background: var(--surface);
+  border-bottom-color: var(--line);
+  white-space: nowrap;
+}
+.tbl tbody th { color: var(--text-primary); font-weight: 600; width: 26%; }
+.tbl td { color: var(--text-secondary); }
+.tbl tbody tr:last-child th,
+.tbl tbody tr:last-child td { border-bottom: 0; }
+.tbl tbody tr { transition: background-color var(--dur-xs) var(--ease); }
+.tbl tbody tr:hover { background: var(--accent-wash); }
+
+/* ------------------------------------------------------- cookie categories */
+
+.ck-cat {
+  margin-top: clamp(28px, 3.5vw, 44px);
+  padding-top: clamp(22px, 3vw, 32px);
+  border-top: 1px solid var(--line-soft);
+}
+.ck-cat:first-of-type { border-top: 0; }
+
+.ck-head {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.ck-name {
+  font-family: var(--font-d);
+  font-size: clamp(1.15rem, 2vw, 1.4rem);
+  font-weight: 800;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+/* The label is the whole point of the section: whether this group runs
+   before you have answered. It carries a colour AND a word, never colour
+   alone. */
+.ck-flag {
+  font-family: var(--font-m);
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 5px 11px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line);
+  white-space: nowrap;
+}
+.ck-flag-on {
+  color: var(--text-secondary);
+  background: var(--surface);
+}
+.ck-flag-opt {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-wash);
+}
+
+.ck-what { margin-top: 10px !important; }
+.ck-cat .tbl-wrap { margin-top: 18px; }

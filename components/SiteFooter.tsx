@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ConsentReset } from '@/components/CookieConsent';
 import { Logo } from '@/components/Logo';
 import {
   BRAND,
@@ -199,6 +200,12 @@ export function SiteFooter({ c, lang }: { c: SiteContent; lang: Lang }) {
           </span>
           <span>{c.footer.note}</span>
           <span>{c.footer.rights}</span>
+          <span className="foot-legal">
+            <Link href={`/${lang}${ROUTES.privacy}`}>{c.routes.privacy.eyebrow}</Link>
+            {/* The half of "you can withdraw consent at any time" that most
+                sites write down and never build. */}
+            <ConsentReset label={c.consent.reset} />
+          </span>
         </div>
       </div>
     </footer>

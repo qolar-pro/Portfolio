@@ -7,9 +7,13 @@ import '../globals.css';
    work cannot collide in one 3,900-line stylesheet. */
 import '../css/ledger.css';
 import '../css/stack.css';
+import '../css/consent.css';
 import { MotionProvider } from '@/components/motion/MotionProvider';
 import { MotionScope } from '@/components/motion/MotionScope';
+import { CookieConsent } from '@/components/CookieConsent';
 import { StructuredData } from '@/components/StructuredData';
+import { VisitTracker } from '@/components/VisitTracker';
+import { WelcomePanel } from '@/components/WelcomePanel';
 import { ThemeScript } from '@/components/ThemeScript';
 import { BRAND, FOUNDER, LANGS, content, type Lang } from '@/lib/content';
 import { SITE_URL } from '@/lib/seo';
@@ -137,11 +141,19 @@ export default async function LangLayout({
           {c.nav.skip}
         </a>
         <StructuredData lang={lang as Lang} />
+        {/* Reports a visit only after consent is granted — see the note in
+            components/VisitTracker. */}
+        <VisitTracker />
         {/* the hairline that tracks how far down the page you are */}
         <div className="scroll-progress" aria-hidden="true" />
         <MotionProvider>
           <MotionScope>{children}</MotionScope>
         </MotionProvider>
+        {/* Both sit outside MotionScope: neither should be swept up by the
+            reveal system, and the consent banner in particular must never
+            be waiting on an animation to become readable. */}
+        <CookieConsent c={c} lang={lang as Lang} />
+        <WelcomePanel c={c} />
       </body>
     </html>
   );

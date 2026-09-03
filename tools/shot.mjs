@@ -12,11 +12,16 @@
  */
 import { spawn } from 'node:child_process';
 import { writeFileSync, mkdirSync } from 'node:fs';
+import { resolve as resolvePath } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 
 const EDGE = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
 const PORT = 9333;
-const [outDir, specPath] = process.argv.slice(2);
+/* Edge refuses a --user-data-dir that does not exist, and resolves a relative
+   one against its own cwd rather than ours — it then dies on startup with no
+   message, which surfaces here only as "browser never came up". */
+const outDir = resolvePath(process.argv[2]);
+const specPath = process.argv[3];
 const specs = JSON.parse(await import('node:fs').then((f) => f.readFileSync(specPath, 'utf8')));
 mkdirSync(outDir, { recursive: true });
 
