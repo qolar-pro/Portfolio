@@ -1,20 +1,44 @@
-'use client';
-
-import { useEffect, useRef } from 'react';
-import { EASE, gsap, prefersReducedMotion, registerMotion } from '@/lib/motion';
-
 /**
- * Title card. Each line rises out of its own mask rather than fading in —
- * a fade says "content loaded", a masked rise says the shot has started.
+ * The title card.
  *
- * Every character is its own element so the letters can float at rest and
- * react individually to the pointer (see .ch in globals.css). The split is
- * done here rather than in CSS because there is no CSS way to address a
- * character. `--i` carries the index so each letter can be given its own
- * phase — without it the whole line would bob as one rigid block.
+ * ── THE ENTRANCE IS CSS, AND THAT IS THE POINT ───────────────────────
+ * The two lines arrive from opposite sides at the same moment — "BUILT
+ * FROM" from the right, "SCRATCH." from the left — and pop as they meet in
+ * the middle. All of it lives in `@keyframes hero-in-*` in globals.css.
  *
- * The lines ship in place; GSAP sets the from-state on mount, so without JS
- * this is simply a heading.
+ * It was built in GSAP first, and measuring it is what moved it:
+ *
+ *   - The travel was real (953px in from each side, both landing at 0) but
+ *     it did not START until ~2.3s after the page painted, because a GSAP
+ *     timeline inside an effect cannot run until React has hydrated. So the
+ *     visitor saw the finished headline, watched it jump off-screen, and
+ *     watched it come back. An entrance that plays after the thing has
+ *     already arrived is worse than no entrance at all.
+ *   - `expo.out` put the lines 97% of the way home inside the first half of
+ *     the duration. The travel was over before the eye found it, and all
+ *     anyone registered was the pop.
+ *   - The pop itself peaked at scale 1.019. Under two percent is not a pop,
+ *     it is a rounding error.
+ *
+ * A CSS animation with `both` fill starts at first paint. No hydration on
+ * the critical path for the site's signature moment, no JavaScript at all,
+ * and it runs on the compositor. The curve is power3-shaped rather than
+ * exponential so the lines spend real time crossing the frame, and the
+ * overshoot is 4%, which can actually be seen.
+ *
+ * ── DD-2 HOLDS, MORE STRONGLY THAN BEFORE ────────────────────────────
+ * The resting state is the finished state. The from-state exists only
+ * inside the keyframes, so there is no path that leaves the heading
+ * hidden: no JS is involved, and if the stylesheet loaded then the
+ * animation loaded with it. `prefers-reduced-motion` cancels it in the
+ * same file.
+ *
+ * ── WHY THE CHARACTERS ARE SPLIT ─────────────────────────────────────
+ * Each character is its own element so the letters can float at rest and
+ * react individually to the pointer (see `.ch` in globals.css). There is no
+ * CSS way to address a character, so the split happens here. `--i` carries
+ * the index, which is what gives each letter its own phase — without it the
+ * whole line would bob as one rigid block.
  */
 function split(text: string) {
   return text.split('').map((ch, i) => {
@@ -28,40 +52,13 @@ function split(text: string) {
 }
 
 export function HeroTitle({ a, b }: { a: string; b: string }) {
-  const ref = useRef<HTMLHeadingElement>(null);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || prefersReducedMotion()) return;
-
-    registerMotion();
-
-    const ctx = gsap.context(() => {
-      // rise out of the mask while the lens pulls focus — the blur is what
-      // makes it read as a shot starting rather than an element appearing
-      gsap.from('.title-line > span, .title-line > em', {
-        yPercent: 112,
-        scale: 1.06,
-        filter: 'blur(14px)',
-        opacity: 0,
-        duration: 1.7,
-        ease: EASE,
-        stagger: 0.16,
-        delay: 0.15,
-        clearProps: 'filter,opacity,scale',
-      });
-    }, el);
-
-    return () => ctx.revert();
-  }, []);
-
   return (
-    <h1 ref={ref}>
+    <h1>
       <span className="title-line">
-        <span>{split(a)}</span>
+        <span className="line-a">{split(a)}</span>
       </span>
       <span className="title-line">
-        <em>{split(b)}</em>
+        <em className="line-b">{split(b)}</em>
       </span>
     </h1>
   );

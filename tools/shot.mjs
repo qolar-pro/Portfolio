@@ -81,6 +81,7 @@ await send('Network.enable');
 
 const report = [];
 let seeded = null;
+let preId = null;
 
 for (const s of specs) {
   events.length = 0;
@@ -110,6 +111,15 @@ for (const s of specs) {
       : `try{localStorage.removeItem('nf-theme')}catch(e){}`,
   });
   seeded = seed.identifier;
+
+  /* `pre` runs BEFORE any page script, on every navigation. It is the only
+     way to observe an entrance animation: by the time `eval` runs the page
+     has loaded and anything that happens on mount is long finished. */
+  if (s.pre) {
+    if (preId) await send('Page.removeScriptToEvaluateOnNewDocument', { identifier: preId });
+    const r = await send('Page.addScriptToEvaluateOnNewDocument', { source: s.pre });
+    preId = r.identifier;
+  }
 
   await send('Page.navigate', { url: s.url });
   await sleep(s.wait ?? 2600);
@@ -198,7 +208,15 @@ for (const s of specs) {
     .filter((e) => e.method === 'Network.loadingFailed')
     .map((e) => e.params.errorText);
 
-  report.push({ name: s.name, ...JSON.parse(audit.result.value), errors: errs, failed });
+  /* `probe` puts an arbitrary measurement in the report — for the things a
+     screenshot cannot answer, like whether an element ever actually moved. */
+  let probe;
+  if (s.probe) {
+    const r = await send('Runtime.evaluate', { expression: s.probe, returnByValue: true });
+    probe = r.exceptionDetails ? 'ERR ' + r.exceptionDetails.text : r.result.value;
+  }
+
+  report.push({ name: s.name, ...JSON.parse(audit.result.value), probe, errors: errs, failed });
 }
 
 async function fullClip(w) {
