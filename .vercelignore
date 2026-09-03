@@ -3,3 +3,8 @@
 tools/
 .qa/
 _embargoed-originals/
+
+# Local secrets. Git already ignores these; this line stops a `vercel deploy`
+# from the CLI — which uploads the working directory rather than the commit —
+# carrying the webhook credential into a deployment's source.
+.env*.local
