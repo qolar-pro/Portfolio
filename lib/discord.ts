@@ -48,13 +48,28 @@ function clamp(s: string, max: number) {
   return v.length <= max ? v : v.slice(0, max - 1) + '…';
 }
 
+/* A missing webhook in production is silent from the outside: every route
+   here answers 200 whether or not the card was delivered, by design, so the
+   visitor never waits on Discord and never sees its failures. That silence
+   cost a real debugging session — the site looked healthy, the endpoint
+   returned 200, and nothing arrived, with no trace anywhere. So the
+   unconfigured case now says so in the runtime log. Once per process, not
+   per request: this is a deploy-level fact, and repeating it on every visit
+   would bury the delivery failures that are per-message. */
+let warnedUnset = false;
+
 export async function sendCard(card: Card): Promise<boolean> {
   const url = process.env.DISCORD_WEBHOOK_URL;
   if (!url) {
-    // A missing webhook is a configuration state, not an incident: local dev
-    // and preview deployments run without one on purpose.
     if (process.env.NODE_ENV !== 'production') {
       console.info('[discord] DISCORD_WEBHOOK_URL not set — skipping:', card.title);
+    } else if (!warnedUnset) {
+      warnedUnset = true;
+      console.warn(
+        '[discord] DISCORD_WEBHOOK_URL is not set on this deployment — ' +
+          'nothing will be delivered until it is added to the project ' +
+          'environment and the project is redeployed.',
+      );
     }
     return false;
   }
