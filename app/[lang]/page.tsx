@@ -52,8 +52,12 @@ export default async function Page({ params }: { params: Promise<{ lang: string 
               page, so the hero is made of the site's own material rather
               than of footage sitting behind it. */}
           <div className="hero-field" aria-hidden="true">
+            {/* two contour planes at different scales and drift speeds: one
+                layer is a texture, two is depth */}
+            <div className="hero-contours-far" />
             <div className="hero-contours" />
             <div className="hero-glow" />
+            <div className="hero-glow-2" />
             <div className="hero-vignette" />
             <div className="hero-grain" />
           </div>

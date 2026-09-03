@@ -114,7 +114,13 @@ for (const s of specs) {
   await send('Page.navigate', { url: s.url });
   await sleep(s.wait ?? 2600);
 
-  if (s.eval) await send('Runtime.evaluate', { expression: s.eval, awaitPromise: true });
+  if (s.eval) {
+    await send('Runtime.evaluate', { expression: s.eval, awaitPromise: true });
+    /* A style injected by `eval` needs a frame to take effect. Screenshotting
+       immediately captures the pre-repaint frame, which silently produces a
+       shot that looks like the eval never ran. */
+    await sleep(300);
+  }
   if (s.click) {
     await send('Runtime.evaluate', {
       expression: `document.querySelector(${JSON.stringify(s.click)})?.click()`,
