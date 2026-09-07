@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { LOCALES, ROOT_REDIRECT_LOCALE } from '@/lib/locales';
+import { ROUTES } from '@/lib/routes';
 
 /**
  * DD-2 makes every locale URL-prefixed, including English, so bare `/` and any
@@ -11,6 +12,9 @@ import { LOCALES, ROOT_REDIRECT_LOCALE } from '@/lib/locales';
  */
 
 const PUBLIC_FILE = /\.[^/]+$/;
+
+/** Unprefixed forms of the real routes, e.g. `services/websites`, `` for home. */
+const KNOWN_PATHS = new Set(ROUTES.map((route) => route.path));
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -28,9 +32,29 @@ export function middleware(request: NextRequest) {
   );
   if (hasLocale) return NextResponse.next();
 
+  /**
+   * Only redirect paths that exist. Redirecting everything meant a stray URL
+   * became a redirect *into* a 404 — `/nonsense` -> `/en/nonsense` -> 404 —
+   * which is strictly worse than a 404 at the original URL: it costs a round
+   * trip, it reports in Search Console as "Page with redirect" instead of the
+   * "Not found" it actually is, and it makes a dead link look load-bearing.
+   * An unknown path falls through and 404s where it was asked for.
+   */
+  const bare = pathname.replace(/^\/|\/$/g, '');
+  if (!KNOWN_PATHS.has(bare)) return NextResponse.next();
+
   const url = request.nextUrl.clone();
-  url.pathname = `/${ROOT_REDIRECT_LOCALE}${pathname === '/' ? '' : pathname}`;
-  return NextResponse.redirect(url);
+  url.pathname = `/${ROOT_REDIRECT_LOCALE}${bare ? `/${bare}` : ''}`;
+
+  /**
+   * 308, not the 307 default. The target is a fixed constant, not a
+   * negotiated one, so the redirect is permanent by construction — and a
+   * temporary redirect asks search engines to keep the source URL indexed and
+   * to re-check it forever, splitting the signals of `/` from `/en`.
+   * Revisit only if Phase 9 makes the root Accept-Language dependent, which
+   * would make it genuinely temporary.
+   */
+  return NextResponse.redirect(url, 308);
 }
 
 export const config = {

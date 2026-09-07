@@ -5,7 +5,21 @@
  * so much. Every consumer imports from here.
  */
 
-export const SITE_URL = 'https://novafaber.com';
+/**
+ * The canonical origin. This MUST be the host that actually answers 200.
+ *
+ * Production serves www and 308s the apex to it:
+ *   https://novafaber.com/en -> 308 -> https://www.novafaber.com/en -> 200
+ *
+ * The apex was hard-coded here while www was the live host, so every canonical,
+ * hreflang, x-default, og:url and sitemap entry pointed at a permanent
+ * redirect. A canonical that redirects is a canonical search engines discard,
+ * and a sitemap of redirects is a sitemap of URLs that cannot be indexed.
+ *
+ * If the site ever moves to the apex, flip this one line AND flip the
+ * redirect at the host so the two never disagree again.
+ */
+export const SITE_URL = 'https://www.novafaber.com';
 export const SITE_NAME = 'NovaFaber';
 
 /** Kept for JSON-LD `alternateName` so the rebrand stays machine-linkable (SPEC §7). */

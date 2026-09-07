@@ -1693,3 +1693,167 @@ definitions in `.claude/agents/` are amended to say so.
 **Binding:** if an agent stalls, retry ONCE with a narrower brief before
 falling back to the main thread — and log the missing review either way, as
 Phase 1 did.
+
+---
+
+## Indexing audit — Search Console "Page indexing", 33 URLs not indexed
+
+Triggered by the GSC report for novafaber.com: 13 "Page with redirect", 8
+"Excluded by noindex tag", 4 "Alternate page with proper canonical tag", 1
+"Blocked by robots.txt", 7 "Crawled – currently not indexed".
+
+**Read this first: the report is not about this repo.** Production
+(`www.novafaber.com`) is served by a different codebase. Evidence, gathered by
+crawling the live site:
+
+| | this repo @ `535d250` | live production |
+|---|---|---|
+| route dir | `app/[locale]/` | `app/[lang]/` (live JS chunk paths) |
+| routes | `/pricing`, `/studio`, `/lab`, `/services/websites`… | `/services`, `/about`, `/blog`, `/privacy`, `/book-a-call` |
+| EL / MK | `null`, every page `noindex` | translated, `index, follow` |
+| robots / sitemap | absent | present |
+| newest date | 2026-08-12 (commit) | 2026-09-03 (sitemap `lastmod`) |
+
+`https://www.novafaber.com/en/pricing` returns 404; `/en/about` returns 200.
+The fixes below therefore correct the *same class of fault* in this codebase;
+they do not change what Search Console currently reports. See OQ-19.
+
+### DD-46 — The canonical origin is the host that answers 200
+
+`SITE_URL` was the apex, `https://novafaber.com`. Production answers on www and
+308s the apex to it:
+
+```
+http://novafaber.com/     -> 308 -> https://novafaber.com/
+                          -> 308 -> https://www.novafaber.com/
+                          -> 307 -> /en                          (3 hops)
+https://novafaber.com/en/ -> 308 -> https://www.novafaber.com/en/
+                          -> 308 -> /en                          (2 hops)
+```
+
+Everything the site emitted pointed at that redirecting host — canonical,
+hreflang, x-default, og:url, og:image, JSON-LD `@id`, `robots.txt` `Host:`, and
+all 36 sitemap `<loc>` entries. All 36 live pages return `200 index, follow`
+while naming a canonical that redirects away from itself.
+
+That one mismatch accounts for the two largest buckets. A canonical that
+redirects is discarded, and a sitemap of redirects offers 36 URLs for indexing
+of which zero are indexable at the submitted address — reported back as "Page
+with redirect".
+
+**Ruling:** `SITE_URL` is the host that returns 200, now `https://www.novafaber.com`.
+
+**Binding:** `SITE_URL` and the host-level redirect are one decision. Changing
+either without the other reintroduces this exact fault. The constant carries the
+instruction in its comment.
+
+### DD-47 — A sitemap lists only URLs that are 200 and indexable
+
+`app/robots.ts` and `app/sitemap.ts` were deleted in the Phase 0 rebrand
+(`0469e77`) and never rebuilt, so since 2026-08-10 this build has shipped with
+neither. `lib/routes.ts` still documented a sitemap reading from `ROUTES` — "a
+route cannot exist without being reachable and cannot be reachable without being
+indexed" — with no such consumer behind it. Both are restored, generated from
+`ROUTES × indexableLocales()`.
+
+Two rules the sitemap enforces:
+
+1. every `<loc>` returns 200 on the canonical host — verified: 15/15 against a
+   local production server;
+2. untranslated locales are excluded. They are served `noindex` (DD-10), and
+   submitting a URL for indexing while instructing search engines not to index
+   it spends crawl budget to be refused.
+
+The restored `robots.ts` drops the previous production rule `Disallow: /_next/`.
+It reads as "keep crawlers out of build internals", but `/_next/image` is how
+every optimised image is served and `/_next/static/*` holds the CSS and JS
+Googlebot needs to render. That rule is the "Blocked by robots.txt" URL in the
+report. It costs image indexing and render fidelity and withholds nothing worth
+withholding.
+
+**Binding:** a URL belongs in the sitemap only if it answers 200 at the
+canonical host AND is not `noindex`. Never `Disallow: /_next/`.
+
+### DD-48 — hreflang clusters contain only indexable locales
+
+`localeAlternates()` advertised `el` and `mk` as alternates of every EN page
+while `pageMetadata()` marked those same pages `noindex` — a cluster asking
+search engines to treat a page they were told to drop as a substitute for one
+they should keep. Alternates are now filtered to written locales, and a cluster
+of fewer than two is omitted entirely: a single-entry hreflang set states only
+that a page is an alternate of itself.
+
+`indexable` is passed as an argument rather than imported, because
+`lib/content` already imports `lib/metadata`; importing back would close a
+cycle. `indexableLocales()` lives with `isTranslated()`, where the fact does.
+
+**Binding:** `noindex` and hreflang are mutually exclusive on the same URL.
+
+### DD-49 — Redirect only to paths that exist, and do it permanently
+
+Two faults in one middleware:
+
+1. **307 for `/` → `/en`.** The target is `ROOT_REDIRECT_LOCALE`, a constant,
+   so the redirect is permanent by construction. A temporary redirect asks
+   search engines to keep the source indexed and re-check it indefinitely,
+   splitting the signals of `/` from `/en`. Now 308. Revisit only if Phase 9
+   makes the root Accept-Language dependent — which would make it genuinely
+   temporary.
+2. **Every unprefixed path was redirected**, so `/nonsense` became
+   `/en/nonsense` → 404: a redirect *into* a 404. Strictly worse than a 404 at
+   the original URL — an extra round trip, and it reports as "Page with
+   redirect" rather than the "Not found" it is. The middleware now matches
+   against `ROUTES` and lets unknown paths 404 where they were asked for.
+
+Verified against a local production server: `/` `/pricing`
+`/services/websites` `/work/a25` → 308 to their `/en` form; `/nonsense` `/de`
+`/services` → 404 directly; `/robots.txt` `/sitemap.xml` → 200.
+
+**Binding:** the middleware redirects known routes only, and permanently.
+
+### OQ-19 — Which codebase serves www.novafaber.com, and does it get these fixes?
+
+Production is not built from this repository (table above). Every fix in DD-46
+through DD-49 is committed here and changes nothing about the live report until
+the deployed source carries the equivalent. Needed from the owner: the repo or
+Vercel project behind `www.novafaber.com`. Until then the four live-site
+remedies — sitemap on www, canonicals on www, `Disallow: /_next/` removed,
+`Host:` corrected — are unowned.
+
+### OQ-20 — Apex or www as the public host?
+
+DD-46 matched the code to the host that currently answers 200 (www), which is
+the minimal correction and needs no DNS change. Choosing the apex instead is
+equally valid and is a one-line flip of `SITE_URL` plus reversing the redirect
+at the host. This is a branding call, not a technical one; it is recorded so it
+is made deliberately rather than inherited from whichever value happened to be
+hard-coded. Whatever is chosen, the two halves move together.
+
+### OQ-21 — The 8 "Excluded by noindex tag" URLs are unidentified
+
+All 36 live URLs plus 20 legacy guesses (`/de` `/fr` `/it` `/services` `/about`
+`/terms` `/thank-you` …) were crawled. Nothing live returns 200 with a
+`noindex`. The 404 page carries `noindex` but is served with a 404 status,
+which reports as "Not found" — and the report has no "Not found" row. The 8 are
+therefore most likely stale records from an earlier deployment. Resolving this
+needs the URL list exported from the Search Console row; it cannot be
+determined from outside.
+
+### OQ-22 — "Crawled – currently not indexed" is a content decision, not a bug
+
+No orphans (every live page has 14 inbound internal links, blog posts 5 each),
+no duplicate titles, no duplicate descriptions across all 36 live pages. What
+correlates is length. Eight pages sit under 300 words, and they are exactly the
+transactional set:
+
+```
+/mk/contact      272    /el/blog          280
+/el/contact      276    /mk/blog          292
+/mk/book-a-call  281    /en/book-a-call   298
+/el/book-a-call  283    /en/contact       285
+```
+
+against 369–922 elsewhere. Contact and book-a-call pages in three locales,
+carrying near-identical structure and little unique text, are the standard
+profile for this bucket. The remedy is copy, not configuration, and it is the
+owner's call whether these pages are worth the words.

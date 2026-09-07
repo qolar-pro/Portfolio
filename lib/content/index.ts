@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import type { Locale } from '@/lib/locales';
+import { LOCALES, type Locale } from '@/lib/locales';
 import { localeAlternates } from '@/lib/metadata';
 import { en } from './en';
 import type { ContentRegistry, LocaleContent } from './types';
@@ -43,6 +43,17 @@ export function untranslatedLocales(): Locale[] {
 }
 
 /**
+ * The locales a page may declare as hreflang alternates: the written ones.
+ *
+ * Kept next to `isTranslated` rather than in `lib/metadata`, because this is a
+ * fact about content, and `lib/metadata` must not import content (see the note
+ * on `localeAlternates`).
+ */
+export function indexableLocales(): Locale[] {
+  return LOCALES.filter(isTranslated);
+}
+
+/**
  * Page metadata from content, plus canonical/hreflang, plus a `noindex` on any
  * locale whose copy is not written.
  *
@@ -53,7 +64,7 @@ export function untranslatedLocales(): Locale[] {
 export function pageMetadata(key: string, path: string, locale: Locale): Metadata {
   const meta = contentFor(locale).meta[key];
   const base: Metadata = {
-    alternates: localeAlternates(path, locale),
+    alternates: localeAlternates(path, locale, indexableLocales()),
   };
 
   if (meta) {
