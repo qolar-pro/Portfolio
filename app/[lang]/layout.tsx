@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { JetBrains_Mono, Sofia_Sans_Condensed, Source_Serif_4 } from 'next/font/google';
+import { Analytics } from '@vercel/analytics/next';
 import '../globals.css';
 /* Section stylesheets, after globals so they win the cascade without
    !important. See DD-4 in PROGRESS.md — they are separate files so parallel
@@ -154,6 +155,7 @@ export default async function LangLayout({
             be waiting on an animation to become readable. */}
         <CookieConsent c={c} lang={lang as Lang} />
         <WelcomePanel c={c} />
+        <Analytics />
       </body>
     </html>
   );
