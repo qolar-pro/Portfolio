@@ -59,7 +59,7 @@ export default async function BookPage({ params }: { params: Promise<{ lang: str
               </div>
             </Reveal>
             <Reveal delay={0.1}>
-              <ContactForm c={c} />
+              <ContactForm c={c} lang={lang} />
             </Reveal>
           </div>
         </section>

@@ -119,8 +119,16 @@ export function ThemeToggle({ c, className = '' }: { c: SiteContent; className?:
       data-theme-state={theme}
       onClick={onToggle}
       /* before mount the control cannot know the real theme; hiding it from
-         assistive tech for that one frame is better than announcing a lie */
+         assistive tech for that one frame is better than announcing a lie.
+
+         It has to leave the tab order for that frame too. aria-hidden alone
+         removes the button from the accessibility tree while a <button> stays
+         focusable by default, so a keyboard user could land on a control that
+         announces nothing — the exact pattern the a11y audit guards against,
+         and it only surfaced intermittently because whether the check catches
+         this frame depends on how fast the page hydrates. */
       aria-hidden={!mounted || undefined}
+      tabIndex={mounted ? undefined : -1}
     >
       {/* The thumb carries the icon rather than the track carrying two.
           Two icons with a filled thumb sliding over them means the thumb

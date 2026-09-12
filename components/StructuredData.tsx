@@ -5,6 +5,7 @@ import {
   LANGS,
   LOCATION,
   PHONE,
+  SOCIALS,
   STUDIO_SOCIALS,
   content,
   type Lang,
@@ -28,8 +29,27 @@ export function StructuredData({ lang }: { lang: Lang }) {
   const c = content[lang];
 
   const graph = [
+    /* The founder as a first-class node rather than an inline blob.
+       An @id-addressable Person is what lets a search engine connect the
+       studio, the article bylines and the social profiles to one human —
+       which is the entire proposition of a one-person studio, and previously
+       the graph only hinted at it. */
     {
-      '@type': 'Organization',
+      '@type': 'Person',
+      '@id': `${SITE_URL}/#founder`,
+      name: FOUNDER,
+      jobTitle: c.founder.role,
+      worksFor: { '@id': `${SITE_URL}/#organization` },
+      url: `${SITE_URL}/${lang}`,
+      knowsLanguage: ['en', 'el', 'mk'],
+      sameAs: SOCIALS.filter((s) => !s.studio).map((s) => s.url),
+    },
+    {
+      /* ProfessionalService alongside Organization: the same entity, but the
+         narrower type is the one that carries areaServed and opening hours in
+         a local result. Both, not one, because the knowledge panel reads
+         Organization. */
+      '@type': ['Organization', 'ProfessionalService'],
       '@id': `${SITE_URL}/#organization`,
       name: BRAND,
       url: SITE_URL,
@@ -40,10 +60,7 @@ export function StructuredData({ lang }: { lang: Lang }) {
         '@type': 'ImageObject',
         url: `${SITE_URL}/icon.svg`,
       },
-      founder: {
-        '@type': 'Person',
-        name: FOUNDER,
-      },
+      founder: { '@id': `${SITE_URL}/#founder` },
       areaServed: [
         { '@type': 'Country', name: 'Greece' },
         { '@type': 'Country', name: 'North Macedonia' },

@@ -81,6 +81,11 @@ export interface SiteContent {
     eyebrow: string;
     title: string;
     body: string;
+    /* What the signup actually delivers. Naming the thing, and what is in
+       it, is the difference between a newsletter box and a reason. */
+    bullets: string[];
+    note: string;
+    legal: string;
     emailLabel: string;
     emailPh: string;
     submit: string;
@@ -99,6 +104,36 @@ export interface SiteContent {
     ctaTalk: string;
     scroll: string;
     stats: { value: string; label: string }[];
+  };
+  /**
+   * The person behind the studio.
+   *
+   * The name was already in the repo and reached the page only as a footer
+   * copyright line. For a one-person studio that is the argument, not a
+   * legal footnote: an agency cannot promise that the person who answers is
+   * the person who builds, and this is where that gets said.
+   */
+  founder: {
+    label: string;
+    role: string;
+    bio: string[];
+    facts: { label: string; value: string }[];
+    /** Alt text for the portrait; falls back to a monogram until one exists. */
+    portraitAlt: string;
+  };
+  /** Published price band. Copy only — the figures live in PRICING. */
+  pricing: {
+    label: string;
+    heading: string;
+    lede: string;
+    projectTier: string;
+    careTier: string;
+    perMonth: string;
+    includes: string[];
+    careIncludes: string[];
+    note: string;
+    cta: string;
+    draftBadge: string;
   };
   marquee: string[];
   services: {
@@ -180,6 +215,16 @@ export interface SiteContent {
       budgets: string[];
       message: string;
       messagePh: string;
+      /* When the visitor would like to be called back. A preference, not a
+         booking: there is no calendar behind this, and publishing bookable
+         slots the studio has not actually reserved would be a promise it
+         cannot keep. The answer travels with the enquiry so the callback
+         lands at a time the person said they were free. */
+      when: string;
+      whenHint: string;
+      days: string[];
+      bands: { label: string; hours: string }[];
+      whenAny: string;
       submit: string;
       sending: string;
       note: string;
@@ -262,7 +307,8 @@ export type RouteKey =
   | 'contact'
   | 'book'
   | 'blog'
-  | 'privacy';
+  | 'privacy'
+  | 'terms';
 
 /** Route paths, language-prefixed at render time. */
 export const ROUTES: Record<RouteKey, string> = {
@@ -274,6 +320,7 @@ export const ROUTES: Record<RouteKey, string> = {
   book: '/book-a-call',
   blog: '/blog',
   privacy: '/privacy',
+  terms: '/terms',
 };
 
 /* ------------------------------------------------------------------ */
@@ -315,16 +362,23 @@ const en: SiteContent = {
     reset: 'Cookie choices',
   },
   welcome: {
-    eyebrow: 'Welcome',
-    title: 'Worth staying in touch?',
-    body: 'Occasional updates on what the studio ships, plus news and offers. No schedule, no filler, unsubscribe whenever.',
+    eyebrow: 'Free course',
+    title: 'Before you pay for a website.',
+    body: 'Ten short lessons on commissioning a website — written for the person signing the invoice, not for developers. Free, and it will help you buy from anyone, not only from me.',
+    bullets: [
+      'What actually moves a quote from €400 to €25,000',
+      'Who owns the domain and the code when you fall out',
+      'The question to ask before anyone shows you a design',
+    ],
+    note: 'Sent once, to the address you give. Occasional studio updates after that — unsubscribe whenever.',
+    legal: 'Privacy and cookies',
     emailLabel: 'Your email',
     emailPh: 'you@company.com',
-    submit: 'Keep me posted',
+    submit: 'Send me the course',
     sending: 'Sending',
-    thanks: 'Got it — thank you.',
+    thanks: 'On its way — check your inbox.',
     error: 'That did not send. Try again, or email us directly.',
-    consent: 'I agree to receive updates, news and offers, and to this address being linked to my visits. Withdraw any time.',
+    consent: 'I agree to receive the course and occasional updates, and to this address being linked to my visits. Withdraw any time.',
   },
   hero: {
     status: 'Independent digital studio', // ported
@@ -337,11 +391,58 @@ const en: SiteContent = {
     ctaWork: 'See the work', // ported: 'Enter the work'
     ctaTalk: 'Start a conversation', // ported
     scroll: 'Scroll',
+    /* These used to read "5 shipped platforms · 5 languages live · 100%
+       written, not templated" — three true facts about how the studio works,
+       and none of them an answer to the question an owner is actually asking.
+       Same component, same position; the facts now point at the buyer. */
     stats: [
-      { value: '5', label: 'Shipped platforms' },
-      { value: '5', label: 'Languages live' },
-      { value: '100%', label: 'Written, not templated' },
+      { value: '5', label: 'Platforms shipped and running' },
+      { value: '1', label: 'Person, first call to launch' },
+      { value: '24h', label: 'Reply, Monday to Friday' },
     ],
+  },
+  founder: {
+    label: 'The studio is one person',
+    role: 'Designer, engineer and the person who answers',
+    bio: [
+      'I design and build every project here myself — architecture, interface, motion and the code that ships. There is no account manager between you and the person writing it, which is the whole reason to pick a studio this size over an agency.',
+      'You will always know what is being built, what it costs and when it goes live, because the person telling you is the person doing it.',
+    ],
+    /* {city}, {country}, {founder} and {brand} are filled from the constants
+       at the bottom of this file. They cannot be interpolated here — those
+       consts are declared after this object and would be read inside their
+       own temporal dead zone — and duplicating the city as a literal is how
+       the footer and the structured data end up disagreeing about where the
+       studio is. */
+    facts: [
+      { label: 'Based in', value: '{city}, {country}' },
+      { label: 'Replies within', value: 'One working day' },
+      { label: 'Working in', value: 'English, Greek, Macedonian' },
+    ],
+    portraitAlt: '{founder}, founder of {brand}',
+  },
+  pricing: {
+    label: 'What it costs',
+    heading: 'The number comes before the work, not after it.',
+    lede: 'Most projects land in this band. You get the exact figure in writing after the first call, and it does not move unless you approve a change to the scope.',
+    projectTier: 'Most projects',
+    careTier: 'Care, monthly',
+    perMonth: '/mo',
+    includes: [
+      'A written brief after the first call — yours either way',
+      'Every deliverable listed, with a delivery date',
+      'A fixed price agreed before a line of code is written',
+      'Code, domain and every account in your name',
+    ],
+    careIncludes: [
+      'Hosting, domain and certificate renewals',
+      'Content and product updates',
+      'Monitoring, backups and security patches',
+      'A direct line, not a ticket queue',
+    ],
+    note: 'Every project is quoted to its actual scope. The figure you get after the first call is fixed for that scope; anything larger is priced after the brief.',
+    cta: 'Get a fixed price',
+    draftBadge: 'Draft — figures not set',
   },
   // ported
   marquee: [
@@ -654,6 +755,15 @@ const en: SiteContent = {
       budgets: ['Up to €1,500', '€1,500 — €5,000', '€5,000 — €10,000', 'Over €10,000', 'Tell me what it should cost'],
       message: 'The project',
       messagePh: 'What the business does, and what the site needs to do for it.',
+      when: 'When suits you for a call?',
+      whenHint: 'Optional. Pick the days and the window that suit you, and the call comes back inside them.',
+      days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+      bands: [
+        { label: 'Morning', hours: '9:00–12:00' },
+        { label: 'Midday', hours: '12:00–15:00' },
+        { label: 'Afternoon', hours: '15:00–18:00' },
+      ],
+      whenAny: 'Any time works',
       submit: 'Send it',
       sending: 'Opening your email…',
       note: 'The budget question is there so neither of us wastes an hour finding out we are in different rooms.',
@@ -718,7 +828,7 @@ const en: SiteContent = {
   },
   chosen: {
     label: 'Why they chose us',
-    heading: 'Four businesses picked a studio over an agency.',
+    heading: '{n} businesses picked a studio over an agency.',
     desc: 'A fixed price before anything starts, the code and the domain in your name, and a live link from the first week.',
     primary: 'Book a call',
     secondary: 'See the work',
@@ -772,6 +882,12 @@ const en: SiteContent = {
       eyebrow: 'Privacy',
       title: 'What we collect, and why.',
       lede: 'Everything this site records about a visit, what it is used for, and how to change your mind. Written out in full rather than summarised.',
+    },
+    terms: {
+      eyebrow: 'Terms',
+      title: 'What you get, and what I ask.',
+      lede: 'The terms every project here runs on, in plain language. Written out so that nothing in them is a surprise after you have paid a deposit.',
+      seoDesc: 'The terms NovaFaber projects run on: fixed price, what is included, who owns the code, revisions, and how either side can stop.',
     },
   },
   footer: {
@@ -839,14 +955,21 @@ const el: SiteContent = {
     reset: 'Επιλογές cookies',
   },
   welcome: {
-    eyebrow: 'Καλώς ήρθατε',
-    title: 'Να κρατήσουμε επαφή;',
-    body: 'Περιστασιακά νέα για όσα βγάζει το στούντιο, μαζί με ενημερώσεις και προσφορές. Χωρίς πρόγραμμα, χωρίς γέμισμα, διαγραφή όποτε θέλετε.',
+    eyebrow: 'Δωρεάν μάθημα',
+    title: 'Πριν πληρώσετε για ένα site.',
+    body: 'Δέκα σύντομα μαθήματα για το πώς αναθέτετε μια ιστοσελίδα — γραμμένα για αυτόν που υπογράφει το τιμολόγιο, όχι για προγραμματιστές. Δωρεάν, και θα σας βοηθήσει να αγοράσετε από οποιονδήποτε, όχι μόνο από εμένα.',
+    bullets: [
+      'Τι πραγματικά ανεβάζει μια προσφορά από €400 σε €25.000',
+      'Ποιος έχει το domain και τον κώδικα όταν χαλάσει η σχέση',
+      'Η ερώτηση που κάνετε πριν σας δείξει κανείς σχέδιο',
+    ],
+    note: 'Στέλνεται μία φορά, στη διεύθυνση που δίνετε. Μετά, περιστασιακά νέα του στούντιο — διαγραφή όποτε θέλετε.',
+    legal: 'Απόρρητο και cookies',
     emailLabel: 'Το email σας',
     emailPh: 'esy@etaireia.com',
-    submit: 'Κρατήστε με ενήμερο',
+    submit: 'Στείλτε μου το μάθημα',
     sending: 'Αποστολή',
-    thanks: 'Ελήφθη — ευχαριστούμε.',
+    thanks: 'Έρχεται — δείτε τα εισερχόμενά σας.',
     error: 'Δεν στάλθηκε. Δοκιμάστε ξανά ή στείλτε μας email απευθείας.',
     consent: 'Συμφωνώ να λαμβάνω ενημερώσεις, νέα και προσφορές, και να συνδέεται αυτή η διεύθυνση με τις επισκέψεις μου. Ανάκληση όποτε θέλω.',
   },
@@ -863,9 +986,46 @@ const el: SiteContent = {
     scroll: 'Κύλιση',
     stats: [
       { value: '5', label: 'Πλατφόρμες σε παραγωγή' },
-      { value: '5', label: 'Γλώσσες live' },
-      { value: '100%', label: 'Γραμμένο, όχι έτοιμο' },
+      { value: '1', label: 'Άτομο, από την πρώτη κλήση ως το launch' },
+      { value: '24ω', label: 'Απάντηση, Δευτέρα με Παρασκευή' },
     ],
+  },
+  founder: {
+    label: 'Το στούντιο είναι ένα άτομο',
+    role: 'Σχεδιαστής, μηχανικός και το άτομο που απαντά',
+    bio: [
+      'Σχεδιάζω και φτιάχνω κάθε έργο εδώ ο ίδιος — αρχιτεκτονική, διεπαφή, κίνηση και τον κώδικα που βγαίνει live. Δεν υπάρχει account manager ανάμεσα σε εσάς και σε αυτόν που τον γράφει, και αυτός ακριβώς είναι ο λόγος να διαλέξετε στούντιο αυτού του μεγέθους αντί για agency.',
+      'Θα ξέρετε πάντα τι χτίζεται, τι κοστίζει και πότε βγαίνει live, γιατί αυτός που σας το λέει είναι αυτός που το κάνει.',
+    ],
+    facts: [
+      { label: 'Έδρα', value: '{city}, {country}' },
+      { label: 'Απαντά εντός', value: 'Μίας εργάσιμης' },
+      { label: 'Γλώσσες', value: 'Αγγλικά, Ελληνικά, Μακεδονικά' },
+    ],
+    portraitAlt: '{founder}, ιδρυτής της {brand}',
+  },
+  pricing: {
+    label: 'Τι κοστίζει',
+    heading: 'Ο αριθμός έρχεται πριν τη δουλειά, όχι μετά.',
+    lede: 'Τα περισσότερα έργα πέφτουν σε αυτό το εύρος. Το ακριβές ποσό το παίρνετε γραπτώς μετά την πρώτη κλήση και δεν αλλάζει αν δεν εγκρίνετε εσείς αλλαγή στο scope.',
+    projectTier: 'Τα περισσότερα έργα',
+    careTier: 'Υποστήριξη, μηνιαία',
+    perMonth: '/μήνα',
+    includes: [
+      'Γραπτό brief μετά την πρώτη κλήση — δικό σας έτσι κι αλλιώς',
+      'Κάθε παραδοτέο καταγεγραμμένο, με ημερομηνία παράδοσης',
+      'Σταθερή τιμή συμφωνημένη πριν γραφτεί γραμμή κώδικα',
+      'Κώδικας, domain και όλοι οι λογαριασμοί στο όνομά σας',
+    ],
+    careIncludes: [
+      'Hosting, ανανεώσεις domain και πιστοποιητικών',
+      'Ενημερώσεις περιεχομένου και προϊόντος',
+      'Παρακολούθηση, backup και ενημερώσεις ασφαλείας',
+      'Απευθείας γραμμή, όχι ουρά αιτημάτων',
+    ],
+    note: 'Κάθε έργο κοστολογείται στο πραγματικό του scope. Το ποσό που παίρνετε μετά την πρώτη κλήση είναι σταθερό για αυτό το scope· ό,τι είναι μεγαλύτερο κοστολογείται μετά το brief.',
+    cta: 'Πάρτε σταθερή τιμή',
+    draftBadge: 'Πρόχειρο — δεν έχουν οριστεί ποσά',
   },
   // ported
   marquee: [
@@ -1174,6 +1334,15 @@ const el: SiteContent = {
       budgets: ['Έως €1.500', '€1.500 — €5.000', '€5.000 — €10.000', 'Πάνω από €10.000', 'Πείτε μου εσείς τι κοστίζει'],
       message: 'Το έργο',
       messagePh: 'Τι κάνει η επιχείρηση, και τι πρέπει να κάνει το site γι’ αυτήν.',
+      when: 'Πότε σας βολεύει να μιλήσουμε;',
+      whenHint: 'Προαιρετικό. Διαλέξτε μέρες και ώρα που σας βολεύουν, και η κλήση έρχεται μέσα σε αυτές.',
+      days: ['Δευ', 'Τρί', 'Τετ', 'Πέμ', 'Παρ'],
+      bands: [
+        { label: 'Πρωί', hours: '9:00–12:00' },
+        { label: 'Μεσημέρι', hours: '12:00–15:00' },
+        { label: 'Απόγευμα', hours: '15:00–18:00' },
+      ],
+      whenAny: 'Οποιαδήποτε ώρα',
       submit: 'Στείλτε το',
       sending: 'Ανοίγει το email σας…',
       note: 'Η ερώτηση για τον προϋπολογισμό υπάρχει ώστε να μη χάσει κανείς μας μια ώρα για να ανακαλύψει ότι είμαστε σε διαφορετικά δωμάτια.',
@@ -1238,7 +1407,7 @@ const el: SiteContent = {
   },
   chosen: {
     label: 'Γιατί μας επέλεξαν',
-    heading: 'Τέσσερις επιχειρήσεις προτίμησαν στούντιο αντί για agency.',
+    heading: '{n} επιχειρήσεις προτίμησαν στούντιο αντί για agency.',
     desc: 'Σταθερή τιμή πριν ξεκινήσει οτιδήποτε, ο κώδικας και το domain στο όνομά σας, και ζωντανό link από την πρώτη βδομάδα.',
     primary: 'Κλείστε κλήση',
     secondary: 'Δείτε τη δουλειά',
@@ -1292,6 +1461,12 @@ const el: SiteContent = {
       eyebrow: 'Απόρρητο',
       title: 'Τι συλλέγουμε, και γιατί.',
       lede: 'Όλα όσα καταγράφει αυτό το site για μια επίσκεψη, σε τι χρησιμοποιούνται και πώς αλλάζετε γνώμη. Γραμμένα αναλυτικά, όχι σε περίληψη.',
+    },
+    terms: {
+      eyebrow: 'Όροι',
+      title: 'Τι παίρνετε, και τι ζητάω.',
+      lede: 'Οι όροι με τους οποίους τρέχει κάθε έργο εδώ, σε απλά ελληνικά. Γραμμένοι ώστε τίποτα να μην αποτελεί έκπληξη αφού έχετε πληρώσει προκαταβολή.',
+      seoDesc: 'Οι όροι των έργων της NovaFaber: σταθερή τιμή, τι περιλαμβάνεται, ποιος έχει τον κώδικα, διορθώσεις, και πώς σταματάει η συνεργασία.',
     },
   },
   footer: {
@@ -1359,14 +1534,21 @@ const mk: SiteContent = {
     reset: 'Избор за колачиња',
   },
   welcome: {
-    eyebrow: 'Добредојдовте',
-    title: 'Вреди ли да останеме во контакт?',
-    body: 'Повремени новости за тоа што пушта студиото, плус вести и понуди. Без распоред, без полнило, отпишете се кога сакате.',
+    eyebrow: 'Бесплатен курс',
+    title: 'Пред да платите за страница.',
+    body: 'Десет кратки лекции за нарачување веб-страница — напишани за оној што ја потпишува фактурата, не за програмери. Бесплатно, и ќе ви помогне да купите од кого било, не само од мене.',
+    bullets: [
+      'Што навистина ја крева понудата од €400 на €25.000',
+      'Кој го поседува доменот и кодот кога ќе се раздвоите',
+      'Прашањето што го поставувате пред некој да ви покаже дизајн',
+    ],
+    note: 'Се испраќа еднаш, на адресата што ја давате. Потоа повремени новости од студиото — отпишете се кога сакате.',
+    legal: 'Приватност и колачиња',
     emailLabel: 'Вашиот email',
     emailPh: 'vie@kompanija.com',
-    submit: 'Известувајте ме',
+    submit: 'Испратете ми го курсот',
     sending: 'Се испраќа',
-    thanks: 'Примено — благодариме.',
+    thanks: 'Пристигнува — проверете ја поштата.',
     error: 'Не се испрати. Обидете се повторно или пишете ни директно.',
     consent: 'Се согласувам да примам новости, вести и понуди, и оваа адреса да се поврзе со моите посети. Повлекување во секое време.',
   },
@@ -1380,10 +1562,47 @@ const mk: SiteContent = {
     ctaTalk: 'Започнете разговор',
     scroll: 'Скролајте',
     stats: [
-      { value: '5', label: 'Испорачани платформи' },
-      { value: '5', label: 'Јазици во живо' },
-      { value: '100%', label: 'Пишано, не шаблон' },
+      { value: '5', label: 'Испорачани платформи во работа' },
+      { value: '1', label: 'Човек, од првиот разговор до лансирање' },
+      { value: '24ч', label: 'Одговор, понеделник до петок' },
     ],
+  },
+  founder: {
+    label: 'Студиото е еден човек',
+    role: 'Дизајнер, инженер и човекот што одговара',
+    bio: [
+      'Јас го дизајнирам и градам секој проект овде сам — архитектура, интерфејс, движење и кодот што оди во продукција. Нема account manager помеѓу вас и оној што го пишува, а тоа е целата причина да изберете студио од оваа големина наместо агенција.',
+      'Секогаш ќе знаете што се гради, колку чини и кога оди во живо, затоа што оној што ви кажува е оној што го работи.',
+    ],
+    facts: [
+      { label: 'Седиште', value: '{city}, {country}' },
+      { label: 'Одговара во рок од', value: 'Еден работен ден' },
+      { label: 'Работи на', value: 'англиски, грчки, македонски' },
+    ],
+    portraitAlt: '{founder}, основач на {brand}',
+  },
+  pricing: {
+    label: 'Колку чини',
+    heading: 'Бројката доаѓа пред работата, не потоа.',
+    lede: 'Повеќето проекти паѓаат во овој распон. Точната сума ја добивате писмено по првиот разговор и не се менува ако вие не одобрите промена на опфатот.',
+    projectTier: 'Повеќето проекти',
+    careTier: 'Одржување, месечно',
+    perMonth: '/мес.',
+    includes: [
+      'Пишан brief по првиот разговор — ваш во секој случај',
+      'Секоја испорака наведена, со датум на предавање',
+      'Фиксна цена договорена пред да се напише ред код',
+      'Кодот, доменот и сите сметки на ваше име',
+    ],
+    careIncludes: [
+      'Хостинг, обнова на домен и сертификати',
+      'Ажурирања на содржина и производ',
+      'Мониторинг, резервни копии и безбедносни закрпи',
+      'Директна линија, не редица тикети',
+    ],
+    note: 'Секој проект се пресметува според вистинскиот опфат. Сумата што ја добивате по првиот разговор е фиксна за тој опфат; сè што е поголемо се пресметува по brief-от.',
+    cta: 'Земете фиксна цена',
+    draftBadge: 'Нацрт — сумите не се поставени',
   },
   marquee: [
     'FULL-STACK ENGINEERING',
@@ -1678,6 +1897,15 @@ const mk: SiteContent = {
       budgets: ['До 1.500 €', '1.500 € — 5.000 €', '5.000 € — 10.000 €', 'Над 10.000 €', 'Кажете ми вие колку чини'],
       message: 'Проектот',
       messagePh: 'Што работи фирмата, и што треба страницата да прави за неа.',
+      when: 'Кога ви одговара разговор?',
+      whenHint: 'Опционално. Изберете денови и термин што ви одговараат, и повикот доаѓа во нив.',
+      days: ['Пон', 'Вто', 'Сре', 'Чет', 'Пет'],
+      bands: [
+        { label: 'Наутро', hours: '9:00–12:00' },
+        { label: 'Напладне', hours: '12:00–15:00' },
+        { label: 'Попладне', hours: '15:00–18:00' },
+      ],
+      whenAny: 'Било кое време',
       submit: 'Испратете',
       sending: 'Се отвора вашиот email…',
       note: 'Прашањето за буџетот е тука за да не изгуби ниту еден од нас час откривајќи дека сме во различни соби.',
@@ -1741,7 +1969,7 @@ const mk: SiteContent = {
   },
   chosen: {
     label: 'Зошто нѐ избраа',
-    heading: 'Четири фирми избраа студио наместо агенција.',
+    heading: '{n} фирми избраа студио наместо агенција.',
     desc: 'Фиксна цена пред да почне што било, кодот и доменот на ваше име, и жив линк од првата недела.',
     primary: 'Закажете разговор',
     secondary: 'Погледнете ја работата',
@@ -1796,6 +2024,12 @@ const mk: SiteContent = {
       title: 'Што собираме и зошто.',
       lede: 'Сè што оваа страница запишува за една посета, за што се користи и како да се предомислите. Напишано целосно, не како резиме.',
     },
+    terms: {
+      eyebrow: 'Услови',
+      title: 'Што добивате и што барам.',
+      lede: 'Условите под кои оди секој проект овде, на јасен јазик. Напишани за ништо од нив да не биде изненадување откако сте платиле капар.',
+      seoDesc: 'Условите на проектите на NovaFaber: фиксна цена, што е вклучено, кој го поседува кодот, корекции и како секоја страна може да прекине.',
+    },
   },
   footer: {
     tagline: 'Софтвер со прецизноста на инженерството и присуството на филмот.',
@@ -1846,7 +2080,7 @@ export const FOUNDER = 'Giannis Papadopoulos';
  * The env var wins so the branded address can be staged on a preview
  * deployment before it goes to production.
  */
-export const EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? 'yioyiomenyioyiomen@gmail.com';
+export const EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? 'contact@novafaber.com';
 
 /**
  * Where the studio works from.
@@ -1870,6 +2104,66 @@ export const PHONE = {
   /** E.164, no spaces — this is what the tel: link dials. */
   tel: '+306985765541',
 };
+
+/**
+ * Article dates, in the reader's own language.
+ *
+ * `Intl` is in every runtime this ships to, so there is no formatting table to
+ * keep in three locales and no month name to mistranslate. The ISO string
+ * stays on the `<time datetime>` attribute — that is the machine-readable
+ * half, and it must not be localised.
+ */
+const DATE_LOCALE: Record<Lang, string> = { en: 'en-GB', el: 'el-GR', mk: 'mk-MK' };
+
+export function formatDate(iso: string, lang: Lang) {
+  return new Intl.DateTimeFormat(DATE_LOCALE[lang], {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(`${iso}T00:00:00Z`));
+}
+
+/**
+ * What the studio promises to answer in.
+ *
+ * A reply-time promise is worth more than a faster one that gets broken, so
+ * this is deliberately the conservative number. It appears in the founder
+ * band, the contact section and the hero stat strip — one constant, three
+ * surfaces, no chance of them disagreeing.
+ */
+export const REPLY = { hours: 24, days: 1 };
+
+/**
+ * Published pricing.
+ *
+ * ── DRAFT UNTIL THE NUMBERS ARE REAL ──────────────────────────────────
+ * `approved` follows the same rule as a testimonial in this repo: false
+ * means it was drafted here rather than decided by the studio, and the
+ * section refuses to render on a production build while it is false. A
+ * price is the single most consequential number on a site — an invented one
+ * is a quote the studio never agreed to, and someone will hold them to it.
+ *
+ * To publish: put the real floor and ceiling in, set `approved: true`.
+ * Until then the section renders only on localhost, with a DRAFT badge, so
+ * the design can be reviewed without the figures ever reaching a visitor.
+ */
+export const PRICING = {
+  /* Set by the studio on 2026-09-09. These are its own figures, not a
+     drafted example — which is what `approved` means here. */
+  approved: true,
+  /** Lower bound of a typical project. */
+  from: 200,
+  /** Upper bound of a typical project — not a ceiling on scope. */
+  to: 1000,
+  /** Optional monthly care plan. 0 hides the second tile. */
+  care: 0,
+  currency: '€',
+};
+
+/** Renders only when the figures are real, or when running locally. */
+export const showPricing = () =>
+  PRICING.approved || process.env.NODE_ENV !== 'production';
 
 export const INSTAGRAM = {
   handle: 'giannis.pdl',

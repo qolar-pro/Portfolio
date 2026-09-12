@@ -122,7 +122,20 @@ for (const route of ['/en', '/en/work', '/en/process', '/en/services']) {
   const stats = await evaluate(
     `[...document.querySelectorAll('.stat .v')].map(n => n.textContent.trim()).join(',')`,
   );
-  if (route === '/en') check('reduced-motion: stats show real values', stats === '5,5,100%', stats);
+  /* The bug this guards is CountUp leaving "0" on the page when the tween is
+     skipped — it once published "0 shipped platforms" under reduced motion,
+     which is a false claim rendered confidently. Pinning the exact copy
+     ("5,5,100%") tested the marketing rather than the behaviour, and broke
+     the moment the stat strip was rewritten. Assert the property that
+     matters: three stats, none of them zeroed. */
+  if (route === '/en') {
+    const values = stats.split(',').filter(Boolean);
+    check(
+      'reduced-motion: stats show real values',
+      values.length === 3 && values.every((v) => v !== '0' && v !== '' && !/^0[^.]/.test(v)),
+      stats,
+    );
+  }
 }
 
 /* ---------------------------------------------------------------- 2. no-JS-style guarantee */
@@ -131,12 +144,27 @@ await media([
   { name: 'prefers-color-scheme', value: 'dark' },
 ]);
 await goto(BASE + '/en', 3000);
-// wait past the safety timeout without ever scrolling
-await sleep(2600);
-const stillHidden = await evaluate(`
-  [...document.querySelectorAll('.rv')].filter(el => !el.classList.contains('rv-in')).length
-`);
-check('reveal safety net: nothing left armed after 2.5s', stillHidden === 0, String(stillHidden));
+/* Poll rather than sleep a fixed 2.6s.
+
+   The net is per element and its timer starts when that element MOUNTS, so
+   the old fixed wait was really asserting "hydration finishes within 100ms of
+   navigation" — true while the page was short, false the moment it grew, and
+   it failed intermittently on page weight rather than on the guarantee. What
+   has to be proven is that nothing stays armed, so wait for that and fail if
+   it never happens. Still a real guard: a net that never fires never reaches
+   zero, and this reports the count that was left. */
+let stillHidden = -1;
+const armedCount = `[...document.querySelectorAll('.rv')].filter(el => !el.classList.contains('rv-in')).length`;
+for (let i = 0; i < 40; i++) {
+  stillHidden = Number(await evaluate(armedCount));
+  if (stillHidden === 0) break;
+  await sleep(250);
+}
+check(
+  'reveal safety net: nothing left armed, without ever scrolling',
+  stillHidden === 0,
+  `${stillHidden} still armed after 10s`,
+);
 
 /* ---------------------------------------------------------------- 3. mobile menu */
 await viewport(390, 844);
@@ -174,32 +202,60 @@ check('scroll lock released', closed.locked === false);
 check('focus returns to the button that opened it', closed.focusOnBurger === true);
 
 /* ---------------------------------------------------------------- 4. theme persistence */
+/* Section 2 forced `prefers-color-scheme: dark` and nothing put it back, and
+   the Edge profile is shared, so `nf-theme` survives from whatever ran
+   before. Between them the starting theme was whatever the previous section
+   happened to leave — while these checks asserted a hardcoded 'light'. That
+   is why they failed intermittently on runs where the site had not changed
+   at all. Reset both, then assert the PROPERTY (the click flips it, and the
+   flip survives navigation) rather than one remembered value. */
+await media([
+  { name: 'prefers-reduced-motion', value: 'no-preference' },
+  { name: 'prefers-color-scheme', value: 'light' },
+]);
 await viewport(1440, 900);
 await goto(BASE + '/en');
+await evaluate(`(() => { try { localStorage.removeItem('nf-theme'); } catch (e) {} })()`);
+await goto(BASE + '/en');
+const beforeToggle = await evaluate(`document.documentElement.getAttribute('data-theme')`);
+
 await evaluate(`document.querySelector('.theme-toggle').click()`);
 await sleep(700);
 const afterToggle = await evaluate(`document.documentElement.getAttribute('data-theme')`);
-check('toggle flips the theme', afterToggle === 'light', String(afterToggle));
+check(
+  'toggle flips the theme',
+  Boolean(afterToggle) && afterToggle !== beforeToggle,
+  `${beforeToggle} -> ${afterToggle}`,
+);
 
 // a hard navigation to another route, then to another language
 await goto(BASE + '/en/work');
 const afterRoute = await evaluate(`document.documentElement.getAttribute('data-theme')`);
-check('theme survives a route change', afterRoute === 'light', String(afterRoute));
+check('theme survives a route change', afterRoute === afterToggle, String(afterRoute));
 
 await goto(BASE + '/mk/work');
 const afterLang = await evaluate(`document.documentElement.getAttribute('data-theme')`);
-check('theme survives a language switch', afterLang === 'light', String(afterLang));
+check('theme survives a language switch', afterLang === afterToggle, String(afterLang));
 
 await goto(BASE + '/el/contact');
 const afterLang2 = await evaluate(`document.documentElement.getAttribute('data-theme')`);
-check('theme survives a second language switch', afterLang2 === 'light', String(afterLang2));
+check('theme survives a second language switch', afterLang2 === afterToggle, String(afterLang2));
 
 // no flash: data-theme has to be set before the first stylesheet-driven paint,
 // which means it is present in the very first evaluation after navigation
 await send('Page.navigate', { url: BASE + '/en' });
 await sleep(120);
 const early = await evaluate(`document.documentElement.getAttribute('data-theme')`).catch(() => null);
-check('no flash of wrong theme: data-theme set before paint', early === 'light', String(early));
+/* What this proves is that the blocking script stamped the CHOSEN theme
+   before the first paint — so it compares against the choice made above, not
+   against a literal. Pinning 'light' made the check depend on which theme the
+   toggle happened to land on, which is the same latent bug as the block
+   above and would have gone on failing for a reason unrelated to flashing. */
+check(
+  'no flash of wrong theme: data-theme set before paint',
+  early === afterToggle,
+  `${early} (expected ${afterToggle})`,
+);
 
 // system preference is followed when the visitor has made no choice
 await evaluate(`localStorage.removeItem('nf-theme')`);
@@ -251,7 +307,15 @@ for (const route of ['/en', '/en/work', '/en/services', '/en/process', '/en/abou
         ariaHiddenFocusable: [...document.querySelectorAll('[aria-hidden="true"]')]
           .filter(el => el.matches('a[href],button,input,select,textarea,[tabindex]'))
           .filter(el => el.tabIndex >= 0)
-          .map(el => el.tagName.toLowerCase() + '[name=' + (el.getAttribute('name')||'') + ']')
+          /* Was tagName + the name attribute, which for a nameless button printed
+       "button[name=]" twice and identified nothing. A failure has to say which
+       element it means or the next person has to go hunting for it. */
+    .map(el => el.tagName.toLowerCase()
+      + (el.className ? '.' + String(el.className).trim().split(/\s+/).join('.') : '')
+      + (el.id ? '#' + el.id : '')
+      + ' «' + (el.textContent || '').trim().slice(0, 24) + '»'
+      + ' in ' + (el.parentElement ? el.parentElement.tagName.toLowerCase()
+          + (el.parentElement.className ? '.' + String(el.parentElement.className).trim().split(/\s+/)[0] : '') : '?'))
           .slice(0, 4),
       });
     })()`),

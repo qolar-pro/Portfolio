@@ -202,6 +202,7 @@ export function SiteFooter({ c, lang }: { c: SiteContent; lang: Lang }) {
           <span>{c.footer.rights}</span>
           <span className="foot-legal">
             <Link href={`/${lang}${ROUTES.privacy}`}>{c.routes.privacy.eyebrow}</Link>
+            <Link href={`/${lang}${ROUTES.terms}`}>{c.routes.terms.eyebrow}</Link>
             {/* The half of "you can withdraw consent at any time" that most
                 sites write down and never build. */}
             <ConsentReset label={c.consent.reset} />

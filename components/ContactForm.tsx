@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import { useRef, useState, type FormEvent } from 'react';
-import { EMAIL, type SiteContent } from '@/lib/content';
+import { EMAIL, type Lang, type SiteContent } from '@/lib/content';
 
 /**
  * The enquiry form.
@@ -23,9 +23,14 @@ import { EMAIL, type SiteContent } from '@/lib/content';
  * The budget question is lifted from netstudio.gr — it qualifies the lead
  * before anyone spends an hour on a call.
  */
-export function ContactForm({ c }: { c: SiteContent }) {
+export function ContactForm({ c, lang }: { c: SiteContent; lang: Lang }) {
   const f = c.contact.form;
   const [sent, setSent] = useState(false);
+  /* Days are multi-select, the band is single. Nobody is free "Tuesday
+     morning and Thursday afternoon" in a way a callback can honour, so the
+     shape is "these days, that window" rather than a grid of 15 slots. */
+  const [days, setDays] = useState<string[]>([]);
+  const [band, setBand] = useState<string | null>(null);
   const pathname = usePathname();
   const mountedAt = useRef(Date.now());
 
@@ -35,8 +40,27 @@ export function ContactForm({ c }: { c: SiteContent }) {
     const get = (k: string) => String(data.get(k) ?? '').trim();
     setSent(true);
 
+    /* Reads back as a sentence in the Discord card rather than as two
+       fields nobody joins up: "Tue, Thu — Afternoon (15:00-18:00)". */
+    const preferred = days.length || band
+      ? [
+          days.length ? days.join(', ') : f.days.join(', '),
+          band ? `${band} (${f.bands.find((b) => b.label === band)?.hours ?? ''})` : '',
+        ]
+          .filter(Boolean)
+          .join(' — ')
+      : f.whenAny;
+
+    /* The indices, not the labels. The confirmation email branches on which
+       option was chosen, and the labels are translated — matching on their
+       text would stop branching the moment a word changed in one locale. */
     const payload = {
       kind: get('kind') || 'Enquiry',
+      kindIndex: f.kinds.indexOf(get('kind')),
+      budgetIndex: f.budgets.indexOf(get('budget')),
+      lang,
+      preferred,
+      preferredIsAny: !days.length && !band,
       name: get('name'),
       email: get('email'),
       company: get('company'),
@@ -67,6 +91,7 @@ export function ContactForm({ c }: { c: SiteContent }) {
         `${f.company}: ${payload.company || '—'}`,
         `${f.kind}: ${payload.kind}`,
         `${f.budget}: ${payload.budget}`,
+        `${f.when} ${payload.preferred}`,
         '',
         `${f.message}:`,
         payload.message,
@@ -118,6 +143,60 @@ export function ContactForm({ c }: { c: SiteContent }) {
         <label htmlFor="cf-message">{f.message}</label>
         <textarea id="cf-message" name="message" required placeholder={f.messagePh} />
       </div>
+
+      {/* ---- when to call back ----
+          A fieldset of toggles rather than two <select>s: the whole point is
+          that picking a time should take one glance and two taps, and a
+          native select on a phone is a full-screen modal per field. Each
+          toggle is a real <button aria-pressed>, so it is announced as a
+          toggle and works from the keyboard without any extra wiring. */}
+      <fieldset className="when">
+        <legend>{f.when}</legend>
+        <p className="when-hint">{f.whenHint}</p>
+
+        <div className="when-row" role="group" aria-label={f.when}>
+          {f.days.map((d) => {
+            const on = days.includes(d);
+            return (
+              <button
+                type="button"
+                key={d}
+                className={`when-chip ${on ? 'is-on' : ''}`}
+                aria-pressed={on}
+                onClick={() => setDays((prev) => (on ? prev.filter((x) => x !== d) : [...prev, d]))}
+              >
+                {d}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="when-row when-bands">
+          {f.bands.map((b) => {
+            const on = band === b.label;
+            return (
+              <button
+                type="button"
+                key={b.label}
+                className={`when-chip when-band ${on ? 'is-on' : ''}`}
+                aria-pressed={on}
+                onClick={() => setBand(on ? null : b.label)}
+              >
+                <span className="when-band-l">{b.label}</span>
+                <span className="when-band-h">{b.hours}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Says what was actually chosen. A picker that shows no result makes
+            the visitor re-read their own taps to check it registered. */}
+        <p className="when-sum">
+          {days.length || band
+            ? `${days.length ? days.join(', ') : f.days.join(', ')}${band ? ` — ${band}` : ''}`
+            : f.whenAny}
+        </p>
+      </fieldset>
 
       {/* off-screen, hidden from assistive tech: a person never sees it, a
           naive bot fills every input it finds */}

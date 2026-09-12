@@ -344,3 +344,47 @@
 
 .ck-what { margin-top: 10px !important; }
 .ck-cat .tbl-wrap { margin-top: 18px; }
+
+/* Disabled, stated in colour rather than by fading.
+   This lives here rather than in globals.css because consent.css is imported
+   last (DD-4) and its own `.wp-row .btn:disabled { opacity: .45 }` was winning
+   the cascade — the faded label measured 2.51:1 on the welcome panel. */
+.wp-row .btn:disabled,
+.btn:disabled {
+  opacity: 1 !important;
+  /* !important, because the dark-theme accent fill in globals.css carries one
+     too and matches this on specificity. Without it the label went muted while
+     the background stayed the saturated violet — muted ink on a full-strength
+     fill, which measured 2.51:1. A disabled control has to drop BOTH. */
+  background: var(--surface-sunken) !important;
+  color: var(--text-secondary) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+/* What the signup delivers, listed on the panel itself. */
+.wp-list { list-style: none; margin: 18px 0 0; padding: 0; display: grid; gap: 8px; }
+.wp-list li {
+  position: relative;
+  padding: 9px 12px 9px 34px;
+  background: var(--surface-sunken);
+  border: 2px solid var(--nb-border, var(--line));
+  border-radius: var(--nb-r, 5px);
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+.wp-list li::before {
+  content: '→';
+  position: absolute;
+  left: 12px;
+  color: var(--main, var(--accent));
+  font-family: var(--font-m);
+  font-size: 0.8rem;
+}
+.wp-note {
+  margin: 14px 0 0;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+.wp-note a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }

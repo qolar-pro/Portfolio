@@ -101,8 +101,8 @@ function Shots({
 }
 
 export function Work({ c }: { c: SiteContent }) {
-  const main = c.work.projects.filter((p) => !p.lab);
-  const lab = c.work.projects.filter((p) => p.lab);
+  const main = c.work.projects.filter((p) => !p.lab && !p.hidden);
+  const lab = c.work.projects.filter((p) => p.lab && !p.hidden);
 
   return (
     <>

@@ -31,6 +31,7 @@ const PATHS = [
   '/blog/traffic-that-converts',
   '/blog/ecommerce-2026',
   '/privacy',
+  '/terms',
 ];
 
 const findings = [];

@@ -68,7 +68,7 @@ export default async function ContactPage({ params }: { params: Promise<{ lang: 
             </Reveal>
 
             <Reveal delay={0.1}>
-              <ContactForm c={c} />
+              <ContactForm c={c} lang={lang} />
             </Reveal>
           </div>
         </section>

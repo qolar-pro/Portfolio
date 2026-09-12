@@ -1,4 +1,7 @@
 import { ChosenPanel } from '@/components/ChosenPanel';
+import { FounderBand } from '@/components/FounderBand';
+import { Pricing } from '@/components/Pricing';
+import { HeroDepth } from '@/components/HeroDepth';
 import { HeroTitle } from '@/components/HeroTitle';
 import { CtaBand } from '@/components/CtaBand';
 import { Marquee } from '@/components/Marquee';
@@ -61,6 +64,8 @@ export default async function Page({ params }: { params: Promise<{ lang: string 
             <div className="hero-vignette" />
             <div className="hero-grain" />
           </div>
+          {/* separates the contour planes as the hero leaves — see HeroDepth */}
+          <HeroDepth target=".hero" />
           <div className="shell">
             <div className="hero-copy">
               <HeroTitle a={c.hero.headA} b={c.hero.headB} />
@@ -103,9 +108,16 @@ export default async function Page({ params }: { params: Promise<{ lang: string 
           </div>
         </section>
 
+        {/* ---------------- THE PERSON ---------------- */}
+        {/* Directly under the stat strip, above the work. For a one-person
+            studio this is the argument, not an About-page footnote: it is the
+            one promise an agency cannot match, and it has to be made before
+            the visitor starts judging the portfolio. */}
+        <FounderBand c={c} lang={lang} />
+
         {/* ---------------- WHY THEY CHOSE US ---------------- */}
         {/* Compact proof, high on the page. The work section further down is
-            the same four clients at full size. */}
+            the same clients at full size. */}
         <section className="section chosen-sec">
           <div className="shell">
             <ChosenPanel c={c} lang={lang} />
@@ -156,6 +168,12 @@ export default async function Page({ params }: { params: Promise<{ lang: string 
                 <Testimonials c={c} />
               </div>
             </section> */}
+
+        {/* ---------------- PRICE ---------------- */}
+        {/* After the work, before the notes: the visitor has seen what gets
+            built, and this is the next question they ask. Renders only when
+            the figures are real, or on a local build behind a draft badge. */}
+        <Pricing c={c} lang={lang} />
 
         {/* ---------------- NOTES ---------------- */}
         <section className="section">

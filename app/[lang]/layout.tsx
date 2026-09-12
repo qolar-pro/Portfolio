@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { JetBrains_Mono, Sofia_Sans_Condensed, Source_Serif_4 } from 'next/font/google';
+import { JetBrains_Mono, Sofia_Sans, Sofia_Sans_Condensed } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/next';
 import '../globals.css';
 /* Section stylesheets, after globals so they win the cascade without
@@ -13,6 +13,7 @@ import { MotionProvider } from '@/components/motion/MotionProvider';
 import { MotionScope } from '@/components/motion/MotionScope';
 import { CookieConsent } from '@/components/CookieConsent';
 import { StructuredData } from '@/components/StructuredData';
+import { publicContent } from '@/lib/params';
 import { VisitTracker } from '@/components/VisitTracker';
 import { WelcomePanel } from '@/components/WelcomePanel';
 import { ThemeScript } from '@/components/ThemeScript';
@@ -33,9 +34,16 @@ const display = Sofia_Sans_Condensed({
   display: 'swap',
 });
 
-const body = Source_Serif_4({
+/* Was Source Serif 4. A serif body is the one thing that stops the page
+   reading as neubrutalist, so it comes off — but the replacement had to keep
+   Greek and Cyrillic. Archivo, the face the approved mockup used, ships
+   neither: every Greek and Macedonian string on the site would have fallen
+   back to a system font mid-sentence, which is the failure the comment above
+   exists to prevent. Sofia Sans is the display face's own superfamily at
+   normal width, covers all four subsets, and keeps the page one voice. */
+const body = Sofia_Sans({
   subsets: ['latin', 'latin-ext', 'greek', 'cyrillic'],
-  weight: ['400', '600'],
+  weight: ['400', '600', '700'],
   variable: '--font-body',
   display: 'swap',
 });
@@ -120,7 +128,12 @@ export default async function LangLayout({
 }) {
   const { lang } = await params;
   if (!(LANGS as string[]).includes(lang)) notFound();
-  const c = content[lang as Lang];
+  /* Same filter the routes go through. CookieConsent and WelcomePanel are
+     client components, so whatever is handed to them is serialised into the
+     page — reading `content` directly here put every hidden project's title,
+     description and live URL back into view-source after the routes had
+     stopped rendering them. */
+  const c = publicContent(content[lang as Lang]);
 
   return (
     /* `suppressHydrationWarning` is required, not defensive: ThemeScript
@@ -154,7 +167,7 @@ export default async function LangLayout({
             reveal system, and the consent banner in particular must never
             be waiting on an animation to become readable. */}
         <CookieConsent c={c} lang={lang as Lang} />
-        <WelcomePanel c={c} />
+        <WelcomePanel c={c} lang={lang as Lang} />
         <Analytics />
       </body>
     </html>

@@ -3,18 +3,23 @@
 import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { readConsent, readKnownEmail, rememberEmail } from '@/lib/consent';
-import type { SiteContent } from '@/lib/content';
+import { ROUTES, type Lang, type SiteContent } from '@/lib/content';
 
 /**
  * The welcome panel: a greeting and an email signup for updates, news and
  * offers.
  *
  * ── WHEN IT APPEARS, AND WHEN IT DOES NOT ────────────────────────────
- * Not on arrival. A panel that covers the page before anyone has read a
- * word is the reason people install popup blockers, and it converts worse
- * than one that waits. It appears once the visitor has either spent real
- * time on the page or scrolled a meaningful way down it — both signals that
- * they are actually reading — and never again once they have dealt with it.
+ * On arrival, after a short pause — the studio asked for it on first load,
+ * and with something real behind it (a free course rather than a newsletter
+ * box) that is a defensible trade rather than the usual popup.
+ *
+ * The pause is not decoration. Opening a modal into an unpainted page steals
+ * focus mid-render and lands before the visitor can see what site they are
+ * even on, which reads as a hijack. A few seconds is still "on load" to a
+ * person and gives the page time to exist behind it.
+ *
+ * It never appears again once dealt with.
  *
  * It is suppressed entirely when:
  *   - the address is already known (they signed up before)
@@ -30,7 +35,7 @@ import type { SiteContent } from '@/lib/content';
  * rather than buried — someone handing over an address is entitled to know
  * it will be attached to their future visits.
  */
-export function WelcomePanel({ c }: { c: SiteContent }) {
+export function WelcomePanel({ c, lang }: { c: SiteContent; lang: Lang }) {
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [state, setState] = useState<'idle' | 'sending' | 'done' | 'error'>('idle');
@@ -60,10 +65,13 @@ export function WelcomePanel({ c }: { c: SiteContent }) {
       setOpen(true);
     };
 
-    const timer = window.setTimeout(show, 18000);
+    /* Long enough for the hero to paint and the visitor to register where
+       they are; short enough to still be "on arrival". */
+    const timer = window.setTimeout(show, 4500);
+    /* Scrolling early means they are already engaged — no reason to make
+       them wait out the rest of the timer. */
     const onScroll = () => {
-      const p = window.scrollY / Math.max(1, document.body.scrollHeight - window.innerHeight);
-      if (p > 0.28) show();
+      if (window.scrollY > 400) show();
     };
     window.addEventListener('scroll', onScroll, { passive: true });
 
@@ -134,6 +142,7 @@ export function WelcomePanel({ c }: { c: SiteContent }) {
         body: JSON.stringify({
           kind: 'newsletter',
           email,
+          lang,
           path: pathname,
           company_website: hp,
           elapsed: Date.now() - mountedAt.current,
@@ -169,6 +178,12 @@ export function WelcomePanel({ c }: { c: SiteContent }) {
           {c.welcome.title}
         </h2>
         <p className="wp-text">{c.welcome.body}</p>
+
+        <ul className="wp-list">
+          {c.welcome.bullets.map((b) => (
+            <li key={b}>{b}</li>
+          ))}
+        </ul>
 
         {state === 'done' ? (
           <p className="wp-done" role="status">
@@ -218,6 +233,16 @@ export function WelcomePanel({ c }: { c: SiteContent }) {
               />
               <span>{c.welcome.consent}</span>
             </label>
+
+            {/* What it sends, and where the policy is. A panel asking for an
+                address owes both on the panel — not one click away, and not
+                only in a footer the modal is currently covering. */}
+            <p className="wp-note">
+              {c.welcome.note}{' '}
+              <a href={`/${lang}${ROUTES.privacy}`}>{c.welcome.legal}</a>
+              {' · '}
+              <a href={`/${lang}${ROUTES.terms}`}>{c.routes.terms.eyebrow}</a>
+            </p>
 
             {state === 'error' && (
               <p className="wp-error" role="alert">

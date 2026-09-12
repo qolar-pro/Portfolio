@@ -20,7 +20,8 @@ import 'server-only';
  * gets a boolean it is free to ignore.
  */
 
-const ACCENT = 0x2de2c5;
+/* Electric violet, matching the site. */
+const ACCENT = 0x5600ff;
 
 export interface Field {
   name: string;
@@ -35,6 +36,10 @@ export interface Card {
   /** Overrides the studio accent — used to colour-code message kinds. */
   color?: number;
   footer?: string;
+  /** Small line above the title — where the message came from. */
+  author?: string;
+  /** Makes the title clickable. */
+  url?: string;
 }
 
 /**
@@ -74,15 +79,30 @@ export async function sendCard(card: Card): Promise<boolean> {
     return false;
   }
 
+  /* Discord lays inline fields out three to a row and leaves a ragged gap
+     when the last row is short. A zero-width spacer field fills the row so
+     the card ends on a straight edge instead of a stump. */
+  const fields = (card.fields ?? []).slice(0, 24).map((f) => ({
+    name: clamp(f.name, 256),
+    value: clamp(f.value, 1024),
+    inline: f.inline ?? false,
+  }));
+  const trailingInline = (() => {
+    let n = 0;
+    for (let i = fields.length - 1; i >= 0 && fields[i].inline; i--) n++;
+    return n;
+  })();
+  if (trailingInline % 3 === 2) {
+    fields.push({ name: '​', value: '​', inline: true });
+  }
+
   const embed = {
+    author: card.author ? { name: clamp(card.author, 256) } : undefined,
     title: clamp(card.title, 256),
+    url: card.url,
     description: card.description ? clamp(card.description, 4096) : undefined,
     color: card.color ?? ACCENT,
-    fields: (card.fields ?? []).slice(0, 25).map((f) => ({
-      name: clamp(f.name, 256),
-      value: clamp(f.value, 1024),
-      inline: f.inline ?? false,
-    })),
+    fields,
     footer: card.footer ? { text: clamp(card.footer, 2048) } : undefined,
     timestamp: new Date().toISOString(),
   };
@@ -116,9 +136,12 @@ export async function sendCard(card: Card): Promise<boolean> {
   }
 }
 
-/** Colour-codes the channel so the eye can sort it without reading. */
+/** Colour-codes the channel so the eye can sort it without reading.
+    The lead colours run the Electric ramp by value, so the stripe down the
+    left of the card says how big the enquiry is before a word is read. */
 export const KIND = {
-  lead: 0x2de2c5,
-  newsletter: 0x4ade80,
-  visit: 0x64748b,
+  lead: 0x5600ff,
+  leadBig: 0xa300ff,
+  newsletter: 0x009fff,
+  visit: 0x475569,
 } as const;

@@ -35,7 +35,7 @@ export function WorkGallery({ c, lang }: { c: SiteContent; lang: Lang }) {
   /* `showcase: false` keeps an embargoed project out of the gallery while
      leaving it in the case studies — see lib/projects.ts. */
   const projects = useMemo(
-    () => c.work.projects.filter((p) => !p.lab && p.showcase !== false),
+    () => c.work.projects.filter((p) => !p.lab && !p.hidden && p.showcase !== false),
     [c.work.projects],
   );
 

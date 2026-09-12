@@ -66,6 +66,19 @@ export interface ProjectAssets {
   showcase?: boolean;
 
   /**
+   * TRUE takes the project off the site completely — the logo wall, the
+   * homepage gallery and the case studies on /work.
+   *
+   * A flag rather than a deletion, deliberately. The copy, the three
+   * translations and the screenshots are work that was done and paid for,
+   * and a studio that narrows its public list this month may widen it again
+   * next month. Flip the line to bring one back; nothing else has to be
+   * rewritten. `showcase: false` is the softer version of this — it hides a
+   * project from the homepage gallery but keeps it as proof elsewhere.
+   */
+  hidden?: boolean;
+
+  /**
    * The client has not launched yet, so the design does not go public.
    * Blurs the screenshots and the mark, drops the outbound link, and puts
    * a "launching soon" badge in its place. The work still counts as proof
@@ -93,6 +106,8 @@ export const PROJECTS = {
 
   dklaw: {
     slug: 'kd-law',
+    /* Off the public site — the studio now shows two clients. Data kept; see `hidden`. */
+    hidden: true,
     /* Off the homepage gallery. A card that is blurred, unclickable and
        captioned "launching soon" is the one tile in a portfolio nobody can
        evaluate — it costs a slot and gives a visitor nothing. The case study
@@ -118,6 +133,8 @@ export const PROJECTS = {
 
   dresscode: {
     slug: 'dress-code',
+    /* Off the public site — the studio now shows two clients. Data kept; see `hidden`. */
+    hidden: true,
     /* NEEDS A REAL DOMAIN — still the Vercel deploy subdomain. */
     liveUrl: 'https://dresscode-rho.vercel.app/',
     vanityPending: true,
@@ -145,10 +162,9 @@ export const PROJECTS = {
 
   tsopouroglou: {
     slug: 'tsopouroglou',
-    /* The client's own domain is bought but not yet pointed at the build;
-       this is the deploy URL until it is. Swap the two and drop the flag. */
-    liveUrl: 'https://tsopouroglou.vercel.app',
-    vanityPending: true,
+    /* Live on the client's own domain — verified 200 before the swap. The
+       deploy subdomain it used to point at is no longer referenced. */
+    liveUrl: 'https://www.xomatourgika-tsopouroglou.gr',
     images: [
       '/images/tsopouroglou-1.jpg',
       '/images/tsopouroglou-2.jpg',
@@ -169,6 +185,8 @@ export const PROJECTS = {
 
   shift: {
     slug: 'nova-shift',
+    /* Off the public site — the studio now shows two clients. Data kept; see `hidden`. */
+    hidden: true,
     /* NEEDS A REAL DOMAIN — auto-generated Netlify subdomain. */
     liveUrl: 'https://animated-valkyrie-8d4b67.netlify.app/',
     vanityPending: true,

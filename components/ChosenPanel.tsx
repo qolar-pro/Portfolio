@@ -13,7 +13,9 @@ import { MARKS } from '@/lib/marks';
  * the compact claim, that is the evidence.
  */
 export function ChosenPanel({ c, lang }: { c: SiteContent; lang: Lang }) {
-  const projects = c.work.projects.filter((p) => !p.lab);
+  /* `hidden` takes a project off the site entirely — see lib/projects. The
+     heading counts this same array, so the wall and the number always agree. */
+  const projects = c.work.projects.filter((p) => !p.lab && !p.hidden);
 
   return (
     <Reveal className="chosen">
@@ -21,7 +23,14 @@ export function ChosenPanel({ c, lang }: { c: SiteContent; lang: Lang }) {
 
       <div className="chosen-copy">
         <p className="eyebrow">{c.chosen.label}</p>
-        <h2 className="chosen-h" data-anim="clip">{c.chosen.heading}</h2>
+        {/* The heading used to spell the count out in prose in all three
+            locales while the list beside it was computed, so the page said
+            "Four businesses" above five marks — a reader who counts finds the
+            credibility section contradicting itself. The number now comes from
+            the same array that draws the logos, so it cannot drift again. */}
+        <h2 className="chosen-h" data-anim="clip">
+          {c.chosen.heading.replace('{n}', String(projects.length))}
+        </h2>
         <p className="chosen-desc" data-anim="fade" data-anim-delay="1">{c.chosen.desc}</p>
         <div className="chosen-actions" data-anim="rise" data-anim-delay="2">
           <Link className="btn btn-solid" href={`/${lang}${ROUTES.book}`}>

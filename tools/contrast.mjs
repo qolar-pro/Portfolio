@@ -215,12 +215,31 @@ const AUDIT = `(() => {
   return JSON.stringify(bad);
 })()`;
 
+/* Settle the motion before measuring — used by BOTH passes.
+
+   This lived inline in the route loop, and the welcome-panel pass added
+   later only killed transitions without also landing the reveals. That gap
+   stayed invisible until a new section made the page tall enough that six
+   elements were still armed at measure time, and the audit reported 1:1
+   contrast on text that is simply not revealed yet. Measuring an element at
+   opacity 0 says nothing about the design; one definition, both callers, so
+   the two cannot drift again. */
+const SETTLE_MOTION = `(() => {
+  const st = document.createElement('style');
+  st.textContent = '*,*::before,*::after{transition:none!important;animation:none!important}'
+    + '.anim-armed{opacity:1!important;transform:none!important;filter:none!important;clip-path:none!important}'
+    + '[data-anim-group].anim-armed > *{opacity:1!important;transform:none!important}';
+  document.head.appendChild(st);
+  document.querySelectorAll('.anim-armed').forEach(el => el.classList.add('anim-in'));
+})()`;
+
 const findings = [];
 
 for (const theme of ['dark', 'light']) {
   await send('Page.addScriptToEvaluateOnNewDocument', {
     source: `try{localStorage.setItem('nf-theme','${theme}')}catch(e){}`,
   });
+
   for (const route of ROUTES) {
     await send('Page.navigate', { url: 'http://localhost:3100' + route });
     await sleep(2200);
@@ -235,16 +254,7 @@ for (const theme of ['dark', 'light']) {
        and a scroll pass catches plenty of them mid-transition — which the
        audit then reports as 1:1 contrast on perfectly good text. Forcing the
        landed state measures the DESIGN rather than one frame of it. */
-    await send('Runtime.evaluate', {
-      expression: `(() => {
-        const st = document.createElement('style');
-        st.textContent = '*,*::before,*::after{transition:none!important;animation:none!important}'
-          + '.anim-armed{opacity:1!important;transform:none!important;filter:none!important;clip-path:none!important}'
-          + '[data-anim-group].anim-armed > *{opacity:1!important;transform:none!important}';
-        document.head.appendChild(st);
-        document.querySelectorAll('.anim-armed').forEach(el => el.classList.add('anim-in'));
-      })()`,
-    });
+    await send('Runtime.evaluate', { expression: SETTLE_MOTION });
     await sleep(500);
     const res = await send('Runtime.evaluate', { expression: AUDIT, returnByValue: true });
     if (res.exceptionDetails || typeof res.result.value !== 'string') {
@@ -285,13 +295,7 @@ for (const theme of ['dark', 'light']) {
     console.error('welcome panel never opened — the check above measured nothing');
     process.exit(1);
   }
-  await send('Runtime.evaluate', {
-    expression: `(() => {
-      const st = document.createElement('style');
-      st.textContent = '*,*::before,*::after{transition:none!important;animation:none!important}';
-      document.head.appendChild(st);
-    })()`,
-  });
+  await send('Runtime.evaluate', { expression: SETTLE_MOTION });
   await sleep(300);
   const res = await send('Runtime.evaluate', { expression: AUDIT, returnByValue: true });
   if (res.exceptionDetails || typeof res.result.value !== 'string') {

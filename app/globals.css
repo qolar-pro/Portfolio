@@ -5100,3 +5100,814 @@ a.fc-value:hover { border-color: var(--orange); }
   .scroll-hint { animation: none; }
   .scroll-progress { display: none; }
 }
+
+/* ==================================================================
+   FOUNDER BAND
+   ------------------------------------------------------------------
+   The one-person argument, made once, directly under the stat strip.
+   Shares the panel recipe with .chosen so the two read as a pair
+   rather than as two different studios' components.
+   ================================================================== */
+
+.founder-sec { padding-top: clamp(46px, 6vw, 84px); }
+
+.founder {
+  position: relative;
+  display: grid;
+  grid-template-columns: clamp(150px, 22vw, 280px) minmax(0, 1fr);
+  gap: clamp(26px, 4vw, 60px);
+  /* Top-aligned, not centred. Centring a square against a copy block twice
+     its height parks it in the middle of its own column with dead space above
+     and below, which reads as a stray tile rather than as a portrait. */
+  align-items: start;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: var(--panel);
+  padding: clamp(28px, 4vw, 56px);
+  overflow: hidden;
+}
+
+/* Contours lit from the portrait corner — the mirror of .chosen, which is
+   lit from its copy corner, so the two panels do not look stamped. */
+.founder-pattern {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-repeat: repeat;
+  mix-blend-mode: screen;
+  background-image: var(--tex-topo);
+  background-size: 820px 818px;
+  opacity: 0.13;
+  mask-image: radial-gradient(ellipse 110% 120% at 95% 10%, #000 20%, transparent 88%);
+  -webkit-mask-image: radial-gradient(ellipse 110% 120% at 95% 10%, #000 20%, transparent 88%);
+}
+
+.founder-portrait {
+  position: relative;
+  z-index: 1;
+  aspect-ratio: 1;
+  border-radius: 22px;
+  overflow: hidden;
+  background: var(--surface-raised);
+  box-shadow: var(--el-2);
+  display: grid;
+  place-items: center;
+  /* drops the tile from the eyebrow line down to the name's cap height */
+  margin-top: clamp(0px, 2.4vw, 34px);
+}
+.founder-portrait img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* The pre-portrait state. Set as a deliberate mark rather than a grey box:
+   an empty slot reads as a site mid-build, initials read as a choice. */
+.founder-monogram {
+  font-family: var(--font-d);
+  font-weight: 900;
+  font-size: clamp(3.4rem, 7vw, 5.4rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--accent);
+  background: linear-gradient(150deg, var(--accent-hi), var(--accent-strong));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.founder-copy { position: relative; z-index: 1; min-width: 0; }
+
+.founder-name {
+  font-family: var(--font-d);
+  font-weight: 900;
+  font-size: clamp(2.1rem, 5vw, 3.3rem);
+  line-height: 0.98;
+  letter-spacing: 0.005em;
+  margin: 0;
+  text-wrap: balance;
+  color: var(--ink);
+}
+.founder-role {
+  font-family: var(--font-m);
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--orange);
+  margin: 10px 0 0;
+}
+.founder-bio {
+  color: var(--ink-soft);
+  font-size: var(--t-md);
+  margin: 18px 0 0;
+  max-width: 62ch;
+}
+
+/* A definition list, because that is what these are: three labelled facts.
+   Each sits on its own plate so the row reads as data, not as a sentence. */
+.founder-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 26px 0 0;
+}
+.founder-fact {
+  background: var(--surface-raised);
+  box-shadow: var(--el-1);
+  border-radius: var(--r-pill);
+  padding: 9px 16px;
+}
+.founder-fact dt {
+  font-family: var(--font-m);
+  font-size: 0.64rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.founder-fact dd {
+  margin: 2px 0 0;
+  font-family: var(--font-d);
+  font-weight: 700;
+  font-size: 1.02rem;
+  color: var(--ink);
+}
+
+.founder-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+
+@media (max-width: 780px) {
+  .founder { grid-template-columns: 1fr; gap: 26px; }
+  .founder-portrait { width: min(190px, 55%); margin-top: 0; }
+}
+
+/* ==================================================================
+   PRICING
+   ------------------------------------------------------------------
+   Two of twenty studios in the competitive read publish a figure.
+   The section refuses to render in production until PRICING.approved
+   is true — see components/Pricing.tsx.
+   ================================================================== */
+
+.price-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+  gap: clamp(16px, 2.4vw, 26px);
+}
+
+.price-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: var(--panel);
+  box-shadow: var(--el-2);
+  padding: clamp(24px, 3.2vw, 40px);
+  overflow: hidden;
+}
+/* The draft state is loud on purpose. It is the only thing standing between
+   a placeholder and a number a client would hold the studio to. */
+.price-grid.is-draft .price-card { border-color: var(--accent); }
+
+.price-pattern {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-repeat: repeat;
+  mix-blend-mode: screen;
+  background-image: var(--tex-topo);
+  background-size: 700px 698px;
+  /* Half the strength it launched at. At 0.1 with a mask reaching 80% across,
+     the contours ran under the whole list and competed with the copy — every
+     other patterned surface on the site keeps the tile in one corner and out
+     of the reading path. */
+  opacity: 0.055;
+  mask-image: radial-gradient(ellipse 78% 62% at 100% 0%, #000 5%, transparent 72%);
+  -webkit-mask-image: radial-gradient(ellipse 78% 62% at 100% 0%, #000 5%, transparent 72%);
+}
+.price-card > *:not(.price-pattern) { position: relative; z-index: 1; }
+
+.price-tier {
+  font-family: var(--font-m);
+  font-size: 0.74rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--orange);
+  margin: 0;
+}
+
+.price-figure {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 14px 0 0;
+}
+.price-n {
+  font-family: var(--font-d);
+  font-weight: 900;
+  font-size: clamp(2.4rem, 5.6vw, 3.6rem);
+  line-height: 1;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.price-dash { font-family: var(--font-d); font-size: 1.6rem; color: var(--muted); }
+.price-per {
+  font-family: var(--font-m);
+  font-size: 0.82rem;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+
+.price-list { list-style: none; margin: 22px 0 0; padding: 0; }
+.price-list li {
+  position: relative;
+  padding: 12px 0 12px 26px;
+  border-top: 1px solid var(--line-soft);
+  color: var(--ink-soft);
+  font-size: var(--t-base);
+}
+.price-list li::before {
+  content: '→';
+  position: absolute;
+  left: 0;
+  top: 12px;
+  font-family: var(--font-m);
+  font-size: 0.86rem;
+  color: var(--orange);
+}
+
+.price-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin-top: clamp(24px, 3vw, 36px);
+}
+.price-note { margin: 0; color: var(--muted); font-size: 0.96rem; max-width: 62ch; }
+
+/* ---------- article dates ----------
+   Three items now share the meta row, and on a narrow card the tag plus a
+   localised date plus a reading time will not sit on one line. Letting it
+   wrap keeps the date rather than truncating the row. */
+.art-meta { flex-wrap: wrap; row-gap: 6px; }
+.art-meta time { font-variant-numeric: tabular-nums; }
+
+/* ==================================================================
+   NEOBRUTALISM — to the neobrutalism.dev spec
+   ------------------------------------------------------------------
+   The values below are not an interpretation. They were read off
+   neobrutalism.dev's own rendered components as computed styles:
+
+     --border-width      2px          (not 3, which is the common guess)
+     --radius-base       5px          (NOT 0 — this is the one most
+                                       imitations get wrong; the corners
+                                       are softened, just barely)
+     --shadow            4px 4px 0    (one offset, every element, no
+                                       tiers and no blur radius)
+     --border            #000         pure black, never near-black
+     --secondary-background  #fff     cards are white, ground is tinted
+
+   Palette: "Electric" (color-hex 6061) — #a300ff #6f00ff #5600ff
+   #0078ff #009fff. It contains no teal, so the studio accent moves from
+   electric teal to electric violet across the whole site.
+
+   ── ONE DEVIATION, MADE ON PURPOSE ────────────────────────────────
+   neobrutalism.dev puts BLACK text on --main, because its main is a
+   light blue at 67% lightness. Every colour in Electric sits between
+   32% and 55%, so black on them fails contrast badly. Text on --main is
+   therefore white here. Same system, different palette, and the rule it
+   protects (full-strength fill, never a tint) is intact.
+   ================================================================== */
+
+:root,
+:root[data-theme='light'] {
+  --nb-border: #000000;
+  --nb-bw: 2px;
+  --nb-r: 5px;
+  --nb-shadow: 4px 4px 0 var(--nb-border);
+  --nb-shadow-lg: 6px 6px 0 var(--nb-border);
+
+  /* Electric, in role order */
+  --main: #5600ff;
+  --main-fg: #ffffff;
+  --nb-violet: #a300ff;
+  --nb-indigo: #6f00ff;
+  --nb-blue: #0078ff;
+  --nb-cyan: #009fff;
+
+  /* Ground is a pale tint of the main hue; cards are pure white. */
+  --surface: #e8e2ff;
+  --surface-elevated: #ffffff;
+  --surface-raised: #ffffff;
+  --surface-sunken: #ded5ff;
+  --panel: #ffffff;
+  --panel-2: #ffffff;
+
+  /* One offset, every level. The site's tiering is deliberately
+     flattened — a shadow that changes size stops reading as one light. */
+  --el-1: var(--nb-shadow);
+  --el-2: var(--nb-shadow);
+  --el-3: var(--nb-shadow-lg);
+  --el-in: none;
+  --el-in-deep: none;
+
+  --r-sm: var(--nb-r); --r-md: var(--nb-r); --r-lg: var(--nb-r);
+  --r-xl: var(--nb-r); --r-pill: 999px;
+
+  --line: var(--nb-border);
+  --line-soft: var(--nb-border);
+  --line-strong: var(--nb-border);
+  --hairline: var(--nb-border);
+
+  --accent: var(--main);
+  --accent-rgb: 86, 0, 255;
+  --accent-strong: #4400cc;
+  --accent-hi: var(--nb-indigo);
+  --accent-contrast: var(--main-fg);
+  --accent-wash: #ded5ff;
+
+  --text-primary: #000000;
+  --text-secondary: #262233;
+  --text-muted: #3d3752;
+  --ink: #000000;
+  --ink-soft: #262233;
+  --muted: #3d3752;
+  --orange: var(--main);
+  --orange-dim: var(--accent-strong);
+  --orange-wash: var(--accent-wash);
+}
+
+:root[data-theme='dark'] {
+  /* The border and the shadow stay black in dark mode — that is the
+     convention, and it works because the card is lifted well clear of
+     the ground, so the black rule and the black offset read as the gap
+     between two planes rather than disappearing into one. */
+  --nb-border: #000000;
+  --main: #a300ff;
+  --main-fg: #ffffff;
+  --surface: #16121f;
+  --surface-elevated: #241d33;
+  --surface-raised: #2c2440;
+  --surface-sunken: #100d17;
+  --panel: #241d33;
+  --panel-2: #2c2440;
+  --accent: var(--main);
+  --accent-rgb: 163, 0, 255;
+  --accent-strong: #8400d1;
+  --accent-hi: #c04dff;
+  --accent-contrast: var(--main-fg);
+  --accent-wash: #2a1140;
+  --text-primary: #ffffff;
+  --text-secondary: #ded7ea;
+  --text-muted: #b8afcc;
+  --ink: #ffffff;
+  --ink-soft: #ded7ea;
+  --muted: #b8afcc;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --nb-border: #000000;
+    --main: #a300ff;
+    --main-fg: #ffffff;
+    --surface: #16121f;
+    --surface-elevated: #241d33;
+    --surface-raised: #2c2440;
+    --surface-sunken: #100d17;
+    --panel: #241d33;
+    --panel-2: #2c2440;
+    --accent: var(--main);
+    --accent-rgb: 163, 0, 255;
+    --accent-strong: #8400d1;
+    --accent-hi: #c04dff;
+    --accent-contrast: var(--main-fg);
+    --accent-wash: #2a1140;
+    --text-primary: #ffffff;
+    --text-secondary: #ded7ea;
+    --text-muted: #b8afcc;
+    --ink: #ffffff;
+    --ink-soft: #ded7ea;
+    --muted: #b8afcc;
+  }
+}
+
+/* ---------- everything soft, off ---------- */
+*, *::before, *::after {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+.pin-pattern, .chosen-pattern, .cta-pattern, .page-hero-pattern,
+.art-pattern, .quote-pattern, .fc-pattern, .founder-pattern,
+.price-pattern, .hero-grain, .hero-vignette,
+.hero-contours, .hero-contours-far, .hero-glow, .hero-glow-2 {
+  display: none !important;
+}
+/* the layered bloom and the two-stop drop on the hero type */
+.hero h1 .title-line > span, .hero h1 .title-b, .hero h1 span {
+  text-shadow: none !important;
+}
+
+/* ---------- the box ----------
+   One recipe: 2px black rule, 5px radius, one 4px offset. Applied to
+   every surface that is a discrete object. */
+.chosen, .founder, .price-card, .quote-card, .art-card, .stat,
+.founder-fact, .founder-portrait, .chosen-plate, .cap, .proj,
+.tbl-wrap, .cc, .wp, .pin, .fc, .island, .lang {
+  border: var(--nb-bw) solid var(--nb-border) !important;
+  border-radius: var(--nb-r) !important;
+  box-shadow: var(--nb-shadow) !important;
+}
+/* the largest panels get the one step up the spec allows */
+.chosen, .founder, .proj, .price-card { box-shadow: var(--nb-shadow-lg) !important; }
+
+/* ---------- controls ----------
+   Press moves the element INTO its own shadow: the offset goes to zero
+   and it translates by exactly the same distance. The motion is the
+   affordance, and it is the one thing this style does better than the
+   soft system it replaces. */
+.btn, .theme-toggle, .burger, .cc-btn, .wp-close, .skip-link {
+  border: var(--nb-bw) solid var(--nb-border) !important;
+  border-radius: var(--nb-r) !important;
+  background-image: none !important;
+  box-shadow: var(--nb-shadow) !important;
+  transition: transform 0.08s ease, box-shadow 0.08s ease !important;
+}
+.btn { font-weight: 700; }
+.btn:active, .theme-toggle:active, .burger:active,
+.cc-btn:active, .wp-close:active {
+  box-shadow: none !important;
+  transform: translate(4px, 4px);
+}
+.btn-solid, .skip-link { background: var(--main) !important; color: var(--main-fg) !important; }
+.btn-ghost { background: var(--panel) !important; color: var(--text-primary) !important; }
+.btn:hover { background: var(--nb-cyan) !important; color: #000 !important; }
+.btn .circ { border-radius: 0 !important; box-shadow: none !important; background: none !important; }
+
+/* A disabled control states it in its own colours rather than by fading —
+   a translucent control is a soft-UI idea, and 45% opacity also failed
+   contrast outright. */
+.btn:disabled, .wp-row .btn:disabled {
+  opacity: 1 !important;
+  background: var(--surface-sunken) !important;
+  color: var(--text-muted) !important;
+  box-shadow: none !important;
+  transform: none;
+}
+
+.tt-track {
+  border-radius: var(--nb-r) !important;
+  box-shadow: none !important;
+  border: var(--nb-bw) solid var(--nb-border) !important;
+  background: var(--surface-sunken) !important;
+  width: 46px !important;
+}
+.tt-thumb {
+  border-radius: 3px !important;
+  box-shadow: none !important;
+  background: var(--main) !important;
+  border: 2px solid var(--nb-border) !important;
+}
+.lang a { border-radius: 3px !important; }
+.lang a.on { background: var(--main) !important; color: var(--main-fg) !important; }
+
+/* ---------- type ----------
+   DM Sans is the reference face and ships neither Greek nor Cyrillic, so
+   it is not an option here for the same reason Archivo was not — see the
+   note in app/[lang]/layout.tsx. Sofia Sans covers all four subsets and
+   carries the weight this style needs. Spec weights: 500 body, 700 up. */
+body { font-weight: 500; }
+.h2, .hero-h, .chosen-h, .founder-name { letter-spacing: -0.035em !important; font-weight: 900 !important; }
+.eyebrow {
+  display: inline-flex;
+  background: var(--main);
+  color: var(--main-fg);
+  border: var(--nb-bw) solid var(--nb-border);
+  border-radius: var(--nb-r);
+  padding: 5px 11px;
+  letter-spacing: 0.14em;
+}
+.eyebrow::before { display: none; }
+
+/* ---------- the Electric ramp, used where blocks sit adjacent ----------
+   Three neighbouring blocks in one fill read as a single bar. The ramp
+   separates them; it carries no meaning and never lands on a control. */
+.hero-stats .stat:nth-child(1) { background: var(--nb-violet) !important; }
+.hero-stats .stat:nth-child(2) { background: var(--nb-blue) !important; }
+.hero-stats .stat:nth-child(3) { background: var(--nb-cyan) !important; }
+.hero-stats .stat:nth-child(1), .hero-stats .stat:nth-child(1) * { color: #ffffff !important; }
+.hero-stats .stat:nth-child(2), .hero-stats .stat:nth-child(2) * { color: #ffffff !important; }
+.hero-stats .stat:nth-child(3), .hero-stats .stat:nth-child(3) * { color: #000000 !important; }
+
+.chosen-plate { background: var(--main) !important; }
+
+/* Stack and feature tags are labels, not fills — flat ground, hard rule,
+   body ink. Painting them with the accent left accent-on-accent at 1:1. */
+.chip, .chip.feat {
+  background: var(--surface-sunken) !important;
+  color: var(--text-secondary) !important;
+  border: var(--nb-bw) solid var(--nb-border) !important;
+  border-radius: 3px !important;
+}
+
+/* The marquee ran at --muted as a texture on a soft ground; on flat paper
+   it read as unset placeholder text. */
+.marquee, .marquee-track, .marquee-track * { color: var(--text-secondary) !important; }
+
+/* ---------- the stat row, rebuilt as blocks ----------
+   `.stat` was a bare text column in a wide flex row with a hairline rule
+   above it — correct when the number sat on the page ground. Filling it
+   turned that into three cramped boxes with the label against the edge and
+   a stray rule floating over them, because a box needs padding and equal
+   tracks and a bare text column needs neither. */
+.hero-stats {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)) !important;
+  gap: 16px !important;
+  border-top: 0 !important;
+  padding-top: 0 !important;
+  max-width: 980px !important;
+  margin-left: auto;
+  margin-right: auto;
+}
+.hero-stats .stat {
+  padding: 22px 20px !important;
+  border-radius: var(--nb-r) !important;
+  text-align: left;
+}
+.hero-stats .v { font-size: clamp(2.4rem, 4.6vw, 3.2rem) !important; font-weight: 900 !important; }
+.hero-stats .l { margin-top: 8px !important; line-height: 1.45; }
+/* the percent track was a hairline on the page ground; on a fill it is noise */
+.hero-stats .stat-track { display: none !important; }
+
+/* ---------- the Electric palette needs the same split as the old one ----------
+   Every colour in this palette sits between 32% and 55% lightness, which makes
+   them excellent fills and poor text. Two failures came out of treating one
+   value as both:
+
+     dark  #a300ff as text on the #241d33 card ....... 3.08:1
+     light white on the #0078ff stat block .......... 4.09:1
+
+   So --main stays the fill and --accent becomes the text role. In dark mode
+   that is a lifted violet; the fills keep the saturated one. */
+:root[data-theme='dark'] { --accent: #cb7bff; --accent-rgb: 203, 123, 255; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) { --accent: #cb7bff; --accent-rgb: 203, 123, 255; }
+}
+:root[data-theme='dark'] .btn-solid,
+:root[data-theme='dark'] .eyebrow,
+:root[data-theme='dark'] .lang a.on,
+:root[data-theme='dark'] .chosen-plate,
+:root[data-theme='dark'] .tt-thumb { background: var(--main) !important; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .btn-solid,
+  :root:not([data-theme='light']) .eyebrow,
+  :root:not([data-theme='light']) .lang a.on,
+  :root:not([data-theme='light']) .chosen-plate,
+  :root:not([data-theme='light']) .tt-thumb { background: var(--main) !important; }
+}
+
+/* The stat row now runs the three DARKEST steps of Electric rather than
+   spanning violet to cyan. Every one of them clears AA against white, so the
+   row keeps one text colour instead of alternating black and white down it to
+   chase contrast — which is what mixing a light cyan into the row forced. */
+.hero-stats .stat:nth-child(1) { background: #5600ff !important; }
+.hero-stats .stat:nth-child(2) { background: #6f00ff !important; }
+.hero-stats .stat:nth-child(3) { background: #a300ff !important; }
+.hero-stats .stat, .hero-stats .stat * { color: #ffffff !important; }
+
+/* ==================================================================
+   FORM — neobrutalist
+   ------------------------------------------------------------------
+   Inputs were soft wells pressed into a continuous surface. Here a
+   field is a box on the page like everything else: 2px rule, 5px
+   radius, and an offset that appears on focus rather than a glow.
+   ================================================================== */
+
+.field input,
+.field select,
+.field textarea,
+.wp-row input[type='email'] {
+  border: var(--nb-bw) solid var(--nb-border) !important;
+  border-radius: var(--nb-r) !important;
+  box-shadow: none !important;
+  background: var(--panel) !important;
+  color: var(--text-primary) !important;
+  font-family: var(--font-b);
+  font-weight: 500;
+  padding: 14px 16px;
+  transition: box-shadow 0.08s ease, transform 0.08s ease !important;
+}
+.field input::placeholder,
+.field textarea::placeholder { color: var(--text-muted); opacity: 1; }
+
+/* Focus lifts the field onto its own shadow — the same offset the buttons
+   use, so focus and press are one vocabulary rather than two. The outline
+   stays as well: a shadow is not a focus indicator on its own. */
+.field input:focus-visible,
+.field select:focus-visible,
+.field textarea:focus-visible,
+.wp-row input[type='email']:focus-visible {
+  box-shadow: var(--nb-shadow) !important;
+  outline: var(--nb-bw) solid var(--main);
+  outline-offset: 2px;
+  transform: translate(-1px, -1px);
+}
+.field label {
+  font-family: var(--font-m);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+
+/* ---------- the callback-window picker ---------- */
+.when {
+  border: var(--nb-bw) solid var(--nb-border);
+  border-radius: var(--nb-r);
+  box-shadow: var(--nb-shadow);
+  background: var(--surface-sunken);
+  padding: clamp(18px, 2.4vw, 26px);
+  margin: 26px 0 0;
+}
+.when legend {
+  font-family: var(--font-d);
+  font-weight: 900;
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+  background: var(--main);
+  color: var(--main-fg);
+  border: var(--nb-bw) solid var(--nb-border);
+  border-radius: var(--nb-r);
+  padding: 6px 13px;
+  margin-left: -4px;
+}
+.when-hint { margin: 12px 0 0; font-size: 0.94rem; color: var(--text-secondary); }
+.when-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+
+.when-chip {
+  font-family: var(--font-d);
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 11px 17px;
+  background: var(--panel);
+  color: var(--text-primary);
+  border: var(--nb-bw) solid var(--nb-border);
+  border-radius: var(--nb-r);
+  box-shadow: var(--nb-shadow);
+  transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.08s ease;
+}
+.when-chip:hover { background: var(--nb-cyan); color: #000; }
+/* Selected is the pressed state made permanent — it sits IN its shadow.
+   That means "on" and "being pressed" look the same, which is the point:
+   the control stays down because it is switched on. */
+.when-chip.is-on {
+  background: var(--main);
+  color: var(--main-fg);
+  box-shadow: none;
+  transform: translate(4px, 4px);
+}
+.when-chip:active { box-shadow: none; transform: translate(4px, 4px); }
+.when-chip:focus-visible { outline: var(--nb-bw) solid var(--main); outline-offset: 3px; }
+
+.when-band { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; }
+.when-band-l { font-size: 1rem; }
+.when-band-h { font-family: var(--font-m); font-size: 0.66rem; letter-spacing: 0.08em; opacity: 0.85; }
+
+.when-sum {
+  margin: 18px 0 0;
+  font-family: var(--font-m);
+  font-size: 0.74rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  border-top: var(--nb-bw) solid var(--nb-border);
+  padding-top: 14px;
+}
+
+/* Selected keeps its shadow; only an actual press moves the chip.
+   Making "on" identical to "being pressed" dropped every selected chip 4px
+   and left the row of five sitting at two different baselines — the state
+   was legible but the row looked broken. Fill says on, motion says pressing;
+   they are different questions. */
+.when-chip.is-on { box-shadow: var(--nb-shadow); transform: none; }
+.when-chip.is-on:active { box-shadow: none; transform: translate(4px, 4px); }
+
+/* The eyebrow badges sit a degree off square — the one flourish the style
+   actually calls for, and it costs nothing because they are inline-flex
+   boxes with room around them. Anything that scrolls or wraps stays level. */
+.eyebrow { transform: rotate(-1.2deg); transform-origin: left center; }
+.when legend { transform: rotate(-1.2deg); }
+@media (prefers-reduced-motion: reduce) { .eyebrow, .when legend { transform: none; } }
+
+/* --orange is the alias half the stylesheet actually reads for accent text,
+   and it was still pointing at --main after --accent was lifted for dark —
+   so every tag, "Read →" and mailto link kept the saturated fill colour and
+   stayed at 3.08:1. The alias has to move with the value it aliases. */
+:root[data-theme='dark'] { --orange: var(--accent); --orange-dim: var(--accent); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) { --orange: var(--accent); --orange-dim: var(--accent); }
+}
+
+/* Only two Electric steps are dark enough to carry white at 12px: #5600ff
+   and #6f00ff. #a300ff measured 4:1 and #0078ff 4.09 — both just under. So
+   the third block takes the lightest step and black text instead of forcing
+   a fourth violet that does not exist in the palette. The row still reads as
+   one ramp; the ink flips once, at the point the ground gets light. */
+.hero-stats .stat:nth-child(3) { background: #009fff !important; }
+.hero-stats .stat:nth-child(3),
+.hero-stats .stat:nth-child(3) * { color: #000000 !important; }
+
+/* ==================================================================
+   THE COURSE PAGE
+   ------------------------------------------------------------------
+   One English document at /course, outside the locale tree — see the
+   note in app/course/page.tsx. Same neobrutalist system as the rest.
+   ================================================================== */
+.course { padding: clamp(30px,5vw,60px) 0 100px; }
+.course .shell { max-width: 940px; }
+
+.course-top { padding-bottom: clamp(24px,4vw,44px); }
+.course-h1 {
+  font-family: var(--font-d); font-weight: 900; text-transform: uppercase;
+  font-size: clamp(2.8rem,9vw,6rem); line-height: .86; letter-spacing: -.035em;
+  margin: clamp(24px,4vw,42px) 0 0; text-wrap: balance;
+}
+.course-h1 em { font-style: normal; color: var(--main); }
+.course-stand { font-size: clamp(1.06rem,2vw,1.3rem); max-width: 56ch; margin: 20px 0 0; color: var(--text-secondary); }
+.course-meta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+.course-meta span {
+  font-family: var(--font-m); font-size: .68rem; letter-spacing: .1em; text-transform: uppercase;
+  background: var(--panel); border: var(--nb-bw) solid var(--nb-border);
+  border-radius: var(--nb-r); padding: 7px 12px; box-shadow: var(--nb-shadow);
+}
+
+.course-intro {
+  background: var(--panel); border: var(--nb-bw) solid var(--nb-border);
+  border-radius: var(--nb-r); box-shadow: var(--nb-shadow);
+  padding: clamp(20px,3vw,32px); margin-top: clamp(26px,4vw,42px);
+}
+.course-intro p { margin: 0 0 14px; color: var(--text-secondary); }
+.course-intro p:last-child { margin: 0; }
+.course-intro strong { color: var(--text-primary); }
+
+.lesson { margin-top: clamp(44px,6vw,80px); scroll-margin-top: 100px; }
+.lesson-head { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+.lesson-n {
+  font-family: var(--font-d); font-weight: 900; font-size: 2.1rem; line-height: 1;
+  background: var(--main); color: var(--main-fg);
+  border: var(--nb-bw) solid var(--nb-border); border-radius: var(--nb-r);
+  padding: 6px 14px; box-shadow: var(--nb-shadow); font-variant-numeric: tabular-nums; flex: none;
+}
+.lesson h2 {
+  font-family: var(--font-d); font-weight: 900; text-transform: uppercase;
+  font-size: clamp(1.6rem,4vw,2.5rem); line-height: .97; letter-spacing: -.03em;
+  margin: 0; text-wrap: balance; flex: 1; min-width: 220px;
+}
+.lesson-core {
+  margin: 18px 0 0 !important; padding: 14px 17px;
+  background: var(--surface-sunken); border: var(--nb-bw) solid var(--nb-border);
+  border-radius: var(--nb-r); font-size: 1.06rem; font-weight: 600; color: var(--text-primary);
+}
+.lesson p { margin: 16px 0 0; color: var(--text-secondary); max-width: 68ch; }
+
+.lesson-ask {
+  margin-top: 20px; padding: 17px 19px;
+  background: var(--panel); border: var(--nb-bw) solid var(--nb-border);
+  border-left: 8px solid var(--main);
+  border-radius: var(--nb-r); box-shadow: var(--nb-shadow-lg);
+}
+.lesson-ask b {
+  display: block; font-family: var(--font-m); font-size: .62rem; font-weight: 700;
+  letter-spacing: .14em; text-transform: uppercase; color: var(--main); margin-bottom: 8px;
+}
+.lesson-ask q { font-size: 1.08rem; font-weight: 700; color: var(--text-primary); font-style: normal; }
+.lesson-ask p { margin: 10px 0 0; font-size: .95rem; color: var(--text-muted); max-width: none; }
+
+.lesson-flag {
+  margin-top: 18px; padding: 14px 17px;
+  border: var(--nb-bw) solid var(--nb-border); border-radius: var(--nb-r);
+  background: var(--nb-violet, #a300ff); color: #fff;
+}
+.lesson-flag b { font-family: var(--font-m); font-size: .62rem; letter-spacing: .14em; text-transform: uppercase; display: block; margin-bottom: 6px; }
+.lesson-flag p { margin: 0; color: #fff; font-weight: 600; max-width: none; }
+
+.course-close {
+  margin-top: clamp(56px,8vw,110px); padding: clamp(24px,4vw,46px);
+  background: var(--main); color: var(--main-fg);
+  border: var(--nb-bw) solid var(--nb-border); border-radius: var(--nb-r);
+  box-shadow: var(--nb-shadow-lg);
+}
+.course-close h2 {
+  font-family: var(--font-d); font-weight: 900; text-transform: uppercase;
+  font-size: clamp(1.7rem,4.4vw,2.8rem); line-height: .97; letter-spacing: -.03em; margin: 14px 0 0;
+}
+.course-close p { margin: 16px 0 0; max-width: 62ch; color: var(--main-fg); }
+.course-close .eyebrow { background: var(--panel); color: var(--text-primary); }
+.course-check { list-style: none; margin: 24px 0 0; padding: 0; display: grid; gap: 9px; }
+.course-check li { display: grid; grid-template-columns: 22px 1fr; gap: 12px; align-items: start; font-weight: 600; }
+.course-check li::before { content: ''; width: 15px; height: 15px; margin-top: 5px; border: 2px solid var(--main-fg); border-radius: 3px; }
+.course-by { border-top: 2px solid var(--main-fg); padding-top: 20px; margin-top: 26px !important; }
+
+.course-foot {
+  margin-top: 40px; padding-top: 20px; border-top: var(--nb-bw) solid var(--nb-border);
+  font-family: var(--font-m); font-size: .7rem; letter-spacing: .06em; color: var(--text-muted);
+}
+.course-foot a { color: var(--accent); }

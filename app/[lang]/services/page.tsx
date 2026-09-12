@@ -3,12 +3,14 @@ import { Accordion } from '@/components/Accordion';
 import { CtaBand } from '@/components/CtaBand';
 import { Nav } from '@/components/Nav';
 import { PageHero } from '@/components/PageHero';
+import { JsonLd } from '@/components/JsonLd';
 import { Reveal } from '@/components/motion/Reveal';
 import { CapabilityLedger } from '@/components/CapabilityLedger';
 import { SiteFooter } from '@/components/SiteFooter';
 import { ROUTES } from '@/lib/content';
 import { resolveLang } from '@/lib/params';
 import { pageMetadata } from '@/lib/seo';
+import { breadcrumbSchema, faqSchema } from '@/lib/schema';
 
 export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
   const { lang, c } = await resolveLang(params);
@@ -25,6 +27,11 @@ export default async function ServicesPage({ params }: { params: Promise<{ lang:
 
   return (
     <>
+      {/* The FAQ is already answered in full on this page, which is the
+          condition Google puts on an FAQ rich result — the markup describes
+          what is rendered rather than adding an SEO-only copy of it. */}
+      <JsonLd data={faqSchema(lang)} />
+      <JsonLd data={breadcrumbSchema(lang, 'services', c.routes.services.title)} />
       <Nav lang={lang} c={c} />
       <main id="main">
         <PageHero c={c} route="services" />

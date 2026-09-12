@@ -25,6 +25,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1,
       alternates: { languages: languagesFor('') },
     },
+    /* The course, English only and listed once. It is deliberately NOT in
+       ROUTES: that would emit /el/course and /mk/course with hreflang
+       alternates, claiming translations that do not exist yet, and the page
+       already declares /en/course as its canonical. One URL, one truth. */
+    ...(lang === 'en'
+      ? [{
+          url: `${SITE_URL}/en/course`,
+          lastModified: now,
+          changeFrequency: 'yearly' as const,
+          priority: 0.6,
+        }]
+      : []),
     ...Object.values(ROUTES).map((path) => ({
       url: `${SITE_URL}/${lang}${path}`,
       lastModified: now,
@@ -32,7 +44,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       /* The policy page belongs in the index — it should be findable — but it
          is not competing for the same attention as the commercial pages, and
          giving it their weight would tell a crawler otherwise. */
-      priority: path === ROUTES.privacy ? 0.3 : 0.8,
+      priority: path === ROUTES.privacy || path === ROUTES.terms ? 0.3 : 0.8,
       alternates: { languages: languagesFor(path) },
     })),
     ...articles[lang].map((a) => ({

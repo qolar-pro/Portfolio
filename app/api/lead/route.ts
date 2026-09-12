@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server';
 import { KIND, sendCard } from '@/lib/discord';
+import { buildLeadReply } from '@/lib/emails/reply';
+import { buildCourseEmail } from '@/lib/emails/course';
+import { BRAND, LANGS, type Lang } from '@/lib/content';
+import { mailConfigured, sendMail } from '@/lib/mail';
 import { describeAgent, placeOf, readRequest } from '@/lib/request';
 
 /**
@@ -76,18 +80,30 @@ export async function POST(req: Request) {
     if (!email.includes('@')) {
       return NextResponse.json({ ok: false, error: 'email' }, { status: 400 });
     }
+    const page = str('path', 200) || '/';
     await sendCard({
-      title: 'Newsletter signup',
-      description: email,
+      author: `novafaber.com · ${page}`,
+      title: '📘 Course signup',
+      description: `**${email}**\n\n[✉️ Write to them](mailto:${email})`,
       color: KIND.newsletter,
       fields: [
-        { name: 'Location', value: placeOf(facts), inline: true },
-        { name: 'IP', value: facts.ip, inline: true },
-        { name: 'Browser', value: `${agent.browser} · ${agent.os}`, inline: true },
-        { name: 'Page', value: str('path', 200) || '/', inline: false },
+        { name: '📍 Where', value: placeOf(facts), inline: true },
+        { name: '🖥️ Device', value: `${agent.browser} · ${agent.os}`, inline: true },
+        { name: '🌐 IP', value: facts.ip, inline: true },
       ],
-      footer: 'Consented to updates, news and offers',
+      footer: 'Consented · course sent automatically',
     });
+
+    /* Deliver the course. Same rule as the enquiry confirmation: the signup
+       is already recorded by the card above, so a mail provider being down
+       costs the delivery and never the address. */
+    if (mailConfigured()) {
+      const langRaw = str('lang', 5);
+      const lang = ((LANGS as readonly string[]).includes(langRaw) ? langRaw : 'en') as Lang;
+      const mail = buildCourseEmail(lang);
+      await sendMail({ to: email, subject: mail.subject, html: mail.html, text: mail.text });
+    }
+
     return NextResponse.json({ ok: true });
   }
 
@@ -96,21 +112,84 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: 'empty' }, { status: 400 });
   }
 
+  /* ---- the lead card ----
+     Built to be read in one glance on a phone lock screen, because that is
+     where it is actually seen. The order is what decides the next action:
+     who, what they want, when to call them — then the forensic detail that
+     only matters once a reply is already being written.
+
+     The message goes in the description as a blockquote rather than a field,
+     because a field caps at 1024 characters and silently truncates the one
+     part of the card worth reading in full. */
+  const company = str('company', 200);
+  const budget = str('budget', 120);
+  const preferred = str('preferred', 160);
+  const message = str('message', 3500);
+  const page = str('path', 200) || '/';
+
+  /* A bigger budget gets a different stripe down the left edge, so the value
+     of an enquiry registers before any of it is read. */
+  const big = /10[,.]?000|10k|over|πάνω|повеќе/i.test(budget);
+
+  const lines: string[] = [];
+  if (company) lines.push(`**${company}**`);
+  if (message) lines.push(message.split('\n').map((l) => `> ${l}`).join('\n'));
+  /* One tap to answer. mailto in a description is clickable in every Discord
+     client, which turns the card from a notification into the reply itself. */
+  if (email) {
+    const subject = encodeURIComponent(`Re: your enquiry — ${BRAND}`);
+    lines.push(`[✉️ Reply to ${name.split(' ')[0] || email}](mailto:${email}?subject=${subject})`);
+  }
+
   await sendCard({
-    title: `${kind} — ${name || email || 'no name'}`,
-    description: str('message', 3500) || undefined,
-    color: KIND.lead,
+    author: `novafaber.com · ${page}`,
+    title: `💼 ${kind} — ${name || email || 'no name'}`,
+    description: lines.join('\n\n') || undefined,
+    color: big ? KIND.leadBig : KIND.lead,
     fields: [
-      { name: 'Name', value: name, inline: true },
-      { name: 'Email', value: email, inline: true },
-      { name: 'Company', value: str('company', 200), inline: true },
-      { name: 'Budget', value: str('budget', 120), inline: true },
-      { name: 'Location', value: placeOf(facts), inline: true },
-      { name: 'IP', value: facts.ip, inline: true },
-      { name: 'Browser', value: `${agent.browser} · ${agent.os}`, inline: true },
-      { name: 'Page', value: str('path', 200) || '/', inline: false },
+      { name: '✉️ Email', value: email, inline: true },
+      { name: '💰 Budget', value: budget, inline: true },
+      { name: '🗓️ Call back', value: preferred, inline: true },
+      { name: '📍 Where', value: placeOf(facts), inline: true },
+      { name: '🖥️ Device', value: `${agent.browser} · ${agent.os}`, inline: true },
+      { name: '🌐 IP', value: facts.ip, inline: true },
     ],
+    footer: big ? 'Larger enquiry — worth more than thirty minutes' : 'Reply within 24h · Mon–Fri',
   });
+
+  /* The confirmation to the enquirer, after the studio's own card.
+     Deliberately last and deliberately awaited-but-ignored: the enquiry is
+     already delivered by this point, so a mail provider being down costs a
+     courtesy email and never the lead itself. sendMail resolves false rather
+     than throwing, so there is nothing here to catch. */
+  if (mailConfigured() && email.includes('@')) {
+    const langRaw = str('lang', 5);
+    const lang = ((LANGS as readonly string[]).includes(langRaw) ? langRaw : 'en') as Lang;
+    const num = (k: string) => {
+      const v = Number(body[k]);
+      return Number.isInteger(v) && v >= 0 ? v : -1;
+    };
+    const mail = buildLeadReply({
+      lang,
+      name,
+      email,
+      company: str('company', 200),
+      kind,
+      kindIndex: num('kindIndex'),
+      budget: str('budget', 120),
+      budgetIndex: num('budgetIndex'),
+      message: str('message', 3500),
+      preferred: str('preferred', 160),
+      preferredIsAny: body.preferredIsAny === true,
+    });
+    await sendMail({
+      to: email,
+      subject: mail.subject,
+      html: mail.html,
+      text: mail.text,
+      /* A reply goes to the studio inbox, which is also the From address. */
+    });
+  }
 
   return NextResponse.json({ ok: true });
 }
