@@ -148,6 +148,15 @@ export default async function LangLayout({
     >
       <head>
         <ThemeScript />
+        {/* Macedonian pages need the standard-form Cyrillic before first
+            paint, or readers see a flash of Bulgarian letterforms while it
+            loads. See the note above @font-face in globals.css. */}
+        {lang === 'mk' && (
+          <>
+            <link rel="preload" href="/fonts/nf-sans-condensed-cyrillic.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+            <link rel="preload" href="/fonts/nf-sans-cyrillic.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+          </>
+        )}
         {/* Before first paint: a repeat load in the same session never
             shows the loader, so there is no flash of it either. */}
         <script dangerouslySetInnerHTML={{ __html: LOADER_SKIP_SCRIPT }} />

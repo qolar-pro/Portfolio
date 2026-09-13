@@ -1,4 +1,41 @@
 /* ==================================================================
+   CYRILLIC LETTERFORMS FOR MACEDONIAN
+   ------------------------------------------------------------------
+   Sofia Sans comes from a Bulgarian foundry and draws BULGARIAN Cyrillic
+   by default — д like a g, т like an m, и like a u. Its standard forms
+   exist, but only switch on for text tagged Russian; there is no rule
+   for Macedonian, so every /mk page rendered in Bulgarian shapes and read
+   as foreign to Macedonian readers.
+
+   These two files are Sofia Sans with those 30 standard glyphs promoted to
+   the defaults, cut down to Cyrillic only (~19 KB each). They are listed
+   FIRST in --font-d and --font-b; unicode-range confines them to Cyrillic,
+   so Latin and Greek fall straight through to the original next/font
+   files, and a visitor who never sees Cyrillic never downloads them.
+   Rebuilt with fontTools from google/fonts ofl/sofiasans (OFL, no Reserved
+   Font Name), under their own family names.
+
+   Not fixed with lang="ru" (screen readers would voice Macedonian in a
+   Russian voice) or font-language-override (not supported in Chrome).
+   ================================================================== */
+@font-face {
+  font-family: 'NF Sans Cyrillic';
+  src: url('/fonts/nf-sans-cyrillic.woff2') format('woff2');
+  font-weight: 1 1000;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0400-045F, U+0490-0491, U+2116;
+}
+@font-face {
+  font-family: 'NF Sans Condensed Cyrillic';
+  src: url('/fonts/nf-sans-condensed-cyrillic.woff2') format('woff2');
+  font-weight: 1 1000;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0400-045F, U+0490-0491, U+2116;
+}
+
+/* ==================================================================
    NovaFaber — design tokens
    ------------------------------------------------------------------
    ONE component system, TWO palettes.
@@ -113,12 +150,12 @@
   --el-in-deep: inset 5px 5px 13px var(--shadow-dark), inset -4px -4px 11px var(--shadow-light);
 
   /* ---- type ------------------------------------------------------- */
-  --font-d: var(--font-display), 'Sofia Sans Condensed', system-ui, sans-serif;
+  --font-d: 'NF Sans Condensed Cyrillic', var(--font-display), 'Sofia Sans Condensed', system-ui, sans-serif;
   /* Sofia Sans is the body face; the fallback chain has to be sans too.
      It read 'Source Serif 4', Georgia, serif — left over from before the
      neubrutalist swap — so a failed webfont load dropped the whole site into
      a serif, which is the one thing this design must never be. */
-  --font-b: var(--font-body), 'Sofia Sans', system-ui, sans-serif;
+  --font-b: 'NF Sans Cyrillic', var(--font-body), 'Sofia Sans', system-ui, sans-serif;
   --font-m: var(--font-mono), 'JetBrains Mono', ui-monospace, monospace;
 
   /* Fluid scale. Headings and labels pick a rung off this ladder
