@@ -3,52 +3,47 @@
 import { useEffect, useRef } from 'react';
 
 /**
- * The hero background: a flow field drawn on a WebGL canvas.
+ * The hero background: a living contour map.
  *
- * ── WHERE IT CAME FROM ───────────────────────────────────────────────
- * Generated in Claude Design, then rebuilt here. The generated version was a
- * good shader aimed at a different page: grey "Industry" colours, film grain
- * and soft volumetric beams (none of which neobrutalism has), a quiet zone on
- * the LEFT third for a left-aligned headline this site does not have, a type
- * mode painted in Archivo (no Greek, no Cyrillic), and a render loop that never
- * stopped. What survives is the field itself — domain-warped noise, slow beams,
- * and contour lines where the field crosses each band.
+ * ── WHY CONTOURS ─────────────────────────────────────────────────────
+ * Every large panel below the hero already sits on a topographic contour
+ * texture (--tex-topo, cartographer-lines.webp). The hero was the one place
+ * that ignored the site's own motif — first with a pixel-dithered flow field
+ * that read as retro and fought the crisp vector type. This draws the same
+ * kind of line, alive: thin anti-aliased contours of a slowly shifting
+ * terrain, so the hero flows straight into the texture every other section
+ * wears. Precision drawing for a studio that sells precision.
  *
- * ── HOW IT BECAME NEOBRUTALIST ───────────────────────────────────────
- * Continuous luminance is quantised into four flat palette colours, and every
- * edge where one band meets another gets a solid rule — flat shapes with black
- * outlines, the same vocabulary as every card on the site. The first version's
- * dither survives only as a halftone inside the palest band.
- *
- * The canvas renders at a third of CSS resolution and is upscaled with
- * `image-rendering: pixelated`, so outlines and halftone dots land as hard
- * 3px blocks rather than blur — and the shader does a ninth of the work,
- * which is what makes it affordable on a phone.
- *
- * Colours are read from the site's tokens, not written here, so the field
- * follows the theme toggle and any future palette change with no edit.
+ * ── WHAT IT DRAWS ────────────────────────────────────────────────────
+ * - Iso-lines of a domain-warped noise height field, ~1 CSS px wide at any
+ *   pixel density, anti-aliased with screen-space derivatives.
+ * - Every fifth line is an index contour, slightly heavier and in the accent,
+ *   the way a real survey map marks them.
+ * - The pointer raises a soft hill in the terrain, so rings form around it
+ *   and follow it. That is the whole interaction; nothing else moves fast.
+ * - Lines fade, not disappear, behind the centred headline and buttons.
  *
  * ── WHAT IT REFUSES TO DO ────────────────────────────────────────────
- * - Draw while nobody can see it: paused off-screen and in a hidden tab.
- * - Move under `prefers-reduced-motion`: one still frame, redrawn on theme
- *   change and resize only.
- * - Compete with the headline: a centred ellipse is held almost flat, because
- *   "BUILT FROM SCRATCH" sits exactly there.
- * - Fail loudly: no WebGL, or a lost context, leaves the plain page ground.
+ * - Run when unseen: paused off-screen and in a hidden tab.
+ * - Move under prefers-reduced-motion: one still frame.
+ * - Burn a phone battery: capped at 30 fps and a 1.5 pixel ratio; the
+ *   motion is slow enough that the cap is invisible.
+ * - Fail loudly: no WebGL, no derivatives, or a lost context leaves the
+ *   plain page ground.
+ *
+ * Colours come from the site tokens, so light and dark both follow the theme.
  */
 
 const VERT = 'attribute vec2 p; void main(){ gl_Position = vec4(p, 0.0, 1.0); }';
 
-/* Built per context: band outlines need fwidth(), which WebGL1 only has behind
-   OES_standard_derivatives. Without it the bands still render, just unoutlined. */
-const frag = (deriv: boolean) => `${deriv ? '#extension GL_OES_standard_derivatives : enable' : ''}
+const FRAG = `#extension GL_OES_standard_derivatives : enable
 #ifdef GL_FRAGMENT_PRECISION_HIGH
 precision highp float;
 #else
 precision mediump float;
 #endif
-uniform vec2 uRes; uniform float uTime; uniform vec2 uMouse; uniform float uScroll;
-uniform vec3 uC0; uniform vec3 uC1; uniform vec3 uC2; uniform vec3 uC3; uniform vec3 uLine;
+uniform vec2 uRes; uniform float uTime; uniform vec2 uMouse; uniform float uScroll; uniform float uDpr;
+uniform vec3 uBg; uniform vec3 uLine; uniform vec3 uAccent; uniform float uStrength;
 
 float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123); }
 float noise(vec2 p){
@@ -56,66 +51,52 @@ float noise(vec2 p){
   return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x),
              mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x), f.y);
 }
-float fbm(vec2 p){ float a = 0.5, s = 0.0; for(int i = 0; i < 5; i++){ s += a * noise(p); p *= 2.03; a *= 0.5; } return s; }
-float bayer2(vec2 a){ a = floor(a); return fract(a.x / 2.0 + a.y * a.y * 0.75); }
-float bayer8(vec2 a){ return (bayer2(0.25 * a) * 0.25 + bayer2(0.5 * a)) * 0.25 + bayer2(a); }
+float fbm(vec2 p){ float a = 0.5, s = 0.0; for(int i = 0; i < 4; i++){ s += a * noise(p); p *= 2.02; a *= 0.5; } return s; }
+
+/* anti-aliased line at every integer crossing of v, ~px device pixels wide */
+float iso(float v, float px){
+  float w = fwidth(v);
+  float d = abs(fract(v - 0.5) - 0.5);
+  return 1.0 - smoothstep(w * (px * 0.5 - 0.5), w * (px * 0.5 + 0.5), d);
+}
 
 void main(){
-  vec2 px = gl_FragCoord.xy;
-  vec2 uv = (px - 0.5 * uRes) / uRes.y;
-  float t = uTime;
+  vec2 frag = gl_FragCoord.xy;
+  vec2 uv = (frag - 0.5 * uRes) / uRes.y;
+  /* terrain scale in CSS pixels, independent of screen density */
+  vec2 p = frag / (uDpr * 330.0);
+  p.y += uScroll * 0.6;
+  float t = uTime * 0.035;
 
-  vec2 dm = uv - uMouse;
-  float md = length(dm);
-  vec2 q = uv - normalize(dm + 1e-5) * (0.22 / (1.0 + md * md * 22.0));
-  q.y += uScroll * 0.22;
+  vec2 warp = vec2(fbm(p * 0.9 + vec2(t, -t * 0.7)), fbm(p * 0.9 + vec2(5.2 - t * 0.6, 1.3 + t)));
+  float h = fbm(p + (warp - 0.5) * 1.1 + vec2(-t * 0.4, t * 0.25));
 
-  float ft = t * 0.045;
-  vec2 w = vec2(fbm(q * 1.5 + vec2(ft, 0.0)), fbm(q * 1.5 + vec2(0.0, -ft) + 7.31));
-  vec2 fq = q + (w - 0.5) * 0.95;
-  float field = fbm(fq * 2.3 + vec2(-t * 0.09, t * 0.05));
+  /* the pointer raises a soft hill */
+  float md = length(uv - uMouse);
+  h += 0.16 * exp(-md * md * 7.0);
 
-  float ca = cos(-0.62), sa = sin(-0.62);
-  vec2 r = vec2(uv.x * ca - uv.y * sa, uv.x * sa + uv.y * ca);
-  float b = 1.00 * exp(-pow((r.x - 0.14 + sin(t * 0.055) * 0.42) * 2.2, 2.0));
-  b += 0.60 * exp(-pow((r.x + 0.72 + sin(t * 0.041 + 2.1) * 0.30) * 3.8, 2.0));
-  b += 0.40 * exp(-pow((r.x - 0.95 + cos(t * 0.033) * 0.24) * 5.0, 2.0));
-  b *= 0.55 + 0.45 * fbm(fq * 1.1 + t * 0.03);
+  float v = h * 11.0;
+  float line = iso(v, 1.0 * uDpr);
+  float index = iso(v / 5.0, 1.8 * uDpr);
 
-  float c = field * 6.2 + uv.x * 0.9 - t * 0.085;
-  float fil = 1.0 - smoothstep(0.0, 0.18, abs(fract(c) - 0.5));
+  /* fade behind the centred headline and the button row, never to zero */
+  float calm = mix(0.30, 1.0, smoothstep(0.30, 0.85, length(uv * vec2(0.95, 1.5))));
+  calm *= mix(0.55, 1.0, smoothstep(-0.46, -0.16, uv.y));
+  float edge = smoothstep(1.25, 0.55, length(uv * vec2(0.62, 1.0)));
+  float k = uStrength * calm * mix(0.55, 1.0, edge);
 
-  float vig = smoothstep(1.45, 0.3, length(uv * vec2(0.62, 1.0)));
-  /* the headline is centred: hold an ellipse around it flat */
-  float quiet = smoothstep(0.50, 1.00, length(uv * vec2(0.95, 1.45)));
-  /* the buttons and scroll cue sit in the bottom strip: keep it low */
-  quiet *= mix(0.25, 1.0, smoothstep(-0.50, -0.10, uv.y));
-
-  float lum = (b * 0.80 + fil * b * 0.55) * vig * quiet;
-  float lv = floor(clamp(lum * 3.9, 0.0, 3.0));
-
-  vec3 col = uC0;
-  /* palest band: the first version's ordered dither, kept as a halftone */
-  float halftone = step(bayer8(px) / 1.33, 0.22);
-  col = mix(col, mix(uC1, uC2, halftone), step(0.5, lv));
-  col = mix(col, uC2, step(1.5, lv));
-  col = mix(col, uC3, step(2.5, lv));
-
-  ${deriv ? '/* a solid rule wherever one band meets another */\n  col = mix(col, uLine, step(0.5, fwidth(lv)));' : ''}
-
+  vec3 col = mix(uBg, uLine, line * k);
+  col = mix(col, uAccent, index * k * 1.35);
   gl_FragColor = vec4(col, 1.0);
 }`;
 
-/** Tokens this draws with, lightest band first. Resolved through the cascade,
-    so var() chains and the active theme are both honoured. */
-const TOKENS = ['--surface', '--surface-sunken', '--nb-blue', '--main', '--text-primary'] as const;
-const UNIFORMS = ['uC0', 'uC1', 'uC2', 'uC3', 'uLine'] as const;
+const TOKENS = ['--surface', '--text-muted', '--accent'] as const;
+const UNIFORMS = ['uBg', 'uLine', 'uAccent'] as const;
 
-/** Renders at this fraction of CSS pixels, then scales up with hard edges. */
-const RES = 1 / 3;
-
-/** A still frame needs a moment that shows the field well, not t = 0. */
-const STILL_T = 38;
+const MAX_DPR = 1.5;
+const FRAME_MS = 1000 / 30;
+/** A still frame needs a moment that shows the terrain well, not t = 0. */
+const STILL_T = 24;
 
 function readColors(host: HTMLElement): number[][] {
   const probe = document.createElement('span');
@@ -137,7 +118,7 @@ export function HeroField() {
     const cv = canvasRef.current;
     if (!cv) return;
     const gl = cv.getContext('webgl', { antialias: false, alpha: false, powerPreference: 'low-power' });
-    if (!gl) {
+    if (!gl || !gl.getExtension('OES_standard_derivatives')) {
       cv.style.display = 'none';
       return;
     }
@@ -149,9 +130,8 @@ export function HeroField() {
       gl.compileShader(s);
       return gl.getShaderParameter(s, gl.COMPILE_STATUS) ? s : null;
     };
-    const deriv = !!gl.getExtension('OES_standard_derivatives');
     const vs = compile(gl.VERTEX_SHADER, VERT);
-    const fs = compile(gl.FRAGMENT_SHADER, frag(deriv));
+    const fs = compile(gl.FRAGMENT_SHADER, FRAG);
     const pr = gl.createProgram();
     if (!vs || !fs || !pr) {
       cv.style.display = 'none';
@@ -176,24 +156,33 @@ export function HeroField() {
     const uTime = u('uTime');
     const uMouse = u('uMouse');
     const uScroll = u('uScroll');
+    const uDpr = u('uDpr');
+    const uStrength = u('uStrength');
 
     const applyColors = () => {
       readColors(cv.parentElement ?? document.body).forEach((c, i) =>
         gl.uniform3f(u(UNIFORMS[i]), c[0], c[1], c[2]),
       );
+      /* light ground needs a touch more ink for the same visual weight */
+      const bg = readColors(cv.parentElement ?? document.body)[0];
+      const light = bg[0] * 0.2126 + bg[1] * 0.7152 + bg[2] * 0.0722 > 0.5;
+      gl.uniform1f(uStrength, light ? 0.42 : 0.5);
     };
 
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
     const darkPref = window.matchMedia('(prefers-color-scheme: dark)');
-    const mouse = { x: 0, y: 0.1 };
-    const aim = { x: 0, y: 0.1 };
+    const mouse = { x: 0.6, y: -0.2 };
+    const aim = { x: 0.6, y: -0.2 };
     let scroll = 0;
     let raf = 0;
     let visible = true;
+    let last = 0;
+    let dpr = 1;
 
     const resize = () => {
-      const w = Math.max(1, Math.round(cv.clientWidth * RES));
-      const h = Math.max(1, Math.round(cv.clientHeight * RES));
+      dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
+      const w = Math.max(1, Math.round(cv.clientWidth * dpr));
+      const h = Math.max(1, Math.round(cv.clientHeight * dpr));
       if (cv.width !== w || cv.height !== h) {
         cv.width = w;
         cv.height = h;
@@ -206,22 +195,24 @@ export function HeroField() {
       gl.uniform1f(uTime, t);
       gl.uniform2f(uMouse, mouse.x, mouse.y);
       gl.uniform1f(uScroll, scroll);
+      gl.uniform1f(uDpr, dpr);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     };
 
     const running = () => visible && !document.hidden && !reduced.matches;
 
-    const frame = () => {
+    const frame = (now: number) => {
       raf = 0;
       if (!running()) return;
       raf = requestAnimationFrame(frame);
-      mouse.x += (aim.x - mouse.x) * 0.045;
-      mouse.y += (aim.y - mouse.y) * 0.045;
-      draw(performance.now() / 1000);
+      if (now - last < FRAME_MS) return;
+      last = now;
+      mouse.x += (aim.x - mouse.x) * 0.08;
+      mouse.y += (aim.y - mouse.y) * 0.08;
+      draw(now / 1000);
     };
 
-    /* One place decides whether the loop runs, so every signal — scrolled off,
-       tab hidden, reduced motion switched on mid-visit — goes through it. */
+    /* One place decides whether the loop runs, so every signal goes through it. */
     const sync = () => {
       if (running()) {
         if (!raf) raf = requestAnimationFrame(frame);
@@ -256,7 +247,6 @@ export function HeroField() {
       resize();
       if (!running()) draw(STILL_T);
     };
-    /* Theme is <html data-theme>, or the OS preference when that is unset. */
     const onTheme = () => {
       applyColors();
       if (!running()) draw(STILL_T);
