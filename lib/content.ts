@@ -46,6 +46,13 @@ export interface Project extends ProjectAssets {
  */
 const META = PROJECTS;
 
+/** The checks Site X-ray runs, in display order. Shared by the API and the copy. */
+export const XRAY_CHECKS = [
+  'https', 'speed', 'weight', 'compression', 'title', 'description', 'viewport',
+  'lang', 'h1', 'alt', 'social', 'indexable', 'security',
+] as const;
+export type XrayCheckId = (typeof XRAY_CHECKS)[number];
+
 export interface SiteContent {
   meta: { title: string; description: string };
   nav: {
@@ -93,6 +100,29 @@ export interface SiteContent {
     thanks: string;
     error: string;
     consent: string;
+  };
+  /** First-load overlay. The five step words are shared; only this line is translated. */
+  loader: { status: string };
+  /** The two draggable project cards either side of the hero headline. */
+  heroCards: { visit: string; see: string; built: string; hint: string; flip: string };
+  /** Site X-ray: a visitor checks their own site against the studio's pre-launch list. */
+  xray: {
+    label: string;
+    heading: string;
+    lede: string;
+    fieldLabel: string;
+    placeholder: string;
+    run: string;
+    running: string;
+    invalid: string;
+    failed: string;
+    busy: string;
+    /** "{n}" and "{total}" are substituted. */
+    passed: string;
+    fixCta: string;
+    again: string;
+    note: string;
+    checks: Record<XrayCheckId, { label: string; why: string }>;
   };
   hero: {
     status: string;
@@ -379,6 +409,45 @@ const en: SiteContent = {
     thanks: 'On its way — check your inbox.',
     error: 'That did not send. Try again, or email us directly.',
     consent: 'I agree to receive the course and occasional updates, and to this address being linked to my visits. Withdraw any time.',
+  },
+  loader: { status: 'Loading the studio' },
+  heroCards: {
+    visit: 'Visit the live site',
+    see: 'See the project',
+    built: 'Built with',
+    hint: 'Drag to spin',
+    flip: 'Flip card',
+  },
+  xray: {
+    label: 'Site X-ray',
+    heading: 'Is your website actually working?',
+    lede: 'Paste an address and the studio server checks it in a few seconds, against the same list I run before a site ships. No sign-up. The address you check is sent to the studio, so I can see what people test.',
+    fieldLabel: 'Website address',
+    placeholder: 'yourcompany.com',
+    run: 'Run the check',
+    running: 'Checking',
+    invalid: 'That does not look like a website address.',
+    failed: 'The site could not be reached from here. It may be down, blocking automated checks, or not public.',
+    busy: 'Too many checks in a row. Wait a minute and try again.',
+    passed: '{n} of {total} checks pass',
+    fixCta: 'Want these fixed? Talk to me',
+    again: 'Check another site',
+    note: 'This reads the page document only: the server response, the markup and the headers. How fast it feels on a real phone also depends on images, scripts and fonts.',
+    checks: {
+      https: { label: 'Served over HTTPS', why: 'Browsers label plain http as “Not secure”, and plenty of visitors leave on that word alone.' },
+      speed: { label: 'The server answers quickly', why: 'Measured to the first byte. Past about a second, everything else on the page starts late too.' },
+      weight: { label: 'The page document is light', why: 'The HTML itself should stay under 250 KB. Heavy markup slows every phone before a single image loads.' },
+      compression: { label: 'Sent compressed', why: 'Gzip or Brotli shrinks text by around 70% at no cost. Without it, every visit downloads the long version.' },
+      title: { label: 'Has a proper page title', why: 'The title is the blue link in Google. Missing, or longer than 60 characters, and it gets rewritten or cut off.' },
+      description: { label: 'Has a meta description', why: 'The grey text under that link. Without one, Google picks a sentence from the page for you.' },
+      viewport: { label: 'Set up for phones', why: 'Without the viewport tag, a phone shows a shrunken desktop page that people have to pinch to read.' },
+      lang: { label: 'Declares its language', why: 'Screen readers and translation tools use it to pronounce and translate the page correctly.' },
+      h1: { label: 'One main heading', why: 'Exactly one h1 tells search engines and screen readers what the page is about.' },
+      alt: { label: 'Images are described', why: 'Alt text is read aloud to blind visitors, and it is how search engines understand an image.' },
+      social: { label: 'Looks right when shared', why: 'Without an og:image, a link sent on WhatsApp, Facebook or LinkedIn shows up as a blank grey box.' },
+      indexable: { label: 'Search engines are allowed in', why: 'A noindex left over from development can hide an entire live site from Google.' },
+      security: { label: 'Basic security headers', why: 'HSTS and nosniff are two lines of server config that close off common, easy attacks.' },
+    },
   },
   hero: {
     status: 'Independent digital studio', // ported
@@ -973,6 +1042,45 @@ const el: SiteContent = {
     error: 'Δεν στάλθηκε. Δοκιμάστε ξανά ή στείλτε μας email απευθείας.',
     consent: 'Συμφωνώ να λαμβάνω ενημερώσεις, νέα και προσφορές, και να συνδέεται αυτή η διεύθυνση με τις επισκέψεις μου. Ανάκληση όποτε θέλω.',
   },
+  loader: { status: 'Φόρτωση του στούντιο' },
+  heroCards: {
+    visit: 'Δείτε το live site',
+    see: 'Δείτε το έργο',
+    built: 'Φτιαγμένο με',
+    hint: 'Σύρετε για περιστροφή',
+    flip: 'Αναστροφή κάρτας',
+  },
+  xray: {
+    label: 'Site X-ray',
+    heading: 'Δουλεύει πραγματικά το site σας;',
+    lede: 'Βάλτε μια διεύθυνση και ο server του στούντιο την ελέγχει σε λίγα δευτερόλεπτα, με την ίδια λίστα που περνάω πριν βγει ένα site. Χωρίς εγγραφή. Η διεύθυνση που ελέγχετε στέλνεται στο στούντιο, ώστε να βλέπω τι δοκιμάζει ο κόσμος.',
+    fieldLabel: 'Διεύθυνση ιστοσελίδας',
+    placeholder: 'etaireia.gr',
+    run: 'Έλεγχος',
+    running: 'Γίνεται έλεγχος',
+    invalid: 'Αυτό δεν μοιάζει με διεύθυνση ιστοσελίδας.',
+    failed: 'Το site δεν ήταν προσβάσιμο από εδώ. Ίσως είναι εκτός λειτουργίας, μπλοκάρει αυτόματους ελέγχους ή δεν είναι δημόσιο.',
+    busy: 'Πολλοί έλεγχοι στη σειρά. Περιμένετε ένα λεπτό και ξαναδοκιμάστε.',
+    passed: '{n} από {total} έλεγχοι περνούν',
+    fixCta: 'Θέλετε να διορθωθούν; Μιλήστε μου',
+    again: 'Ελέγξτε άλλο site',
+    note: 'Διαβάζει μόνο το έγγραφο της σελίδας: την απόκριση του server, το markup και τα headers. Το πόσο γρήγορο φαίνεται σε πραγματικό κινητό εξαρτάται και από εικόνες, scripts και γραμματοσειρές.',
+    checks: {
+      https: { label: 'Λειτουργεί με HTTPS', why: 'Οι browsers σημαίνουν το απλό http ως «Μη ασφαλές», και αρκετοί επισκέπτες φεύγουν μόνο γι’ αυτή τη λέξη.' },
+      speed: { label: 'Ο server απαντά γρήγορα', why: 'Μετράται μέχρι το πρώτο byte. Πάνω από περίπου ένα δευτερόλεπτο, όλα τα υπόλοιπα της σελίδας ξεκινούν κι αυτά αργά.' },
+      weight: { label: 'Η σελίδα είναι ελαφριά', why: 'Το ίδιο το HTML πρέπει να μένει κάτω από 250 KB. Βαρύ markup καθυστερεί κάθε κινητό πριν φορτώσει έστω μία εικόνα.' },
+      compression: { label: 'Στέλνεται συμπιεσμένη', why: 'Το Gzip ή το Brotli μικραίνει το κείμενο περίπου 70% χωρίς κόστος. Χωρίς αυτό, κάθε επίσκεψη κατεβάζει τη μεγάλη εκδοχή.' },
+      title: { label: 'Έχει σωστό τίτλο σελίδας', why: 'Ο τίτλος είναι ο μπλε σύνδεσμος στο Google. Αν λείπει ή ξεπερνά τους 60 χαρακτήρες, ξαναγράφεται ή κόβεται.' },
+      description: { label: 'Έχει meta description', why: 'Το γκρι κείμενο κάτω από τον σύνδεσμο. Χωρίς αυτό, το Google διαλέγει μια πρόταση από τη σελίδα για εσάς.' },
+      viewport: { label: 'Είναι στημένο για κινητά', why: 'Χωρίς το viewport tag, το κινητό δείχνει μια μικρή εκδοχή desktop που θέλει zoom για να διαβαστεί.' },
+      lang: { label: 'Δηλώνει τη γλώσσα του', why: 'Οι αναγνώστες οθόνης και τα εργαλεία μετάφρασης τη χρησιμοποιούν για σωστή προφορά και μετάφραση.' },
+      h1: { label: 'Μία κύρια επικεφαλίδα', why: 'Ακριβώς ένα h1 λέει στις μηχανές αναζήτησης και στους αναγνώστες οθόνης τι είναι η σελίδα.' },
+      alt: { label: 'Οι εικόνες έχουν περιγραφή', why: 'Το alt text διαβάζεται φωναχτά σε τυφλούς επισκέπτες και είναι ο τρόπος που οι μηχανές αναζήτησης καταλαβαίνουν μια εικόνα.' },
+      social: { label: 'Φαίνεται σωστά όταν μοιράζεται', why: 'Χωρίς og:image, ένας σύνδεσμος σε WhatsApp, Facebook ή LinkedIn εμφανίζεται ως κενό γκρι κουτί.' },
+      indexable: { label: 'Επιτρέπει τις μηχανές αναζήτησης', why: 'Ένα ξεχασμένο noindex από την ανάπτυξη μπορεί να κρύψει ολόκληρο live site από το Google.' },
+      security: { label: 'Βασικά security headers', why: 'Το HSTS και το nosniff είναι δύο γραμμές ρύθμισης του server που κλείνουν συνηθισμένες, εύκολες επιθέσεις.' },
+    },
+  },
   hero: {
     status: 'Ανεξάρτητο ψηφιακό στούντιο', // ported
     headA: 'Χτισμένο από',
@@ -1551,6 +1659,45 @@ const mk: SiteContent = {
     thanks: 'Пристигнува — проверете ја поштата.',
     error: 'Не се испрати. Обидете се повторно или пишете ни директно.',
     consent: 'Се согласувам да примам новости, вести и понуди, и оваа адреса да се поврзе со моите посети. Повлекување во секое време.',
+  },
+  loader: { status: 'Се вчитува студиото' },
+  heroCards: {
+    visit: 'Посетете ја страницата',
+    see: 'Видете го проектот',
+    built: 'Изработено со',
+    hint: 'Повлечете за вртење',
+    flip: 'Преврти ја картичката',
+  },
+  xray: {
+    label: 'Site X-ray',
+    heading: 'Дали вашата страница навистина функционира?',
+    lede: 'Внесете адреса и серверот на студиото ја проверува за неколку секунди, со истата листа што ја минувам пред страница да излезе. Без регистрација. Адресата што ја проверувате се испраќа до студиото, за да гледам што тестираат луѓето.',
+    fieldLabel: 'Адреса на веб-страница',
+    placeholder: 'firma.mk',
+    run: 'Провери',
+    running: 'Се проверува',
+    invalid: 'Ова не изгледа како адреса на веб-страница.',
+    failed: 'Страницата не беше достапна од тука. Можеби не работи, блокира автоматски проверки или не е јавна.',
+    busy: 'Премногу проверки по ред. Почекајте една минута и обидете се повторно.',
+    passed: '{n} од {total} проверки поминуваат',
+    fixCta: 'Сакате да се поправат? Разговарајте со мене',
+    again: 'Проверете друга страница',
+    note: 'Го чита само документот на страницата: одговорот на серверот, markup и headers. Колку е брза на вистински телефон зависи и од слики, скрипти и фонтови.',
+    checks: {
+      https: { label: 'Работи преку HTTPS', why: 'Прелистувачите го означуваат обичниот http како „Небезбедно“, и доста посетители заминуваат само поради тој збор.' },
+      speed: { label: 'Серверот одговара брзо', why: 'Се мери до првиот бајт. Над околу една секунда, сè друго на страницата исто така почнува доцна.' },
+      weight: { label: 'Документот на страницата е лесен', why: 'Самиот HTML треба да остане под 250 KB. Тежок markup го забавува секој телефон пред да се вчита и една слика.' },
+      compression: { label: 'Се испраќа компресирано', why: 'Gzip или Brotli го намалуваат текстот за околу 70% без трошок. Без тоа, секоја посета ја презема долгата верзија.' },
+      title: { label: 'Има соодветен наслов', why: 'Насловот е синиот линк во Google. Ако недостасува или е подолг од 60 знаци, се преработува или скратува.' },
+      description: { label: 'Има meta description', why: 'Сивиот текст под линкот. Без него, Google избира реченица од страницата наместо вас.' },
+      viewport: { label: 'Подготвена за телефони', why: 'Без viewport ознаката, телефонот прикажува намалена десктоп страница што треба да се зумира за читање.' },
+      lang: { label: 'Го означува својот јазик', why: 'Читачите на екран и алатките за превод го користат за правилен изговор и превод.' },
+      h1: { label: 'Еден главен наслов', why: 'Точно еден h1 им кажува на претражувачите и на читачите на екран за што е страницата.' },
+      alt: { label: 'Сликите се опишани', why: 'Alt текстот им се чита на глас на слепите посетители и така претражувачите ја разбираат сликата.' },
+      social: { label: 'Изгледа добро кога се споделува', why: 'Без og:image, линк испратен на WhatsApp, Facebook или LinkedIn се прикажува како празно сиво поле.' },
+      indexable: { label: 'Дозволува претражувачи', why: 'Заборавен noindex од развојот може да сокрие цела јавна страница од Google.' },
+      security: { label: 'Основни безбедносни headers', why: 'HSTS и nosniff се две линии конфигурација на серверот што затвораат чести, лесни напади.' },
+    },
   },
   hero: {
     status: 'Независно дигитално студио',

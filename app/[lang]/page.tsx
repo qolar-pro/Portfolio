@@ -1,7 +1,9 @@
 import { ChosenPanel } from '@/components/ChosenPanel';
 import { FounderBand } from '@/components/FounderBand';
 import { Pricing } from '@/components/Pricing';
-import { HeroDepth } from '@/components/HeroDepth';
+import { HeroField } from '@/components/HeroField';
+import { HeroCards } from '@/components/HeroCards';
+import { SiteXray } from '@/components/SiteXray';
 import { HeroTitle } from '@/components/HeroTitle';
 import { CtaBand } from '@/components/CtaBand';
 import { Marquee } from '@/components/Marquee';
@@ -50,22 +52,15 @@ export default async function Page({ params }: { params: Promise<{ lang: string 
             the right. The grid runs behind both and dissolves before the
             marquee, so the two nav islands sit on the quiet part of it. */}
         <section className="hero">
-          {/* The backdrop is the contour field, drawn in the studio accent —
-              the same topographic tile that runs under every panel on the
-              page, so the hero is made of the site's own material rather
-              than of footage sitting behind it. */}
+          {/* The backdrop is a flow field on a WebGL canvas, drawn in the
+              site's own palette tokens. HeroField says how it was adapted
+              from the Claude Design original and what it refuses to do. */}
           <div className="hero-field" aria-hidden="true">
-            {/* two contour planes at different scales and drift speeds: one
-                layer is a texture, two is depth */}
-            <div className="hero-contours-far" />
-            <div className="hero-contours" />
-            <div className="hero-glow" />
-            <div className="hero-glow-2" />
-            <div className="hero-vignette" />
-            <div className="hero-grain" />
+            <HeroField />
           </div>
-          {/* separates the contour planes as the hero leaves — see HeroDepth */}
-          <HeroDepth target=".hero" />
+          {/* Two real projects either side of the headline, draggable through
+              a full turn — see HeroCards. Desktop only. */}
+          <HeroCards c={c} lang={lang} />
           <div className="shell">
             <div className="hero-copy">
               <HeroTitle a={c.hero.headA} b={c.hero.headB} />
@@ -148,6 +143,20 @@ export default async function Page({ params }: { params: Promise<{ lang: string 
               <p className="lede">{c.work.lede}</p>
             </Reveal>
             <WorkGallery c={c} lang={lang} />
+          </div>
+        </section>
+
+        {/* ---------------- SITE X-RAY ---------------- */}
+        {/* After the proof, the visitor's own site: the same pre-launch list,
+            run on something of theirs. See components/SiteXray. */}
+        <section className="section" id="xray">
+          <div className="shell">
+            <Reveal className="sec-head">
+              <p className="eyebrow" data-anim="fade">{c.xray.label}</p>
+              <h2 className="h2" data-anim="clip">{c.xray.heading}</h2>
+              <p className="lede">{c.xray.lede}</p>
+            </Reveal>
+            <SiteXray c={c} lang={lang} />
           </div>
         </section>
 

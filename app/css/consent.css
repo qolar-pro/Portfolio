@@ -349,8 +349,13 @@
    This lives here rather than in globals.css because consent.css is imported
    last (DD-4) and its own `.wp-row .btn:disabled { opacity: .45 }` was winning
    the cascade — the faded label measured 2.51:1 on the welcome panel. */
+/* `:root .btn:disabled` rather than `.btn:disabled`: the dark-theme fill rule
+   is `:root[data-theme='dark'] .btn-solid`, and matching its specificity (this
+   file loads last) is the only way every disabled button drops the fill, not
+   just the ones inside a more specific parent. Site X-ray's empty-field button
+   was the one that slipped through, at 3.75:1. */
 .wp-row .btn:disabled,
-.btn:disabled {
+:root .btn:disabled {
   opacity: 1 !important;
   /* !important, because the dark-theme accent fill in globals.css carries one
      too and matches this on specificity. Without it the label went muted while

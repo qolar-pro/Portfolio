@@ -114,7 +114,11 @@
 
   /* ---- type ------------------------------------------------------- */
   --font-d: var(--font-display), 'Sofia Sans Condensed', system-ui, sans-serif;
-  --font-b: var(--font-body), 'Source Serif 4', Georgia, serif;
+  /* Sofia Sans is the body face; the fallback chain has to be sans too.
+     It read 'Source Serif 4', Georgia, serif — left over from before the
+     neubrutalist swap — so a failed webfont load dropped the whole site into
+     a serif, which is the one thing this design must never be. */
+  --font-b: var(--font-body), 'Sofia Sans', system-ui, sans-serif;
   --font-m: var(--font-mono), 'JetBrains Mono', ui-monospace, monospace;
 
   /* Fluid scale. Headings and labels pick a rung off this ladder
@@ -5911,3 +5915,527 @@ body { font-weight: 500; }
   font-family: var(--font-m); font-size: .7rem; letter-spacing: .06em; color: var(--text-muted);
 }
 .course-foot a { color: var(--accent); }
+
+/* ==================================================================
+   HERO LETTER HOVER — the block, not the rule
+   ------------------------------------------------------------------
+   The old hover drew a thin accent rule under each letter. It was not
+   decoration: the hover also swaps the letter's colour, and a hue change
+   on its own is the one signal some people cannot perceive at all, so the
+   rule carried the same information as a shape.
+
+   Deleting it outright would have left colour doing the work alone. So it
+   is replaced rather than removed — the letter now gets a solid filled
+   block behind it, which is a bigger shape change than a 0.045em rule ever
+   was, and is the vocabulary the rest of the site already speaks: full
+   strength fill, 2px black rule, 5px radius.
+
+   The block is a pseudo-element sized to the glyph box rather than padding
+   on the letter itself, so nothing reflows on hover. `isolation` gives the
+   letter its own stacking context, which keeps a z-index of -1 behind the
+   glyph but in front of the hero — without it the block falls through the
+   section background and never appears.
+   ================================================================== */
+
+@media (hover: hover) and (pointer: fine) {
+  .hero h1 .ch { isolation: isolate; }
+
+  .hero h1 .ch::after {
+    content: '';
+    position: absolute;
+    /* trimmed off the cap height and baseline so the block hugs the letter
+       rather than the line box, which is much taller than the glyph */
+    inset: 0.02em -0.07em 0.09em;
+    /* The rule this replaces set `height: 0.045em` for its 4px underline, and
+       that declaration still applies here. When top, bottom AND height are all
+       present height wins and bottom is ignored — so the block rendered 7px
+       tall on a 144px letter and hid behind the glyph. Explicitly auto. */
+    height: auto;
+    width: auto;
+    background: var(--main);
+    border: var(--nb-bw) solid var(--nb-border);
+    border-radius: var(--nb-r);
+    box-shadow: var(--nb-shadow);
+    /* it grows from the letter rather than wiping across, so the motion
+       reads as the letter reacting and not as a cursor trail */
+    transform: scale(0.55);
+    opacity: 0;
+    transform-origin: 50% 60%;
+    z-index: -1;
+    transition: transform 0.16s var(--ease-out), opacity 0.12s linear;
+    pointer-events: none;
+  }
+  .hero h1 .ch:hover::after { transform: scale(1); opacity: 1; }
+
+  /* On the fill the letter has to invert, or it is violet on violet. The
+     gradient fill on the accent line wins over `color` alone, so
+     -webkit-text-fill-color has to be set as well. */
+  .hero h1 .ch:hover,
+  .hero h1 em .ch:hover {
+    color: var(--main-fg) !important;
+    -webkit-text-fill-color: var(--main-fg) !important;
+    text-shadow: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero h1 .ch::after { transition: none; }
+}
+
+/* ---------- hero flow field (components/HeroField.tsx) ----------
+   Renders at a third of CSS resolution; pixelated keeps the upscale hard,
+   so the ordered dither reads as deliberate blocks rather than blur. */
+.hero-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  image-rendering: pixelated;
+}
+
+/* Nav islands are solid panels. They were 72% glass that leaned on a
+   backdrop blur to hide what sat behind them; the neobrutalist layer rightly
+   removed the blur and left a see-through box, which the hero flow field
+   exposed — its outlines showed straight through "Work" and "Services". */
+.island,
+.nav.stuck .island {
+  background: var(--panel) !important;
+}
+
+/* ==================================================================
+   SCREEN-READER ONLY
+   ================================================================== */
+.sr-only {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ==================================================================
+   PAGE LOADER (components/PageLoader.tsx)
+   ------------------------------------------------------------------
+   Five Electric cards shuffling on the page ground. Card text colour is
+   chosen per fill: white on the dark violets, black on cyan and blue,
+   which is the only way every card clears contrast.
+   ================================================================== */
+.nf-skip-loader .page-loader { display: none !important; }
+.nf-loading, .nf-loading body { overflow: hidden; }
+
+.page-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: grid;
+  place-items: center;
+  padding: 32px;
+  background-color: var(--surface);
+  background-image: radial-gradient(color-mix(in srgb, var(--text-primary) 22%, transparent) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+.pl-stage { display: flex; flex-direction: column; align-items: center; }
+.pl-deck {
+  position: relative;
+  width: 256px;
+  height: 320px;
+  perspective: 1200px;
+}
+.pl-card {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px;
+  border: 3px solid var(--nb-border);
+  border-radius: var(--nb-r);
+  box-shadow: 8px 8px 0 var(--nb-border);
+  user-select: none;
+  color: #fff;
+}
+.pl-card.tone-violet { background: #a300ff; }
+.pl-card.tone-indigo { background: #6f00ff; }
+.pl-card.tone-main   { background: #5600ff; }
+.pl-card.tone-blue   { background: #0078ff; color: #000; }
+.pl-card.tone-cyan   { background: #009fff; color: #000; }
+
+.pl-head { display: flex; align-items: center; justify-content: space-between; }
+.pl-dot {
+  width: 28px; height: 28px;
+  display: grid; place-items: center;
+  border: 2px solid #000; border-radius: 50%;
+  background: #fff;
+}
+.pl-dot span { width: 8px; height: 8px; border-radius: 50%; background: #000; }
+.pl-tag {
+  font-family: var(--font-m);
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border: 2px solid #000;
+  background: #fff;
+  color: #000;
+  box-shadow: 2px 2px 0 #000;
+}
+.pl-center { display: flex; flex-direction: column; align-items: center; gap: 12px; margin: auto 0; }
+.pl-icon {
+  display: grid; place-items: center;
+  padding: 12px;
+  border: 2px solid #000; border-radius: 50%;
+  background: #fff; color: #000;
+}
+.pl-icon.is-top { background: #000; color: #fff; }
+.pl-title {
+  margin: 0;
+  font-family: var(--font-d);
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  text-align: center;
+}
+.pl-status {
+  display: flex; justify-content: space-between;
+  font-family: var(--font-m); font-size: 10px; font-weight: 700;
+  margin-bottom: 6px;
+}
+.pl-bar {
+  height: 16px;
+  padding: 2px;
+  border: 2px solid #000;
+  background: #fff;
+  box-shadow: 2px 2px 0 #000;
+}
+.pl-bar span { display: block; height: 100%; background: #000; transition: width 0.12s linear; }
+.pl-pill {
+  margin-top: 48px;
+  display: inline-flex; align-items: center; gap: 12px;
+  padding: 8px 20px;
+  border: 3px solid #000;
+  background: #000;
+  color: #fff;
+  box-shadow: 4px 4px 0 var(--main);
+  font-family: var(--font-m);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.pl-spin { color: #009fff; animation: pl-spin 0.9s linear infinite; }
+@keyframes pl-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .pl-spin { animation: none; } }
+
+/* ==================================================================
+   HERO CARDS (components/HeroCards.tsx)
+   ------------------------------------------------------------------
+   Desktop only: below 1280px there is no room beside a centred headline,
+   and a draggable card on touch fights the page scroll.
+   ================================================================== */
+.hero-cards { display: none; }
+@media (min-width: 1280px) and (hover: hover) and (pointer: fine) {
+  .hero-cards {
+    display: block;
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    perspective: 1400px;
+  }
+}
+.hero-card-slot {
+  position: absolute;
+  top: 50%;
+  width: 240px;
+  margin-top: -150px;
+  pointer-events: auto;
+}
+.hero-card-slot.is-left { left: clamp(28px, 4vw, 90px); }
+.hero-card-slot.is-right { right: clamp(28px, 4vw, 90px); margin-top: -110px; }
+
+.hero-card {
+  position: relative;
+  width: 240px;
+  height: 320px;
+  transform-style: preserve-3d;
+  cursor: grab;
+  touch-action: none;
+  outline: none;
+}
+.hero-card:active { cursor: grabbing; }
+.hero-card:focus-visible .hc-front,
+.hero-card:focus-visible .hc-back { outline: 3px solid var(--main); outline-offset: 4px; }
+
+.hc-face {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border: var(--nb-bw) solid var(--nb-border);
+  border-radius: var(--nb-r);
+  background: var(--panel);
+  box-shadow: var(--nb-shadow-lg);
+}
+.hc-front { display: flex; flex-direction: column; }
+.hc-shot {
+  position: relative;
+  height: 150px;
+  border-bottom: var(--nb-bw) solid var(--nb-border);
+  background: var(--surface-sunken);
+}
+.hc-shot img { user-select: none; -webkit-user-drag: none; pointer-events: none; }
+.hc-visit {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: var(--nb-bw) solid var(--nb-border);
+  border-radius: var(--nb-r);
+  background: var(--main);
+  color: var(--main-fg);
+  box-shadow: var(--nb-shadow);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+.hc-visit:hover { transform: translate(-1px, -1px) rotate(-4deg); }
+.hc-visit:active { transform: translate(4px, 4px); box-shadow: none; }
+.hc-body { display: flex; flex-direction: column; gap: 6px; padding: 14px 14px 0; flex: 1; }
+.hc-title {
+  margin: 0;
+  font-family: var(--font-d);
+  font-weight: 900;
+  font-size: 1.15rem;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+.hc-sub { margin: 0; font-size: 0.82rem; line-height: 1.4; color: var(--text-secondary); }
+.hc-cta {
+  align-self: flex-start;
+  margin-top: auto;
+  margin-bottom: 30px;
+  padding: 6px 10px;
+  font-family: var(--font-d);
+  font-weight: 800;
+  font-size: 0.82rem;
+  border: var(--nb-bw) solid var(--nb-border);
+  border-radius: var(--nb-r);
+  background: var(--panel);
+  color: var(--text-primary);
+  box-shadow: 3px 3px 0 var(--nb-border);
+  text-decoration: none;
+}
+.hc-cta:hover { background: var(--nb-cyan); color: #000; }
+.hc-hint {
+  position: absolute;
+  left: 14px;
+  bottom: 9px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-m);
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.hc-back {
+  transform: rotateY(180deg);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: var(--main);
+  color: var(--main-fg);
+}
+.hc-back-label {
+  margin: 0;
+  align-self: flex-start;
+  padding: 3px 8px;
+  font-family: var(--font-m);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: var(--panel);
+  color: var(--text-primary);
+  border: var(--nb-bw) solid var(--nb-border);
+}
+.hc-stack { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.hc-stack li {
+  padding: 3px 7px;
+  font-family: var(--font-m);
+  font-size: 0.66rem;
+  font-weight: 700;
+  background: #fff;
+  color: #000;
+  border: 2px solid #000;
+}
+.hc-features { margin: 0; padding-left: 16px; font-size: 0.78rem; line-height: 1.35; }
+.hc-features li + li { margin-top: 4px; }
+.hc-back-title {
+  margin: auto 0 0;
+  font-family: var(--font-d);
+  font-weight: 900;
+  font-size: 1rem;
+  border-top: 2px solid var(--main-fg);
+  padding-top: 8px;
+}
+
+/* ==================================================================
+   SITE X-RAY (components/SiteXray.tsx)
+   ================================================================== */
+.xray { max-width: 860px; margin: clamp(28px, 4vw, 44px) auto 0; }
+.xray-form {
+  padding: clamp(18px, 3vw, 28px);
+  border: var(--nb-bw) solid var(--nb-border);
+  border-radius: var(--nb-r);
+  background: var(--panel);
+  box-shadow: var(--nb-shadow-lg);
+}
+.xray-label {
+  display: block;
+  margin-bottom: 10px;
+  font-family: var(--font-m);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.xray-row { display: flex; gap: 12px; flex-wrap: wrap; }
+.xray-row input {
+  flex: 1 1 260px;
+  min-width: 0;
+  padding: 14px 16px;
+  font: 600 1.05rem var(--font-b);
+  color: var(--text-primary);
+  background: var(--surface);
+  border: var(--nb-bw) solid var(--nb-border);
+  border-radius: var(--nb-r);
+}
+.xray-row input:focus-visible { outline: var(--nb-bw) solid var(--main); outline-offset: 2px; box-shadow: var(--nb-shadow); }
+.xray-row .btn { flex: 0 0 auto; }
+
+.xray-scan {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 18px;
+  font-family: var(--font-m);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-primary);
+}
+.xray-scan-bar {
+  position: relative;
+  flex: 1;
+  height: 16px;
+  overflow: hidden;
+  border: var(--nb-bw) solid var(--nb-border);
+  background: var(--panel);
+}
+.xray-scan-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: 30%;
+  background: var(--main);
+  animation: xray-sweep 1s linear infinite alternate;
+}
+@keyframes xray-sweep { from { transform: translateX(0); } to { transform: translateX(233%); } }
+@media (prefers-reduced-motion: reduce) { .xray-scan-bar::after { animation: none; width: 100%; } }
+
+.xray-error {
+  margin: 18px 0 0;
+  padding: 14px 16px;
+  border: var(--nb-bw) solid var(--nb-border);
+  border-radius: var(--nb-r);
+  background: var(--surface-sunken);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.xray-result { margin-top: 22px; }
+.xray-summary {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 18px 20px;
+  border: var(--nb-bw) solid var(--nb-border);
+  border-radius: var(--nb-r);
+  background: var(--main);
+  color: var(--main-fg);
+  box-shadow: var(--nb-shadow);
+}
+.xray-summary p { margin: 0; }
+.xray-score { font-family: var(--font-d); font-weight: 900; line-height: 1; }
+.xray-score-n { font-size: clamp(3rem, 8vw, 4.4rem); }
+.xray-score-t { font-size: 1.6rem; }
+.xray-host { font-family: var(--font-d); font-weight: 900; font-size: 1.25rem; word-break: break-all; }
+.xray-passed { font-weight: 600; }
+.xray-facts { font-family: var(--font-m); font-size: 0.75rem; letter-spacing: 0.08em; margin-top: 4px !important; }
+
+.xray-list {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 10px;
+}
+.xray-list li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border: var(--nb-bw) solid var(--nb-border);
+  border-radius: var(--nb-r);
+  background: var(--panel);
+  color: var(--text-primary);
+}
+.xray-list li.is-fail { box-shadow: var(--nb-shadow); }
+.xray-mark {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  font-weight: 900;
+  border: var(--nb-bw) solid var(--nb-border);
+  border-radius: 3px;
+}
+.is-pass .xray-mark { background: var(--surface-sunken); color: var(--text-primary); }
+.is-fail .xray-mark { background: var(--main); color: var(--main-fg); }
+.xray-check { margin: 2px 0 0; font-weight: 700; }
+.xray-why { margin: 6px 0 0; font-size: 0.88rem; line-height: 1.45; color: var(--text-secondary); }
+.xray-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
+.xray-note { margin: 16px 0 0; font-size: 0.82rem; line-height: 1.5; color: var(--text-muted); }
+
+/* The headline's .shell spans the whole hero and sat above the cards, so it
+   swallowed every drag. The cards never overlap the text, so they sit on top. */
+@media (min-width: 1280px) and (hover: hover) and (pointer: fine) {
+  .hero-cards { z-index: 5; }
+}
+/* Progress is already eased in JS; a CSS transition on top restarted every
+   update and made the bar trail its own number. */
+.pl-bar span { transition: none; }
+/* Failsafe with no JavaScript involved: the overlay is gone by 6 s regardless. */
+.page-loader { animation: pl-failsafe 0.3s 6s forwards; }
+@keyframes pl-failsafe { to { opacity: 0; visibility: hidden; pointer-events: none; } }
+
+/* X-ray lines up with its own section heading rather than floating centred
+   beneath a left-aligned one, and a passing check keeps its own height instead
+   of stretching to match a failing neighbour's explanation. */
+.xray { margin-left: 0; margin-right: 0; }
+.xray-list { align-items: start; }

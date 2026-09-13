@@ -17,6 +17,7 @@ import { publicContent } from '@/lib/params';
 import { VisitTracker } from '@/components/VisitTracker';
 import { WelcomePanel } from '@/components/WelcomePanel';
 import { ThemeScript } from '@/components/ThemeScript';
+import { LOADER_SKIP_SCRIPT, PageLoader } from '@/components/PageLoader';
 import { BRAND, FOUNDER, LANGS, content, type Lang } from '@/lib/content';
 import { SITE_URL } from '@/lib/seo';
 import { THEME_COLOR } from '@/lib/theme';
@@ -147,8 +148,16 @@ export default async function LangLayout({
     >
       <head>
         <ThemeScript />
+        {/* Before first paint: a repeat load in the same session never
+            shows the loader, so there is no flash of it either. */}
+        <script dangerouslySetInnerHTML={{ __html: LOADER_SKIP_SCRIPT }} />
+        {/* Without JavaScript nothing could ever lift the overlay. */}
+        <noscript>
+          <style>{'.page-loader{display:none!important}'}</style>
+        </noscript>
       </head>
       <body>
+        <PageLoader status={c.loader.status} />
         {/* first stop for a keyboard or screen-reader visitor: the nav is
             eight links and a language switcher deep before the content */}
         <a className="skip-link" href="#main">

@@ -65,6 +65,11 @@ export default async function PrivacyPage({ params }: { params: Promise<{ lang: 
       when: 'Only when you send it',
       why: 'To answer you.',
     },
+    {
+      what: 'A website address you run through Site X-ray',
+      when: 'Only when you run a check',
+      why: 'The address and its results are sent to the studio, so we can see which sites people test. Your location is attached only if you have also accepted analytics.',
+    },
   ];
 
   /* The three standard categories. Necessary is the only one that runs
