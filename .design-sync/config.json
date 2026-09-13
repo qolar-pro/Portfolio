@@ -1,0 +1,28 @@
+{
+  "projectId": "b805fd43-1558-4361-ba8e-f28d4a5e3b59",
+  "pkg": "novafaber",
+  "globalName": "NovaFaber",
+  "shape": "package",
+  "srcDir": "components",
+  "tsconfig": "./tsconfig.json",
+  "cssEntry": ".design-sync/.cache/ds-styles.css",
+  "componentSrcMap": {
+    "HeroTitle": "components/HeroTitle.tsx",
+    "Logo": "components/Logo.tsx",
+    "Marquee": "components/Marquee.tsx",
+    "ThemeToggle": "components/ThemeToggle.tsx",
+    "Accordion": "components/Accordion.tsx"
+  },
+  "overrides": {
+    "HeroTitle": {
+      "cardMode": "column"
+    },
+    "Marquee": {
+      "cardMode": "column"
+    },
+    "Accordion": {
+      "cardMode": "column"
+    }
+  },
+  "readmeHeader": ".design-sync/conventions.md"
+}

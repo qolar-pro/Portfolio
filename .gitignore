@@ -14,3 +14,8 @@ next-env.d.ts
 
 # Screenshots and profiles written by the QA scripts in tools/.
 .qa/
+.ds-sync/
+ds-bundle/
+.design-sync/.cache/
+.design-sync/learnings/
+.design-sync/node_modules
