@@ -8,9 +8,16 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
  *
  * Carried over from D:\apps\portfolio\Portfolio\lib\motion.ts and
  * D:\apps\again\lawfirm\src\lib\motion.ts, which agreed on the vocabulary.
- * The change here is amplitude, not language: the old site moved things far
- * and fast enough to read as shake. Travel distances are roughly halved and
- * the settle is longer, so motion registers as weight rather than jitter.
+ *
+ * Re-tuned again at the client's explicit direction ("Hard Impact"): the
+ * previous pass had halved travel distances to read as weight rather than
+ * shake. That instruction is now reversed — the brief asked for motion big
+ * enough to notice without hunting for it, cards and panels that land with
+ * real travel behind them, a site that visibly moves while you scroll it,
+ * not just on arrival. `SHIFT` below carries that amplitude; anything
+ * `useScrubbed` (see lib/scrollMotion.ts) drives — the differential drift in
+ * CapabilityLedger, the hero parallax in HeroDepth — reads it directly, so
+ * turning this one dial up moves the whole scroll-linked layer at once.
  */
 
 /** Signature curve: fast attack, long settle. */
@@ -37,14 +44,14 @@ export const STAGGER = {
   loose: 0.15,
 } as const;
 
-/** Travel distances. Deliberately short — this is the anti-shake dial. */
+/** Travel distances. This is the amplitude dial — turned up on purpose. */
 export const SHIFT = {
   /** default reveal rise */
-  y: 24,
+  y: 62,
   /** display type, masked line wipes */
-  line: 34,
+  line: 70,
   /** parallax drift over a full section pass */
-  drift: 40,
+  drift: 100,
 } as const;
 
 let registered = false;

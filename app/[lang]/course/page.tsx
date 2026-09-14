@@ -3,6 +3,8 @@ import Link from 'next/link';
 import { BRAND, EMAIL, FOUNDER, LOCATION, ROUTES } from '@/lib/content';
 import { SITE_URL } from '@/lib/seo';
 import { JsonLd } from '@/components/JsonLd';
+import { JourneyRail } from '@/components/JourneyRail';
+import { Reveal } from '@/components/motion/Reveal';
 
 /**
  * "Before you pay" — the studio's giveaway course.
@@ -225,30 +227,33 @@ export default async function CoursePage({ params }: { params: Promise<{ lang: s
   return (
     <>
       <JsonLd data={schema} />
+      <JourneyRail steps={LESSONS.length} />
       <main id="main" className="course">
         <div className="shell">
           <header className="course-top">
-            <Link className="eyebrow" href={`/${lang}`}>
-              {BRAND}
-            </Link>
-            <h1 className="course-h1">
-              Before
-              <br />
-              you <em>pay.</em>
-            </h1>
-            <p className="course-stand">
-              Ten things worth knowing before you commission a website — written for the person
-              signing the invoice, not for developers.
-            </p>
-            <div className="course-meta">
-              <span>10 lessons</span>
-              <span>~35 min read</span>
-              <span>No jargon</span>
-              <span>Free</span>
-            </div>
+            <Reveal>
+              <Link className="eyebrow" href={`/${lang}`}>
+                {BRAND}
+              </Link>
+              <h1 className="course-h1" data-anim="clip" data-anim-delay="1">
+                Before
+                <br />
+                you <em>pay.</em>
+              </h1>
+              <p className="course-stand" data-anim="fade" data-anim-delay="2">
+                Ten things worth knowing before you commission a website — written for the person
+                signing the invoice, not for developers.
+              </p>
+              <div className="course-meta" data-anim-group>
+                <span>10 lessons</span>
+                <span>~35 min read</span>
+                <span>No jargon</span>
+                <span>Free</span>
+              </div>
+            </Reveal>
           </header>
 
-          <div className="course-intro">
+          <div className="course-intro" data-anim="fade">
             <p>
               <strong>This is not a sales brochure.</strong> Most of it will help you buy a website
               from someone else just as well as from me. That is deliberate: a client who knows what
@@ -267,7 +272,7 @@ export default async function CoursePage({ params }: { params: Promise<{ lang: s
           </div>
 
           {LESSONS.map((l) => (
-            <section className="lesson" id={`l${l.n}`} key={l.n}>
+            <section className="lesson" data-anim="rise" id={`l${l.n}`} key={l.n}>
               <div className="lesson-head">
                 <span className="lesson-n">{l.n}</span>
                 <h2>{l.h}</h2>
@@ -290,14 +295,14 @@ export default async function CoursePage({ params }: { params: Promise<{ lang: s
             </section>
           ))}
 
-          <section className="course-close">
-            <span className="eyebrow">Take this with you</span>
-            <h2>The one-page version</h2>
-            <p>
+          <section className="course-close" data-anim="rise">
+            <span className="eyebrow" data-anim="fade">Take this with you</span>
+            <h2 data-anim="clip" data-anim-delay="1">The one-page version</h2>
+            <p data-anim="fade" data-anim-delay="2">
               If you only take a checklist from all of this, take this one. It is the part that
               protects you.
             </p>
-            <ul className="course-check">
+            <ul className="course-check" data-anim-group>
               {CHECKLIST.map((c) => (
                 <li key={c}>{c}</li>
               ))}

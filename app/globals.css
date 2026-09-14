@@ -2190,7 +2190,11 @@ img { max-width: 100%; display: block; }
 }
 .marquee-track {
   display: flex;
-  animation: slide 56s linear infinite;
+  /* --marquee-dur is a live scroll-velocity readout, set by MotionProvider —
+     fling the page and every ticker visibly speeds up with you, then eases
+     back to 56s the moment you stop. Falls back to a flat 56s wherever that
+     script hasn't run yet (first paint, or JS disabled). */
+  animation: slide var(--marquee-dur, 56s) linear infinite;
   flex: none;
 }
 .marquee:hover .marquee-track { animation-play-state: paused; }
@@ -4935,76 +4939,126 @@ a.fc-value:hover { border-color: var(--orange); }
 [data-anim-group] > * {
   /* the resting state IS the finished state: without JS none of this
      ever applies, and the page is simply the page */
-  --anim-dur: 0.78s;
+  --anim-dur: 0.6s;
   --anim-delay: 0s;
+  --anim-ease: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* ---- armed: the from-state, applied by JS to below-fold elements ---- */
+/* ---- armed: the from-state, applied by JS to below-fold elements ----
+   Pulled back further than a soft settle needs, on purpose: HARD IMPACT
+   wants the travel to be visible, not just implied. */
 
 .anim-armed { opacity: 0; }
 
-.anim-armed[data-anim='rise'] { transform: translate3d(0, 26px, 0); }
+.anim-armed[data-anim='rise'] { transform: translate3d(0, 62px, 0); }
 .anim-armed[data-anim='fade'] { transform: none; }
-.anim-armed[data-anim='left'] { transform: translate3d(-34px, 0, 0); }
-.anim-armed[data-anim='right'] { transform: translate3d(34px, 0, 0); }
-.anim-armed[data-anim='scale'] { transform: scale(0.955); }
-.anim-armed[data-anim='blur'] { filter: blur(11px); transform: translate3d(0, 14px, 0); }
+.anim-armed[data-anim='left'] { transform: translate3d(-78px, 0, 0) rotate(-2.4deg); }
+.anim-armed[data-anim='right'] { transform: translate3d(78px, 0, 0) rotate(2.4deg); }
+.anim-armed[data-anim='scale'] { transform: scale(0.5); }
+.anim-armed[data-anim='blur'] { filter: blur(15px); transform: translate3d(0, 24px, 0); }
 
-/* display type: a masked wipe upward. The element clips its own text, so
-   the line arrives from behind its own top edge rather than fading in. */
+/* display type: still the masked wipe, but the line drops in from above and
+   overshoots past its own baseline before it settles — a slam, not a wipe. */
 .anim-armed[data-anim='clip'] {
   opacity: 1;
   clip-path: inset(0 0 100% 0);
-  transform: translate3d(0, 0.16em, 0);
+  transform: translate3d(0, -0.5em, 0) scaleY(1.18);
 }
 
-/* media: the frame uncovers left to right while the picture settles back
-   from a slight push-in — the shot lands rather than appears */
+/* media: the frame still uncovers left to right, but the picture behind it
+   punches in hard from a bigger push-in rather than just settling back */
 .anim-armed[data-anim='reveal'] {
   opacity: 1;
   clip-path: inset(0 100% 0 0);
 }
-.anim-armed[data-anim='reveal'] > * { transform: scale(1.06); }
+.anim-armed[data-anim='reveal'] > * { transform: scale(1.16); }
 
 /* small round things — icons, dots, marks */
-.anim-armed[data-anim='pop'] { transform: scale(0.6); }
+.anim-armed[data-anim='pop'] { transform: scale(0.3) rotate(-10deg); }
 
-/* ---- the transition ---- */
+/* ==================================================================
+   THE LANDING
+   ------------------------------------------------------------------
+   This used to be a plain two-state `transition`: ease from the armed
+   values above to nothing, once, in one direction. A transition can only
+   approach its end value — it can never overshoot past it and rebound,
+   which is what a *landing* actually looks like. Swapped for a
+   multi-keyframe `animation` per verb instead: same trigger (JS still only
+   ever adds `anim-armed` then `anim-in`, see MotionScope — nothing below
+   this comment is JS-visible), but now each verb gets a real flight path:
+   fast attack, an overshoot past rest, a small correction, hold.
 
-.anim-armed {
-  transition:
-    opacity var(--anim-dur) var(--ease-out) var(--anim-delay),
-    transform var(--anim-dur) var(--ease-out) var(--anim-delay),
-    filter var(--anim-dur) var(--ease-out) var(--anim-delay),
-    clip-path var(--anim-dur) var(--ease-out) var(--anim-delay);
-}
-.anim-armed[data-anim='reveal'] > * {
-  transition: transform 1.1s var(--ease-out) var(--anim-delay);
-}
-.anim-armed[data-anim='pop'] {
-  transition:
-    opacity 0.5s var(--ease-out) var(--anim-delay),
-    transform 0.62s cubic-bezier(0.34, 1.56, 0.64, 1) var(--anim-delay);
-}
-.anim-armed[data-anim='clip'] { --anim-dur: 1.05s; }
-.anim-armed[data-anim='blur'] { --anim-dur: 1s; }
+   `.anim-armed.anim-in[data-anim='x']`, not `.anim-in` — same specificity
+   fight as before: the from-state is an attribute selector, so the landed
+   rule has to match its weight or lose the cascade and stay stuck at
+   whatever the armed transform was. See the comment this used to carry;
+   the trap it describes is identical for `animation` as it was for
+   `transition`.
+   ================================================================== */
 
-/* ---- landed ----
-   `.anim-armed.anim-in`, not `.anim-in`: the armed from-states are written
-   as `.anim-armed[data-anim='clip']` and friends, which is one attribute
-   selector more specific than a lone class. A landed rule that loses that
-   fight leaves the element clipped, blurred or offset by 26px FOREVER —
-   which is precisely what happened to every heading on the site until this
-   selector matched the armed one's weight. */
-
-.anim-armed.anim-in,
-.anim-armed.anim-in > *,
-.anim-armed.anim-in[data-anim] {
-  opacity: 1;
-  transform: none;
-  filter: none;
-  clip-path: inset(0 0 0 0);
+@keyframes impact-rise {
+  0%   { opacity: 0; transform: translate3d(0, 62px, 0); }
+  58%  { opacity: 1; transform: translate3d(0, -10px, 0); }
+  78%  { transform: translate3d(0, 5px, 0); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0); }
 }
+@keyframes impact-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes impact-left {
+  0%   { opacity: 0; transform: translate3d(-78px, 0, 0) rotate(-2.4deg); }
+  55%  { opacity: 1; transform: translate3d(8px, 0, 0) rotate(0.8deg); }
+  76%  { transform: translate3d(-4px, 0, 0) rotate(-0.4deg); }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes impact-right {
+  0%   { opacity: 0; transform: translate3d(78px, 0, 0) rotate(2.4deg); }
+  55%  { opacity: 1; transform: translate3d(-8px, 0, 0) rotate(-0.8deg); }
+  76%  { transform: translate3d(4px, 0, 0) rotate(0.4deg); }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes impact-scale {
+  0%   { opacity: 0; transform: scale(0.5); }
+  55%  { opacity: 1; transform: scale(1.08); }
+  78%  { transform: scale(0.96); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes impact-blur {
+  0%   { opacity: 0; filter: blur(15px); transform: translate3d(0, 24px, 0); }
+  100% { opacity: 1; filter: blur(0); transform: none; }
+}
+@keyframes impact-clip {
+  0%   { opacity: 1; clip-path: inset(0 0 100% 0); transform: translate3d(0, -0.5em, 0) scaleY(1.18); }
+  62%  { clip-path: inset(0 0 0 0); transform: translate3d(0, 0.1em, 0) scaleY(0.96); }
+  100% { clip-path: inset(0 0 0 0); transform: none; }
+}
+@keyframes impact-pop {
+  0%   { opacity: 0; transform: scale(0.3) rotate(-10deg); }
+  55%  { opacity: 1; transform: scale(1.28) rotate(5deg); }
+  78%  { transform: scale(0.9) rotate(-2deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0); }
+}
+@keyframes impact-reveal-clip {
+  0%   { clip-path: inset(0 100% 0 0); }
+  100% { clip-path: inset(0 0 0 0); }
+}
+@keyframes impact-reveal-media {
+  0%   { transform: scale(1.16); }
+  60%  { transform: scale(0.97); }
+  100% { transform: scale(1); }
+}
+
+.anim-armed.anim-in[data-anim='rise']   { animation: impact-rise   var(--anim-dur) var(--anim-ease) var(--anim-delay) both; }
+.anim-armed.anim-in[data-anim='fade']   { animation: impact-fade   calc(var(--anim-dur) * 0.7) linear var(--anim-delay) both; }
+.anim-armed.anim-in[data-anim='left']   { animation: impact-left   var(--anim-dur) var(--anim-ease) var(--anim-delay) both; }
+.anim-armed.anim-in[data-anim='right']  { animation: impact-right  var(--anim-dur) var(--anim-ease) var(--anim-delay) both; }
+.anim-armed.anim-in[data-anim='scale']  { animation: impact-scale  var(--anim-dur) var(--anim-ease) var(--anim-delay) both; }
+.anim-armed.anim-in[data-anim='blur']   { animation: impact-blur   calc(var(--anim-dur) * 1.15) var(--anim-ease) var(--anim-delay) both; }
+.anim-armed.anim-in[data-anim='clip']   { animation: impact-clip   calc(var(--anim-dur) * 1.1) cubic-bezier(0.3, 0, 0.2, 1.35) var(--anim-delay) both; }
+.anim-armed.anim-in[data-anim='pop']    { animation: impact-pop    calc(var(--anim-dur) * 0.85) cubic-bezier(0.34, 1.56, 0.64, 1) var(--anim-delay) both; }
+.anim-armed.anim-in[data-anim='reveal'] { animation: impact-reveal-clip calc(var(--anim-dur) * 1.3) var(--anim-ease) var(--anim-delay) both; }
+.anim-armed.anim-in[data-anim='reveal'] > * { animation: impact-reveal-media calc(var(--anim-dur) * 1.4) var(--anim-ease) var(--anim-delay) both; }
 
 /* ---- groups: children arrive one after another ----
    Ten steps of 70ms. Past ten a sequence stops reading as a sequence and
@@ -5012,34 +5066,41 @@ a.fc-value:hover { border-color: var(--orange); }
 
 [data-anim-group].anim-armed > * {
   opacity: 0;
-  transform: translate3d(0, 22px, 0);
-  transition:
-    opacity 0.7s var(--ease-out),
-    transform 0.7s var(--ease-out);
+  transform: translate3d(0, 46px, 0) scale(0.92);
 }
-[data-anim-group='side'].anim-armed > * { transform: translate3d(-22px, 0, 0); }
-[data-anim-group='pop'].anim-armed > * { transform: scale(0.7); }
+[data-anim-group='side'].anim-armed > * { transform: translate3d(-46px, 0, 0) scale(0.94); }
+[data-anim-group='pop'].anim-armed > * { transform: scale(0.4) rotate(-6deg); }
 
-[data-anim-group].anim-armed > *:nth-child(1) { transition-delay: 0.02s; }
-[data-anim-group].anim-armed > *:nth-child(2) { transition-delay: 0.09s; }
-[data-anim-group].anim-armed > *:nth-child(3) { transition-delay: 0.16s; }
-[data-anim-group].anim-armed > *:nth-child(4) { transition-delay: 0.23s; }
-[data-anim-group].anim-armed > *:nth-child(5) { transition-delay: 0.3s; }
-[data-anim-group].anim-armed > *:nth-child(6) { transition-delay: 0.37s; }
-[data-anim-group].anim-armed > *:nth-child(7) { transition-delay: 0.44s; }
-[data-anim-group].anim-armed > *:nth-child(8) { transition-delay: 0.51s; }
-[data-anim-group].anim-armed > *:nth-child(9) { transition-delay: 0.58s; }
-[data-anim-group].anim-armed > *:nth-child(n + 10) { transition-delay: 0.65s; }
-
-/* The landed state for groups, declared AFTER the from-states and at the
-   same weight — `[data-anim-group].anim-armed > *` and `.anim-armed.anim-in
-   > *` are both (0,2,0), so source order is the only tie-break, and the
-   generic rule above loses it. Without this the children of every staggered
-   list on the site stay at opacity 0 permanently. */
-[data-anim-group].anim-armed.anim-in > * {
-  opacity: 1;
-  transform: none;
+@keyframes impact-group-rise {
+  0%   { opacity: 0; transform: translate3d(0, 46px, 0) scale(0.92); }
+  60%  { opacity: 1; transform: translate3d(0, -7px, 0) scale(1.02); }
+  100% { opacity: 1; transform: none; }
 }
+@keyframes impact-group-side {
+  0%   { opacity: 0; transform: translate3d(-46px, 0, 0) scale(0.94); }
+  60%  { opacity: 1; transform: translate3d(5px, 0, 0) scale(1.02); }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes impact-group-pop {
+  0%   { opacity: 0; transform: scale(0.4) rotate(-6deg); }
+  60%  { opacity: 1; transform: scale(1.18) rotate(3deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0); }
+}
+
+[data-anim-group].anim-armed.anim-in > * { animation: impact-group-rise 0.55s cubic-bezier(0.22, 0.9, 0.32, 1.2) both; }
+[data-anim-group='side'].anim-armed.anim-in > * { animation: impact-group-side 0.55s cubic-bezier(0.22, 0.9, 0.32, 1.2) both; }
+[data-anim-group='pop'].anim-armed.anim-in > * { animation: impact-group-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+[data-anim-group].anim-armed > *:nth-child(1) { animation-delay: 0.02s; }
+[data-anim-group].anim-armed > *:nth-child(2) { animation-delay: 0.09s; }
+[data-anim-group].anim-armed > *:nth-child(3) { animation-delay: 0.16s; }
+[data-anim-group].anim-armed > *:nth-child(4) { animation-delay: 0.23s; }
+[data-anim-group].anim-armed > *:nth-child(5) { animation-delay: 0.3s; }
+[data-anim-group].anim-armed > *:nth-child(6) { animation-delay: 0.37s; }
+[data-anim-group].anim-armed > *:nth-child(7) { animation-delay: 0.44s; }
+[data-anim-group].anim-armed > *:nth-child(8) { animation-delay: 0.51s; }
+[data-anim-group].anim-armed > *:nth-child(9) { animation-delay: 0.58s; }
+[data-anim-group].anim-armed > *:nth-child(n + 10) { animation-delay: 0.65s; }
 
 /* ---- per-element offsets, for composing a section's entrance ---- */
 
@@ -5120,6 +5181,63 @@ a.fc-value:hover { border-color: var(--orange); }
 }
 
 /* ==================================================================
+   JOURNEY RAIL
+   ------------------------------------------------------------------
+   The literal "journey" marker for the longest single scroll on the site
+   (see components/JourneyRail.tsx) — a fixed rail on the edge that fills
+   as you descend the page. Numbers, not just a bar: knowing you're on 04
+   of 10 is a different fact than knowing you're 40% down an unlabelled
+   line, and the labels are what make it read as a journey rather than a
+   loading bar.
+   ================================================================== */
+
+.journey-rail {
+  position: fixed;
+  right: clamp(10px, 2.5vw, 28px);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  pointer-events: none;
+}
+.journey-n {
+  font-family: var(--font-m);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+.journey-n.journey-total { color: var(--text-secondary); opacity: 0.6; }
+.journey-track {
+  position: relative;
+  width: 3px;
+  height: clamp(120px, 20vh, 220px);
+  background: var(--line);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.journey-fill {
+  position: absolute;
+  inset: 0;
+  transform-origin: top center;
+  background: linear-gradient(180deg, var(--accent), var(--accent-strong));
+  border-radius: 2px;
+  /* GSAP writes scaleY inline every scroll tick; a short transition here
+     just takes the edge off the per-frame stepping without adding lag a
+     reader could feel as a delay. */
+  transition: transform 0.12s linear;
+}
+
+@media (max-width: 860px) {
+  /* A vertical rail beside single-column text on a phone sits over the
+     content it's meant to describe rather than beside it. */
+  .journey-rail { display: none; }
+}
+
+/* ==================================================================
    MOTION OFF
    ------------------------------------------------------------------
    MotionScope never arms anything under reduced motion, so these are
@@ -5136,6 +5254,7 @@ a.fc-value:hover { border-color: var(--orange); }
     filter: none !important;
     clip-path: none !important;
     transition: none !important;
+    animation: none !important;
   }
   .nav,
   .scroll-hint { animation: none; }
@@ -5557,6 +5676,14 @@ a.fc-value:hover { border-color: var(--orange); }
 /* the largest panels get the one step up the spec allows */
 .chosen, .founder, .proj, .price-card { box-shadow: var(--nb-shadow-lg) !important; }
 
+/* the one card that's a whole-surface link gets the button's hover move:
+   the shadow jumps out as it lifts, same "physical object" affordance,
+   because a card you can click deserves to say so before you commit. */
+.art-card:hover {
+  box-shadow: 9px 9px 0 var(--nb-border) !important;
+  transform: translate(-3px, -9px) !important;
+}
+
 /* ---------- controls ----------
    Press moves the element INTO its own shadow: the offset goes to zero
    and it translates by exactly the same distance. The motion is the
@@ -5577,7 +5704,15 @@ a.fc-value:hover { border-color: var(--orange); }
 }
 .btn-solid, .skip-link { background: var(--main) !important; color: var(--main-fg) !important; }
 .btn-ghost { background: var(--panel) !important; color: var(--text-primary) !important; }
-.btn:hover { background: var(--nb-cyan) !important; color: #000 !important; }
+/* Press moves it INTO its shadow (above); hover is the opposite move — it
+   lifts further OUT of it. Same mechanic, both directions, so the control
+   reads as a physical object the whole time your pointer is near it. */
+.btn:hover {
+  background: var(--nb-cyan) !important;
+  color: #000 !important;
+  box-shadow: 8px 8px 0 var(--nb-border) !important;
+  transform: translate(-2px, -5px) !important;
+}
 .btn .circ { border-radius: 0 !important; box-shadow: none !important; background: none !important; }
 
 /* A disabled control states it in its own colours rather than by fading —
@@ -6401,9 +6536,35 @@ body { font-weight: 500; }
   background: var(--surface-sunken);
   color: var(--text-primary);
   font-weight: 600;
+  animation: xray-rise 0.5s var(--ease-out) both;
 }
 
+/* The result panel and its checklist are a state change, not a scroll
+   position — MotionScope's IntersectionObserver never fires for them, since
+   the visitor is already looking at this exact spot when they submit. A
+   plain CSS entrance, same curve as everything else on the site, covers
+   what the scroll system structurally cannot. */
 .xray-result { margin-top: 22px; }
+.xray-result > * { animation: xray-rise 0.55s var(--ease-out) both; }
+.xray-list { animation: none; }
+.xray-list li { animation: xray-rise 0.45s var(--ease-out) both; }
+.xray-list li:nth-child(1) { animation-delay: 0.12s; }
+.xray-list li:nth-child(2) { animation-delay: 0.17s; }
+.xray-list li:nth-child(3) { animation-delay: 0.22s; }
+.xray-list li:nth-child(4) { animation-delay: 0.27s; }
+.xray-list li:nth-child(5) { animation-delay: 0.32s; }
+.xray-list li:nth-child(6) { animation-delay: 0.37s; }
+.xray-list li:nth-child(7) { animation-delay: 0.42s; }
+.xray-list li:nth-child(n + 8) { animation-delay: 0.47s; }
+.xray-actions, .xray-note { animation-delay: 0.55s; }
+
+@keyframes xray-rise {
+  from { opacity: 0; transform: translate3d(0, 14px, 0); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .xray-error, .xray-result > *, .xray-list li { animation: none; }
+}
 .xray-summary {
   display: flex;
   align-items: center;

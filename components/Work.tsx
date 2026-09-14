@@ -1,8 +1,10 @@
 'use client';
 
 import Image from 'next/image';
-import { useId, useState } from 'react';
+import { useId, useRef, useState } from 'react';
 import { LockIcon, hostOf } from '@/components/ProjectShot';
+import { SHIFT } from '@/lib/motion';
+import { useScrubbed } from '@/lib/scrollMotion';
 import type { Project, SiteContent } from '@/lib/content';
 
 /**
@@ -33,9 +35,25 @@ function Shots({
   const hidden = Boolean(project.embargo);
   const uid = useId();
   const host = hostOf(project.liveUrl);
+  const mediaRef = useRef<HTMLDivElement>(null);
+
+  /* Scroll-scrubbed drift on the whole frame — not the cropped image inside
+     it, which would need an oversized resting scale to cover the travel and
+     would leave reduced-motion visitors permanently looking at a zoomed-in
+     screenshot. `.case-media` itself carries no transform of its own (the
+     entrance reveal only touches its clip-path and its child `.shot`'s
+     scale), so this is a second, independent motion on the same element
+     with nothing to fight. */
+  useScrubbed(
+    mediaRef,
+    (tl, root) => {
+      tl.fromTo(root, { y: SHIFT.drift * -0.3 }, { y: SHIFT.drift * 0.3, ease: 'none' }, 0);
+    },
+    { start: 'top 92%', end: 'bottom 25%', scrub: 0.6 },
+  );
 
   return (
-    <div className="case-media" data-anim="reveal">
+    <div className="case-media" data-anim="reveal" ref={mediaRef}>
       <div className={`shot ${hidden ? 'is-embargoed' : ''}`}>
         <div className="shot-bar" aria-hidden="true">
           <span className="shot-dots">
@@ -165,7 +183,7 @@ export function Work({ c }: { c: SiteContent }) {
       </div>
 
       {lab.map((p) => (
-        <div className="lab" key={p.slug}>
+        <div className="lab" data-anim="rise" key={p.slug}>
           <Image src={p.images[0]} alt={p.title} width={640} height={400} sizes="220px" loading="lazy" />
           <div>
             <span className="badge">{c.work.labLabel}</span>

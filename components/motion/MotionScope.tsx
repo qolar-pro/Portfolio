@@ -41,12 +41,39 @@ import { useEffect } from 'react';
  * `settled` and never armed again — if the observer is not working for that
  * element, re-arming it would hide content that nothing is going to bring
  * back. Under `prefers-reduced-motion` nothing is ever armed at all.
+ *
+ * A second, independent enforcement below backs that guarantee up: a
+ * periodic sweep that force-shows anything currently on screen and still
+ * armed. It exists because the per-element safety timer and the observer
+ * both key off state captured at `arm()` time (the element's rect, whether
+ * it is intersecting) — real enough most of the time, but a page with a lot
+ * moving on it (a scrubbed parallax rewriting `transform` under a card every
+ * scroll tick, a burst of DOM mutations re-triggering `scan()`, a background
+ * tab throttling timers) can still leave an individual element stuck. The
+ * sweep does not trust any of that history — it just asks "is this on
+ * screen right now" every second and answers accordingly, so nothing can
+ * stay invisible past that interval no matter what upstream state got
+ * confused.
+ *
+ * ── THE ENTRANCE WAITS FOR THE LOADER ────────────────────────────────
+ * `PageLoader` covers the screen for a few hundred milliseconds on first
+ * load. This used to scan immediately on mount, which ran while that
+ * overlay was still up — so anything above the fold measured as "on
+ * screen" and was marked landed before the visitor could see it at all.
+ * They never saw the entrance for the one part of the page guaranteed to
+ * be in view at arrival. The first scan now waits for `nf-loading` to come
+ * off `<html>` (see PageLoader), so the hero's own entrance plays for real
+ * eyes. A repeat visit that skips the loader entirely (`nf-skip-loader`)
+ * never gets that class in the first place, so nothing waits for it.
  */
 
 const ARMED = 'anim-armed';
 const IN = 'anim-in';
 /** Nothing stays hidden longer than this, whatever else goes wrong. */
 const SAFETY_MS = 2600;
+/** The belt-and-suspenders sweep's interval — frequent enough that a stuck
+    element is never visibly stuck for long, cheap enough to run forever. */
+const SWEEP_MS = 900;
 
 export function MotionScope({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -141,16 +168,51 @@ export function MotionScope({ children }: { children: React.ReactNode }) {
         .forEach(arm);
     };
 
-    scan();
+    /* Force-show anything genuinely visible that is still sitting armed —
+       see the class-level comment above. Independent of the observer and
+       the per-element timer; it only ever looks at the DOM as it is right
+       now. */
+    const sweep = () => {
+      document.querySelectorAll<HTMLElement>(`.${ARMED}:not(.${IN})`).forEach((el) => {
+        const r = el.getBoundingClientRect();
+        const onScreen = r.top < window.innerHeight && r.bottom > 0 && r.width > 0 && r.height > 0;
+        if (!onScreen) return;
+        window.clearTimeout(timers.get(el));
+        el.dataset.animSettled = '1';
+        show(el);
+      });
+    };
+    const sweepId = window.setInterval(sweep, SWEEP_MS);
 
-    /* Client-side navigation swaps the tree without remounting this effect,
-       and route content arrives after the first scan. */
-    const mo = new MutationObserver(scan);
-    mo.observe(document.body, { childList: true, subtree: true });
+    let mo: MutationObserver | undefined;
+    const start = () => {
+      scan();
+      /* Client-side navigation swaps the tree without remounting this
+         effect, and route content arrives after the first scan. */
+      mo = new MutationObserver(scan);
+      mo.observe(document.body, { childList: true, subtree: true });
+    };
+
+    /* See the class comment: don't measure "on screen" against a page the
+       loader is still covering. */
+    let loaderWatch: MutationObserver | undefined;
+    if (document.documentElement.classList.contains('nf-loading')) {
+      loaderWatch = new MutationObserver(() => {
+        if (!document.documentElement.classList.contains('nf-loading')) {
+          loaderWatch?.disconnect();
+          start();
+        }
+      });
+      loaderWatch.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    } else {
+      start();
+    }
 
     return () => {
       io.disconnect();
-      mo.disconnect();
+      mo?.disconnect();
+      loaderWatch?.disconnect();
+      window.clearInterval(sweepId);
     };
   }, [pathname]);
 

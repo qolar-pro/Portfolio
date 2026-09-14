@@ -6,6 +6,8 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { hostOf } from '@/components/ProjectShot';
 import { ROUTES, type Lang, type Project, type SiteContent } from '@/lib/content';
 import { MARKS } from '@/lib/marks';
+import { SHIFT } from '@/lib/motion';
+import { useScrubbed } from '@/lib/scrollMotion';
 
 /**
  * The work gallery.
@@ -41,7 +43,19 @@ export function WorkGallery({ c, lang }: { c: SiteContent; lang: Lang }) {
 
   const [i, setI] = useState(0);
   const tabsRef = useRef<HTMLDivElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
   const active = projects[i];
+
+  /* The stage frame drifts against the copy beside it as the whole gallery
+     scrolls through — same differential-parallax move as CapabilityLedger,
+     applied here to the one persistent shot rather than a repeated list. */
+  useScrubbed(
+    stageRef,
+    (tl, root) => {
+      tl.fromTo(root, { y: SHIFT.drift * -0.35 }, { y: SHIFT.drift * 0.35, ease: 'none' }, 0);
+    },
+    { start: 'top 88%', end: 'bottom 15%', scrub: 0.6 },
+  );
 
   const focusTab = useCallback((n: number) => {
     const tabs = tabsRef.current?.querySelectorAll<HTMLElement>('[role="tab"]');
@@ -70,7 +84,7 @@ export function WorkGallery({ c, lang }: { c: SiteContent; lang: Lang }) {
     <div className="gal">
       {/* ---------------- the stage ---------------- */}
       <div className="gal-stage" role="tabpanel" id="gal-panel" aria-live="polite">
-        <div className="gal-shot" data-anim="reveal">
+        <div className="gal-shot" data-anim="reveal" ref={stageRef}>
           <div className="shot">
             <div className="shot-bar" aria-hidden="true">
               <span className="shot-dots">

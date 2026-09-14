@@ -104,10 +104,10 @@ export default async function ArticlePage({
         </header>
 
         <article className="section">
-          <div className="shell prose">
+          <div className="shell prose" data-anim="fade">
             {a.body.map((b, i) => {
-              if (b.t === 'h') return <h2 key={i}>{b.s}</h2>;
-              if (b.t === 'quote') return <blockquote key={i}>{b.s}</blockquote>;
+              if (b.t === 'h') return <h2 data-anim="clip" key={i}>{b.s}</h2>;
+              if (b.t === 'quote') return <blockquote data-anim="rise" key={i}>{b.s}</blockquote>;
               if (b.t === 'ul')
                 return (
                   <ul key={i}>

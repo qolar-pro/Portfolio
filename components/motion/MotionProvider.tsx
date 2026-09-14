@@ -67,11 +67,30 @@ export function MotionProvider({ children }: { children: ReactNode }) {
       wheelMultiplier: 0.9,
     });
 
+    /* HARD IMPACT: the page should feel like it's reacting to how fast you're
+       moving through it, not just to where you are. `--marquee-dur` is read
+       by every `.marquee-track` on the page (see globals.css); a fast fling
+       shortens it, so every ticker on screen visibly speeds up with you, and
+       it eases back to the resting 56s the moment you stop. One CSS custom
+       property on the root, updated off the same ticker Lenis already runs
+       on — no extra per-marquee listeners, no extra rAF loop. */
+    let marqueeDur = 56;
+    let marqueeTarget = 56;
+
     /* Lenis and ScrollTrigger have to share one clock. Driving Lenis from
        GSAP's ticker rather than its own rAF is what stops a scrubbed
        timeline drifting a frame behind the scroll that drives it. */
-    lenis.on('scroll', ScrollTrigger.update);
-    const tick = (time: number) => lenis.raf(time * 1000);
+    lenis.on('scroll', (e: { velocity?: number }) => {
+      ScrollTrigger.update();
+      const speed = Math.min(Math.abs(e.velocity ?? 0), 40);
+      marqueeTarget = Math.max(6, 56 - speed * 2.8);
+    });
+    const tick = (time: number) => {
+      lenis.raf(time * 1000);
+      marqueeDur += (marqueeTarget - marqueeDur) * 0.09;
+      marqueeTarget += (56 - marqueeTarget) * 0.012;
+      document.documentElement.style.setProperty('--marquee-dur', `${marqueeDur.toFixed(2)}s`);
+    };
     gsap.ticker.add(tick);
     gsap.ticker.lagSmoothing(0);
 

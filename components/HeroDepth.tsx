@@ -22,6 +22,10 @@ import { useScrubbed } from '@/lib/scrollMotion';
  * writes no from-state, so the planes simply stay where the CSS puts them.
  * That is why the resting CSS has to be the finished look, never a start
  * frame waiting to be animated.
+ *
+ * Amplitude raised for the "Hard Impact" pass: the separation between planes
+ * is now big enough to read as the hero physically pulling apart as you
+ * leave it, not just a texture drifting a few pixels.
  */
 export function HeroDepth({ target }: { target: string }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -39,13 +43,13 @@ export function HeroDepth({ target }: { target: string }) {
       /* Positions are fractions of the hero's own scroll range, so all three
          start together and separate as it leaves — the separation is the
          effect, not the distance any one of them covers. */
-      if (far) tl.to(far, { yPercent: 4, ease: 'none' }, 0);
-      if (near) tl.to(near, { yPercent: 11, ease: 'none' }, 0);
+      if (far) tl.to(far, { yPercent: 12, scale: 1.06, ease: 'none' }, 0);
+      if (near) tl.to(near, { yPercent: 30, rotate: 1.2, ease: 'none' }, 0);
       /* The glow is the nearest plane and the only one that also fades: a
          light source leaving frame dims, it does not just slide. */
-      if (glow) tl.to(glow, { yPercent: 16, opacity: 0.45, ease: 'none' }, 0);
+      if (glow) tl.to(glow, { yPercent: 44, scale: 1.2, opacity: 0.3, ease: 'none' }, 0);
     },
-    { start: 'top top', end: 'bottom top', scrub: 0.8 },
+    { start: 'top top', end: 'bottom top', scrub: 0.6 },
   );
 
   /* Nothing is rendered — this only exists to own a ref inside the hero and
